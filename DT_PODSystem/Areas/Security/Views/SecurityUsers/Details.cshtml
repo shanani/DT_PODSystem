@@ -1,0 +1,387 @@
+ 
+@model DT_PODSystem.Areas.Security.Models.ViewModels.SecurityUserDetailsViewModel
+@{
+    ViewData["Title"] = $"Security User Details - {Model.FirstName} {Model.LastName}";
+    
+}
+
+@section Styles {
+    <style>
+        .user-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-right: 20px;
+        }
+
+        .detail-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 8px;
+        }
+
+        .info-row {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+            .info-row:last-child {
+                border-bottom: none;
+            }
+
+        .role-badge {
+            margin: 2px;
+        }
+    </style>
+}
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard", new { area = "Security" })">Security</a></li>
+    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Users</a></li>
+    <li class="breadcrumb-item active">Details</li>
+</ol>
+<!-- END breadcrumb -->
+
+<!-- BEGIN page-header -->
+<h1 class="page-header">
+    <i class="fa fa-user text-info me-2"></i>
+    Security User Details
+    <small>Complete user information</small>
+    <div class="float-end">
+        <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-outline-info me-2">
+            <i class="fa fa-pencil me-2"></i>Edit User
+        </a>
+        <a href="@Url.Action("Index")" class="btn btn-outline-theme">
+            <i class="fa fa-arrow-left me-2"></i>Back to Users
+        </a>
+    </div>
+</h1>
+<!-- END page-header -->
+
+<!-- User Header -->
+<div class="user-header">
+    <div class="d-flex align-items-center">
+        <div class="user-avatar">
+            @if (!string.IsNullOrEmpty(Model.Photo_base64))
+            {
+                <img src="data:image/jpeg;base64,@Model.Photo_base64" alt="@Model.FirstName @Model.LastName" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+            }
+            else
+            {
+                <i class="fa fa-user"></i>
+            }
+        </div>
+        <div class="flex-grow-1">
+            <h2 class="mb-2">@Model.FirstName @Model.LastName</h2>
+            <p class="mb-1">
+                <i class="fa fa-id-badge me-2"></i>
+                User Code: <strong>@Model.Code</strong>
+            </p>
+            @if (!string.IsNullOrEmpty(Model.Email))
+            {
+                <p class="mb-1">
+                    <i class="fa fa-envelope me-2"></i>
+                    <a href="mailto:@Model.Email" class="text-white">@Model.Email</a>
+                </p>
+            }
+            @if (!string.IsNullOrEmpty(Model.Department))
+            {
+                <p class="mb-0">
+                    <i class="fa fa-building me-2"></i>
+                    @Model.Department
+                </p>
+            }
+        </div>
+        <div class="text-end">
+             
+             
+            @if (Model.IsActive)
+            {
+                <span class="badge bg-success fs-6">
+                    <i class="fa fa-check"></i> Active
+                </span>
+            }
+            else
+            {
+                <span class="badge bg-secondary fs-6">
+                    <i class="fa fa-pause"></i> Inactive
+                </span>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column - User Information -->
+    <div class="col-lg-8">
+        <!-- Basic Information -->
+        <div class="detail-section">
+            <h5 class="section-title">
+                <i class="fa fa-user text-primary me-2"></i>
+                Basic Information
+            </h5>
+
+            <div class="info-row">
+                <div class="row">
+                    <div class="col-sm-3"><strong>User Code:</strong></div>
+                    <div class="col-sm-9">
+                        <span class="badge bg-primary">@Model.Code</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="row">
+                    <div class="col-sm-3"><strong>Full Name:</strong></div>
+                    <div class="col-sm-9">@Model.FirstName @Model.LastName</div>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="row">
+                    <div class="col-sm-3"><strong>Email:</strong></div>
+                    <div class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.Email))
+                        {
+                            <a href="mailto:@Model.Email">@Model.Email</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not provided</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="row">
+                    <div class="col-sm-3"><strong>Department:</strong></div>
+                    <div class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.Department))
+                        {
+                            @Model.Department
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not specified</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Information -->
+        <div class="detail-section">
+            <h5 class="section-title">
+                <i class="fa fa-shield-alt text-warning me-2"></i>
+                Role Assignments
+            </h5>
+
+            @if (Model.UserRoles != null && Model.UserRoles.Any())
+            {
+                <div class="row">
+                    @foreach (var userRole in Model.UserRoles)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-info">
+                                <div class="card-body p-3">
+                                    <h6 class="card-title mb-2">
+                                        <i class="fa fa-shield text-info me-2"></i>
+                                        @userRole.Role.Name
+                                    </h6>
+                                    @if (!string.IsNullOrEmpty(userRole.Role.Description))
+                                    {
+                                        <p class="card-text small text-muted mb-2">
+                                            @userRole.Role.Description
+                                        </p>
+                                    }
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            Assigned: @userRole.AssignedAt.ToString("yyyy-MM-dd")
+                                        </small>
+                                        <span class="badge bg-success">Active</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <i class="fa fa-exclamation-triangle me-2"></i>
+                    No roles assigned to this user. The user will not be able to access the system.
+                </div>
+            }
+        </div>
+
+        <!-- Audit Information -->
+        <div class="detail-section">
+            <h5 class="section-title">
+                <i class="fa fa-history text-secondary me-2"></i>
+                Audit Information
+            </h5>
+
+            <div class="info-row">
+                <div class="row">
+                    <div class="col-sm-3"><strong>Created Date:</strong></div>
+                    <div class="col-sm-9">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.CreatedBy))
+            {
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-sm-3"><strong>Created By:</strong></div>
+                        <div class="col-sm-9">@Model.CreatedBy</div>
+                    </div>
+                </div>
+            }
+
+            @if (Model.UpdatedAt.HasValue)
+            {
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-sm-3"><strong>Last Modified:</strong></div>
+                        <div class="col-sm-9">@Model.UpdatedAt.Value.ToString("yyyy-MM-dd HH:mm:ss")</div>
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.UpdatedBy))
+            {
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-sm-3"><strong>Last Modified By:</strong></div>
+                        <div class="col-sm-9">@Model.UpdatedBy</div>
+                    </div>
+                </div>
+            }
+
+            <div class="info-row">
+                <div class="row">
+                    <div class="col-sm-3"><strong>Last Login:</strong></div>
+                    <div class="col-sm-9">
+                        @if (Model.LastLoginAt.HasValue)
+                        {
+                            @Model.LastLoginAt.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                        }
+                        else
+                        {
+                            <span class="text-muted">Never logged in</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Actions & Quick Info -->
+    <div class="col-lg-4">
+       
+        <!-- Quick Statistics -->
+        <div class="panel panel-inverse mt-3">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-chart-bar"></i> Quick Statistics
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-info">@(Model.UserRoles?.Count ?? 0)</h4>
+                        <small>Assigned Roles</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">
+                            @((DateTime.UtcNow.AddHours(3) - Model.CreatedAt).Days)
+                        </h4>
+                        <small>Days in System</small>
+                    </div>
+                </div>
+
+                @if (Model.LastLoginAt.HasValue)
+                {
+                    <div class="row text-center mt-3">
+                        <div class="col-12">
+                            <h5 class="text-warning">
+                                @((DateTime.UtcNow.AddHours(3) - Model.LastLoginAt.Value).Days)
+                            </h5>
+                            <small>Days Since Last Login</small>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Navigation Panel -->
+        <div class="panel panel-inverse mt-3">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-navigation"></i> Navigation
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                        <i class="fa fa-list"></i> Back to Users List
+                    </a>
+                    <a href="@Url.Action("Create")" class="btn btn-outline-primary">
+                        <i class="fa fa-plus"></i> Create New User
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    
+        function toggleStatus(userId) {
+            const isActive = @(Model.IsActive ? "true" : "false");
+            const action = isActive ? "deactivate" : "activate";
+            const confirmMessage = `Are you sure you want to ${action} this user account?`;
+
+            if (confirm(confirmMessage)) {
+                $.post('@Url.Action("ToggleStatus")', { id: userId })
+                    .done(function(response) {
+                        if (response.success) {
+                            alert.success(response.message, { popup: false });
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            alert.error(response.message, { popup: false });
+                        }
+                    })
+                    .fail(function() {
+                        alert.error('Error updating user status', { popup: false });
+                    });
+            }
+        }
+    </script>
+}
+

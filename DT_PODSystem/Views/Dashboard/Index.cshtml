@@ -1,0 +1,674 @@
+@model DT_PODSystem.Models.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/apexcharts/dist/apexcharts.css" rel="stylesheet" />
+}
+
+<!-- Dashboard Header -->
+<div class="d-flex align-items-center mb-3">
+    <div>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+        <h1 class="page-header mb-0">
+            Dashboard 
+            <small>Welcome back, @Model.UserName (@Model.UserRole)</small>
+        </h1>
+    </div>
+    <div class="ms-auto">
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-theme dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="fa fa-cog me-1"></i> Actions
+            </button>
+            <div class="dropdown-menu">
+                @foreach (var action in Model.QuickActions.Where(a => a.IsEnabled))
+                {
+                    <a class="dropdown-item" href="@action.Url">
+                        <i class="@action.IconClass me-2"></i>@action.Title
+                    </a>
+                }
+            </div>
+        </div>
+        <button type="button" class="btn btn-theme ms-2" onclick="refreshDashboard()">
+            <i class="fa fa-sync-alt me-1"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Alerts Section -->
+@if (Model.Alerts.Any())
+{
+    <div class="row mb-3">
+        <div class="col-12">
+            @foreach (var alert in Model.Alerts.Take(3))
+            {
+                <div class="alert alert-@alert.Type alert-dismissible fade show" role="alert">
+                    <strong>@alert.Title:</strong> @alert.Message
+                    @if (!string.IsNullOrEmpty(alert.ActionUrl))
+                    {
+                        <a href="@alert.ActionUrl" class="alert-link ms-2">View Details</a>
+                    }
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Statistics Widgets Row -->
+<div class="row">
+    <!-- Total Templates -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-blue">
+            <div class="stats-icon"><i class="fa fa-file-pdf"></i></div>
+            <div class="stats-info">
+                <h4>TOTAL TEMPLATES</h4>
+                <p>@Model.Stats.TotalTemplates.ToString("N0")</p>
+                <small>Across all departments</small>
+            </div>
+            <div class="stats-link">
+                <a href="/Template">View All <i class="fa fa-arrow-alt-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Templates -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-green">
+            <div class="stats-icon"><i class="fa fa-cogs"></i></div>
+            <div class="stats-info">
+                <h4>ACTIVE TEMPLATES</h4>
+                <p>@Model.Stats.ActiveTemplates.ToString("N0")</p>
+                <small>Currently processing</small>
+            </div>
+            <div class="stats-link">
+                <a href="/Template?status=active">View Active <i class="fa fa-arrow-alt-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Processing -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-orange">
+            <div class="stats-icon"><i class="fa fa-chart-line"></i></div>
+            <div class="stats-info">
+                <h4>THIS MONTH</h4>
+                <p>@Model.Stats.MonthlyProcessingCount.ToString("N0")</p>
+                <small>Documents processed</small>
+            </div>
+            <div class="stats-link">
+                <a href="/ProcessingOutput">View Details <i class="fa fa-arrow-alt-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Rate -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-purple">
+            <div class="stats-icon"><i class="fa fa-check-circle"></i></div>
+            <div class="stats-info">
+                <h4>SUCCESS RATE</h4>
+                <p>@Model.Stats.SuccessRate.ToString("F1")%</p>
+                <small>Processing accuracy</small>
+            </div>
+            <div class="stats-link">
+                <a href="/ProcessingOutput?filter=failed">View Issues <i class="fa fa-arrow-alt-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Financial Stats Row (Admin/Auditor Only) -->
+@if (Model.CanViewFinancialData && Model.Stats.TotalMonthlyAmount.HasValue)
+{
+    <div class="row">
+        <div class="col-xl-4 col-md-6">
+            <div class="widget widget-stats bg-indigo">
+                <div class="stats-icon"><i class="fa fa-dollar-sign"></i></div>
+                <div class="stats-info">
+                    <h4>MONTHLY AMOUNT</h4>
+                    <p>@Model.Stats.TotalMonthlyAmount?.ToString("C") (@Model.Stats.Currency)</p>
+                    <small>
+                        @if (Model.Stats.MonthlyVariance.HasValue)
+                        {
+                            <span class="@(Model.Stats.MonthlyVariance > 0 ? "text-success" : "text-danger")">
+                                @(Model.Stats.MonthlyVariance > 0 ? "+" : "")@Model.Stats.MonthlyVariance.Value.ToString("F1")% vs last month
+                            </span>
+                        }
+                        else
+                        {
+                            <span>Financial processing results</span>
+                        }
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.UserRole == "Auditor" && Model.Stats.PendingAudits.HasValue)
+        {
+            <div class="col-xl-4 col-md-6">
+                <div class="widget widget-stats bg-warning">
+                    <div class="stats-icon"><i class="fa fa-clipboard-list"></i></div>
+                    <div class="stats-info">
+                        <h4>PENDING AUDITS</h4>
+                        <p>@Model.Stats.PendingAudits.Value.ToString("N0")</p>
+                        <small>Awaiting review</small>
+                    </div>
+                    <div class="stats-link">
+                        <a href="/ProcessingOutput?filter=pendingaudit">Review Now <i class="fa fa-arrow-alt-circle-right"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-md-6">
+                <div class="widget widget-stats bg-success">
+                    <div class="stats-icon"><i class="fa fa-check-double"></i></div>
+                    <div class="stats-info">
+                        <h4>AUDIT EFFICIENCY</h4>
+                        <p>@(Model.Stats.AuditEfficiency?.ToString("F1") ?? "0")%</p>
+                        <small>This month performance</small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+<!-- Charts Section -->
+<div class="row">
+    <!-- Template Usage Chart -->
+    <div class="col-xl-8">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">Template Usage Analytics</h4>
+                <div class="panel-heading-btn">
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-white" onclick="updateChart('templateusage', '3months')">3M</button>
+                        <button type="button" class="btn btn-white active" onclick="updateChart('templateusage', '6months')">6M</button>
+                        <button type="button" class="btn btn-white" onclick="updateChart('templateusage', '12months')">12M</button>
+                    </div>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div id="template-usage-chart" style="height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Distribution -->
+    <div class="col-xl-4">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">Processing Status</h4>
+                <div class="panel-heading-btn">
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-white active" onclick="updateChart('statusdistribution', 'current')">Current</button>
+                        <button type="button" class="btn btn-white" onclick="updateChart('statusdistribution', 'all')">All Time</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div id="status-distribution-chart" style="height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Processing Trends and Monthly Analysis -->
+<div class="row">
+    <!-- Processing Trends -->
+    <div class="col-xl-6">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">Processing Trends</h4>
+                <div class="panel-heading-btn">
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-white" onclick="updateChart('processingtrends', '3months')">3M</button>
+                        <button type="button" class="btn btn-white active" onclick="updateChart('processingtrends', '6months')">6M</button>
+                        <button type="button" class="btn btn-white" onclick="updateChart('processingtrends', '12months')">12M</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div id="processing-trends-chart" style="height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Processing Volume -->
+    <div class="col-xl-6">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">Monthly Processing & Confidence</h4>
+                <div class="panel-heading-btn">
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-white" onclick="updateChart('monthlyprocessing', '6months')">6M</button>
+                        <button type="button" class="btn btn-white active" onclick="updateChart('monthlyprocessing', '12months')">12M</button>
+                        <button type="button" class="btn btn-white" onclick="updateChart('monthlyprocessing', '24months')">24M</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div id="monthly-processing-chart" style="height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department Distribution -->
+<div class="row">
+    <div class="col-xl-6">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">Templates by Department</h4>
+            </div>
+            <div class="panel-body">
+                <div id="department-chart" style="height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="col-xl-6">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">Recent Activities</h4>
+                <div class="panel-heading-btn">
+                    <a href="/ProcessingOutput" class="btn btn-xs btn-white">View All</a>
+                </div>
+            </div>
+            <div class="panel-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-borderless mb-2">
+                        <tbody id="recent-activities-table">
+                            @foreach (var activity in Model.RecentActivities.Take(8))
+                            {
+                                <tr>
+                                    <td class="w-1">
+                                        <i class="@activity.IconClass"></i>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">@activity.EntityName</div>
+                                        <div class="text-muted small">@activity.Description</div>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="badge @activity.BadgeClass">@activity.Status</span>
+                                        <div class="text-muted small">@activity.Timestamp.ToString("MMM dd, HH:mm")</div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Audits Section (Auditors Only) -->
+@if (Model.UserRole == "Auditor" && Model.PendingAudits.Any())
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="panel panel-inverse">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <i class="fa fa-clipboard-check me-2"></i>Pending Audits
+                        <span class="badge bg-warning ms-2">@Model.PendingAudits.Count()</span>
+                    </h4>
+                    <div class="panel-heading-btn">
+                        <a href="/ProcessingOutput?filter=pendingaudit" class="btn btn-xs btn-warning">View All</a>
+                    </div>
+                </div>
+                <div class="panel-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-borderless mb-0">
+                            <thead>
+                                <tr>
+                                    <th>File Name</th>
+                                    <th>Template</th>
+                                    <th>Department</th>
+                                    <th>Processed</th>
+                                    <th>Priority</th>
+                                    <th>Days Waiting</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var audit in Model.PendingAudits.Take(5))
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold">@audit.FileName</div>
+                                            @if (audit.HasFinancialInfo)
+                                            {
+                                                <span class="badge badge-info badge-xs">Financial</span>
+                                            }
+                                        </td>
+                                        <td>@audit.TemplateName</td>
+                                        <td>@audit.DepartmentName</td>
+                                        <td>@audit.ProcessedDate.ToString("MMM dd, yyyy")</td>
+                                        <td><span class="badge @audit.PriorityBadgeClass">@audit.Priority</span></td>
+                                        <td>
+                                            <span class="@(audit.DaysWaiting > 7 ? "text-danger fw-bold" : "")">
+                                                @audit.DaysWaiting days
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="/ProcessingOutput/Details/@audit.Id" class="btn btn-xs btn-primary">
+                                                <i class="fa fa-eye"></i> Review
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/apexcharts/dist/apexcharts.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            initializeDashboardCharts();
+            
+            // Auto-refresh every 5 minutes
+            setInterval(function() {
+                refreshStats();
+                refreshRecentActivities();
+            }, 300000);
+        });
+
+        function initializeDashboardCharts() {
+            // Template Usage Chart
+            var templateUsageOptions = {
+                chart: { 
+                    type: '@Model.TemplateUsageChart.Type', 
+                    height: 350,
+                    toolbar: { show: true }
+                },
+                colors: ['#A54EE1', '#4F008C'],
+                series: @Html.Raw(Json.Serialize(Model.TemplateUsageChart.Series)),
+                xaxis: { 
+                    categories: @Html.Raw(Json.Serialize(Model.TemplateUsageChart.Labels)),
+                    labels: { style: { colors: '#9aa0ac' } }
+                },
+                yaxis: { labels: { style: { colors: '#9aa0ac' } } },
+                stroke: { curve: 'smooth', width: 3 },
+                markers: { size: 6 },
+                grid: { borderColor: '#e7e7e7', strokeDashArray: 3 },
+                legend: { position: 'top' },
+                tooltip: { theme: 'dark' }
+            };
+            var templateUsageChart = new ApexCharts(document.querySelector("#template-usage-chart"), templateUsageOptions);
+            templateUsageChart.render();
+            window.templateUsageChart = templateUsageChart;
+
+            // Processing Trends Chart
+            var processingTrendsOptions = {
+                chart: { 
+                    type: '@Model.ProcessingTrendsChart.Type', 
+                    height: 300,
+                    toolbar: { show: false }
+                },
+                colors: ['#00C48C', '#FF375E', '#EF7945'],
+                series: @Html.Raw(Json.Serialize(Model.ProcessingTrendsChart.Series)),
+                xaxis: { 
+                    categories: @Html.Raw(Json.Serialize(Model.ProcessingTrendsChart.Categories)),
+                    labels: { style: { colors: '#9aa0ac' } }
+                },
+                yaxis: { labels: { style: { colors: '#9aa0ac' } } },
+                plotOptions: { 
+                    bar: { 
+                        horizontal: false, 
+                        columnWidth: '65%', 
+                        endingShape: 'rounded' 
+                    } 
+                },
+                dataLabels: { enabled: false },
+                legend: { position: 'top' },
+                tooltip: { theme: 'dark' },
+                grid: { borderColor: '#e7e7e7' }
+            };
+            var processingTrendsChart = new ApexCharts(document.querySelector("#processing-trends-chart"), processingTrendsOptions);
+            processingTrendsChart.render();
+            window.processingTrendsChart = processingTrendsChart;
+
+            // Monthly Processing Chart
+            var monthlyProcessingOptions = {
+                chart: { 
+                    type: 'line', 
+                    height: 300,
+                    toolbar: { show: false }
+                },
+                colors: ['#A54EE1', '#00C48C'],
+                series: @Html.Raw(Json.Serialize(Model.MonthlyProcessingChart.Series.Concat(new[] { Model.MonthlyProcessingChart.ConfidenceSeries }).Where(s => s != null))),
+                xaxis: { 
+                    categories: @Html.Raw(Json.Serialize(Model.MonthlyProcessingChart.Categories)),
+                    labels: { style: { colors: '#9aa0ac' } }
+                },
+                yaxis: [
+                    {
+                        title: { text: 'Files Processed', style: { color: '#9aa0ac' } },
+                        labels: { style: { colors: '#9aa0ac' } }
+                    },
+                    {
+                        opposite: true,
+                        title: { text: 'Confidence %', style: { color: '#9aa0ac' } },
+                        labels: { style: { colors: '#9aa0ac' } },
+                        min: 0,
+                        max: 100
+                    }
+                ],
+                stroke: { curve: 'smooth', width: [3, 2] },
+                markers: { size: [6, 4] },
+                legend: { position: 'top' },
+                tooltip: { theme: 'dark' },
+                grid: { borderColor: '#e7e7e7', strokeDashArray: 3 }
+            };
+            var monthlyProcessingChart = new ApexCharts(document.querySelector("#monthly-processing-chart"), monthlyProcessingOptions);
+            monthlyProcessingChart.render();
+            window.monthlyProcessingChart = monthlyProcessingChart;
+
+            // Status Distribution Chart
+            var statusDistributionOptions = {
+                chart: { 
+                    type: '@Model.StatusDistributionChart.Type', 
+                    height: 350
+                },
+                colors: @Html.Raw(Json.Serialize(Model.StatusDistributionChart.Data.Select(d => d.Color).ToArray())),
+                series: @Html.Raw(Json.Serialize(Model.StatusDistributionChart.Data.Select(d => d.Value).ToArray())),
+                labels: @Html.Raw(Json.Serialize(Model.StatusDistributionChart.Data.Select(d => d.Name).ToArray())),
+                legend: { 
+                    position: 'bottom',
+                    labels: { colors: '#9aa0ac' }
+                },
+                tooltip: { theme: 'dark' },
+                responsive: [{
+                    breakpoint: 480,
+                    options: { 
+                        chart: { width: 200 }, 
+                        legend: { position: 'bottom' } 
+                    }
+                }],
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return Math.round(val) + "%"
+                    }
+                }
+            };
+            var statusDistributionChart = new ApexCharts(document.querySelector("#status-distribution-chart"), statusDistributionOptions);
+            statusDistributionChart.render();
+            window.statusDistributionChart = statusDistributionChart;
+
+            // Department Distribution Chart
+            var departmentChartOptions = {
+                chart: { 
+                    type: '@Model.DepartmentChart.Type', 
+                    height: 300
+                },
+                colors: @Html.Raw(Json.Serialize(Model.DepartmentChart.Data.Select(d => d.Color).ToArray())),
+                series: @Html.Raw(Json.Serialize(Model.DepartmentChart.Data.Select(d => d.Value).ToArray())),
+                labels: @Html.Raw(Json.Serialize(Model.DepartmentChart.Data.Select(d => d.Name).ToArray())),
+                legend: { 
+                    position: 'bottom',
+                    labels: { colors: '#9aa0ac' }
+                },
+                tooltip: { theme: 'dark' },
+                responsive: [{
+                    breakpoint: 480,
+                    options: { 
+                        chart: { width: 200 }, 
+                        legend: { position: 'bottom' } 
+                    }
+                }],
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return Math.round(val) + "%"
+                    }
+                }
+            };
+            var departmentChart = new ApexCharts(document.querySelector("#department-chart"), departmentChartOptions);
+            departmentChart.render();
+            window.departmentChart = departmentChart;
+        }
+
+        function updateChart(chartType, period) {
+            // Update button states
+            $(`button[onclick*="${chartType}"]`).removeClass('active');
+            $(`button[onclick*="${chartType}"][onclick*="${period}"]`).addClass('active');
+
+            // Fetch new data
+            $.get('/Dashboard/GetChartData', { chartType: chartType, period: period })
+                .done(function(response) {
+                    if (response.success) {
+                        updateChartData(chartType, response.data);
+                    } else {
+                        console.error('Failed to update chart:', response.message);
+                    }
+                })
+                .fail(function() {
+                    console.error('Failed to fetch chart data');
+                });
+        }
+
+        function updateChartData(chartType, data) {
+            switch(chartType) {
+                case 'templateusage':
+                    window.templateUsageChart.updateSeries(data.series);
+                    window.templateUsageChart.updateOptions({
+                        xaxis: { categories: data.labels }
+                    });
+                    break;
+                case 'processingtrends':
+                    window.processingTrendsChart.updateSeries(data.series);
+                    window.processingTrendsChart.updateOptions({
+                        xaxis: { categories: data.categories }
+                    });
+                    break;
+                case 'monthlyprocessing':
+                    var allSeries = data.series.concat(data.confidenceSeries ? [data.confidenceSeries] : []);
+                    window.monthlyProcessingChart.updateSeries(allSeries);
+                    window.monthlyProcessingChart.updateOptions({
+                        xaxis: { categories: data.categories }
+                    });
+                    break;
+                case 'statusdistribution':
+                    window.statusDistributionChart.updateSeries(data.data.map(d => d.value));
+                    window.statusDistributionChart.updateOptions({
+                        labels: data.data.map(d => d.name),
+                        colors: data.data.map(d => d.color)
+                    });
+                    break;
+            }
+        }
+
+        function refreshDashboard() {
+            // Show loading indicator
+            $('button[onclick="refreshDashboard()"] i').addClass('fa-spin');
+            
+            refreshStats();
+            refreshRecentActivities();
+            
+            // Hide loading indicator after 2 seconds
+            setTimeout(function() {
+                $('button[onclick="refreshDashboard()"] i').removeClass('fa-spin');
+            }, 2000);
+        }
+
+        function refreshStats() {
+            $.get('/Dashboard/GetStats')
+                .done(function(response) {
+                    if (response.success) {
+                        updateStatsWidgets(response.stats);
+                    }
+                })
+                .fail(function() {
+                    console.error('Failed to refresh stats');
+                });
+        }
+
+        function refreshRecentActivities() {
+            $.get('/Dashboard/GetRecentActivities', { count: 8 })
+                .done(function(response) {
+                    if (response.success) {
+                        updateRecentActivitiesTable(response.activities);
+                    }
+                })
+                .fail(function() {
+                    console.error('Failed to refresh recent activities');
+                });
+        }
+
+        function updateStatsWidgets(stats) {
+            // Update widget values
+            $('.widget-stats .stats-info p').each(function() {
+                var $widget = $(this).closest('.widget-stats');
+                if ($widget.find('h4').text().includes('TOTAL TEMPLATES')) {
+                    $(this).text(stats.totalTemplates.toLocaleString());
+                } else if ($widget.find('h4').text().includes('ACTIVE TEMPLATES')) {
+                    $(this).text(stats.activeTemplates.toLocaleString());
+                } else if ($widget.find('h4').text().includes('THIS MONTH')) {
+                    $(this).text(stats.monthlyProcessingCount.toLocaleString());
+                } else if ($widget.find('h4').text().includes('SUCCESS RATE')) {
+                    $(this).text(stats.successRate.toFixed(1) + '%');
+                }
+            });
+        }
+
+        function updateRecentActivitiesTable(activities) {
+            var tbody = $('#recent-activities-table');
+            tbody.empty();
+            
+            activities.forEach(function(activity) {
+                var row = `
+                    <tr>
+                        <td class="w-1">
+                            <i class="${activity.iconClass}"></i>
+                        </td>
+                        <td>
+                            <div class="fw-bold">${activity.entityName}</div>
+                            <div class="text-muted small">${activity.description || ''}</div>
+                        </td>
+                        <td class="text-end">
+                            <span class="badge ${activity.badgeClass}">${activity.status}</span>
+                            <div class="text-muted small">${new Date(activity.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+        }
+    </script>
+}
+

@@ -1,0 +1,328 @@
+﻿@{
+    ViewData["Title"] = "Permission Manager";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/jstree/dist/themes/default/style.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/Security/css/permissions-manager.css" asp-append-version="true" />
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard", new { area = "Security" })">Security</a></li>
+    <li class="breadcrumb-item active">Permission Manager</li>
+</ol>
+<!-- END breadcrumb -->
+<!-- BEGIN page-header -->
+<h1 class="page-header">Permission Manager <small>Manage permission types and hierarchical permissions</small></h1>
+<!-- END page-header -->
+ 
+<!-- BEGIN panel -->
+<div class="panel panel-inverse">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            <i class="fas fa-shield-alt"></i> Permission Manager
+        </h4>
+        <div class="panel-heading-btn">
+            <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+            <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+            <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+            <a href="javascript:;" class="btn btn-xs btn-icon btn-danger" data-toggle="panel-remove"><i class="fa fa-times"></i></a>
+        </div>
+    </div>
+    <div class="panel-body">
+        <!-- Tree Controls Section - Same pattern as RolePermissions -->
+        <div class="tree-controls">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="search-container">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" id="permission-search" class="form-control"
+                                   placeholder="Search permissions..." />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="tree-action-buttons">
+                        <div class="btn-group btn-group-sm me-2" role="group">
+                            <button type="button" class="btn btn-success" onclick="showCreatePermissionTypeModal()" title="Add Permission Type">
+                                <i class="fas fa-folder-plus me-1"></i>Add Type
+                            </button>
+                        </div>
+                        <div class="btn-group btn-group-sm me-2" role="group">
+                            <button type="button" id="expandAllBtn" class="btn btn-outline-secondary" title="Expand All">
+                                <i class="fas fa-expand-arrows-alt me-1"></i>Expand All
+                            </button>
+                            <button type="button" id="collapseAllBtn" class="btn btn-outline-secondary" title="Collapse All">
+                                <i class="fas fa-compress-arrows-alt me-1"></i>Collapse All
+                            </button>
+                        </div>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary" onclick="refreshTree()" title="Refresh">
+                                <i class="fas fa-sync-alt me-1"></i>Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Permission Tree Container -->
+        <div class="permission-tree-container">
+            <!-- Loading State -->
+            <div id="permission-loading-state" class="permission-loading-state">
+                <div class="permission-loading-spinner">
+                    <i class="fas fa-spinner"></i>
+                </div>
+                <h5>Loading permission structure...</h5>
+                <p>Please wait while we load your permissions</p>
+            </div>
+            <!-- Empty State -->
+            <div id="permission-empty-state" class="permission-empty-state" style="display: none;">
+                <div class="permission-empty-state-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h4>No Permission Types Found</h4>
+                <p>Get started by creating your first permission type to organize your application permissions effectively.</p>
+                <button class="btn btn-primary permission-create-first-btn" onclick="showCreatePermissionTypeModal()">
+                    <i class="fas fa-plus"></i> Create First Permission Type
+                </button>
+            </div>
+            <!-- Permission Tree -->
+            <div id="permission-tree" class="permission-tree-wrapper" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+<!-- END panel -->
+<!-- ALL MODALS KEPT EXACTLY THE SAME -->
+<!-- Create/Edit Permission Type Modal -->
+<div class="modal fade permission-modal" id="permissionTypeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-folder-plus"></i>
+                    <span id="permission-type-modal-title">Create Permission Type</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="permission-type-form" class="permission-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="typeId" name="Id" />
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="typeName" name="Name" required>
+                                <label for="typeName">Permission Type Name *</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Icon Preview</label>
+                                <div class="text-center p-3 border rounded">
+                                    <i id="selected-icon-preview" class="fas fa-folder" style="font-size: 2rem; color: #007bff;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <textarea class="form-control" id="typeDescription" name="Description" style="height: 100px"></textarea>
+                        <label for="typeDescription">Description</label>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Choose Icon</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" id="typeIcon" name="Icon" value="fas fa-folder" readonly>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleIconPicker()">
+                                        <i class="fas fa-palette"></i> Browse
+                                    </button>
+                                </div>
+                                <div id="permission-icon-picker" class="permission-icon-picker-container" style="display: none;">
+                                    <!-- Icons populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Color Theme</label>
+                                <input type="hidden" id="typeColor" name="Color" value="primary">
+                                <div class="permission-color-picker-container">
+                                    <div class="permission-color-option bg-primary selected" data-color="primary" title="Primary"></div>
+                                    <div class="permission-color-option bg-success" data-color="success" title="Success"></div>
+                                    <div class="permission-color-option bg-info" data-color="info" title="Info"></div>
+                                    <div class="permission-color-option bg-warning" data-color="warning" title="Warning"></div>
+                                    <div class="permission-color-option bg-danger" data-color="danger" title="Danger"></div>
+                                    <div class="permission-color-option bg-secondary" data="secondary" title="Secondary"></div>
+                                    <div class="permission-color-option bg-dark" data-color="dark" title="Dark"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="savePermissionTypeBtn">
+                    <i class="fas fa-save"></i> <span id="save-type-btn-text">Save Permission Type</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create/Edit Permission Modal -->
+<div class="modal fade permission-modal" id="permissionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-key"></i>
+                    <span id="permission-modal-title">Create Permission</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="permission-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="permissionId" name="Id" />
+                    <input type="hidden" id="permissionTypeId" name="PermissionTypeId" />
+
+                    <!-- Permission Name -->
+                    <div class="mb-3">
+                        <label for="permissionName" class="form-label">
+                            <i class="fas fa-key me-2"></i>Permission Name *
+                        </label>
+                        <input type="text" class="form-control" id="permissionName" name="Name"
+                               placeholder="Enter permission name" required>
+                        <div class="form-text">Internal system name for the permission</div>
+                    </div>
+
+                    <!-- Permission Type Selection -->
+                    <div class="mb-3">
+                        <label for="permissionTypeSelect" class="form-label">
+                            <i class="fas fa-folder me-2"></i>Permission Type *
+                        </label>
+                        <select class="form-select" id="permissionTypeSelect" required>
+                            <option value="">Loading permission types...</option>
+                        </select>
+                        <div class="form-text">Select the category/type for this permission</div>
+                    </div>
+
+                    <!-- Parent Permission Dropdown -->
+                    <div class="mb-3" id="parentPermissionGroup" style="display: none;">
+                        <label for="parentPermissionSelect" class="form-label">
+                            <i class="fas fa-sitemap me-2"></i>Parent Permission
+                        </label>
+                        <select class="form-select" id="parentPermissionSelect" name="ParentPermissionId"
+                                style="font-family: 'Courier New', monospace; font-size: 0.9rem;">
+                            <option value="">Loading permissions...</option>
+                        </select>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>Select a parent permission to create a hierarchical structure.
+                            Leave empty to create a root-level permission.
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label for="permissionDescription" class="form-label">
+                            <i class="fas fa-align-left me-2"></i>Description
+                        </label>
+                        <textarea class="form-control" id="permissionDescription" name="Description"
+                                  rows="3" placeholder="Enter permission description"></textarea>
+                    </div>
+
+                    <!-- Scope and Action Row -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="permissionScope" class="form-label">
+                                    <i class="fas fa-globe me-2"></i>Scope
+                                </label>
+                                <select class="form-select" id="permissionScope" name="Scope">
+                                    <option value="Global">Global</option>
+                                    <option value="Tenant">Tenant</option>
+                                    <option value="User">User</option>
+                                    <option value="Resource">Resource</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="permissionAction" class="form-label">
+                                    <i class="fas fa-play me-2"></i>Action
+                                </label>
+                                <select class="form-select" id="permissionAction" name="Action">
+                                    <option value="Read">Read</option>
+                                    <option value="Write">Write</option>
+                                    <option value="Create">Create</option>
+                                    <option value="Update">Update</option>
+                                    <option value="Delete">Delete</option>
+                                    <option value="Execute">Execute</option>
+                                    <option value="Manage">Manage</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permission Hierarchy Preview -->
+                    <div class="mb-3" id="hierarchyPreview" style="display: none;">
+                        <label class="form-label">
+                            <i class="fas fa-tree me-2"></i>Permission Hierarchy
+                        </label>
+                        <div class="alert alert-info">
+                            <div id="hierarchyPath"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="savePermissionBtn">
+                    <i class="fas fa-save"></i> <span id="save-btn-text">Save Permission</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/jstree/dist/jstree.min.js"></script>
+    <script>
+        // Configuration for JavaScript - KEPT EXACTLY THE SAME
+        window.permissionManagerConfig = {
+            baseUrl: '@Url.Action("", "Permissions", new { area = "Security" })',
+            antiForgeryToken: '@Html.AntiForgeryToken()',
+            isProductionMode: false,
+            initialStatistics: {
+                totalTypes: 0,
+                totalPermissions: 0,
+                activePermissions: 0,
+                systemPermissions: 0
+            }
+        };
+
+        // Helper functions for modals
+        function showCreatePermissionTypeModal() {
+            $('#permissionTypeModal').modal('show');
+        }
+
+        function refreshTree() {
+            location.reload();
+        }
+    </script>
+    <script src="~/Security/js/permissions-manager.js" asp-append-version="true"></script>
+}

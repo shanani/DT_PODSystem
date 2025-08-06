@@ -1,0 +1,22 @@
+﻿<svg width="120" height="60" xmlns="http://www.w3.org/2000/svg">
+	<defs>
+		<style>
+			.node{fill:#FFE923;stroke:#E6D000;stroke-width:2;rx:4}
+			.text{fill:#333;font:bold 12px sans-serif;text-anchor:middle;dominant-baseline:central}
+			.line{stroke:#666;stroke-width:2}
+			.dot{fill:#4CAF50;stroke:#2E7D32}
+			.label{fill:#666;font:9px sans-serif;text-anchor:middle}
+		</style>
+	</defs>
+	<circle cx="15" cy="20" r="4" class="dot"/>
+	<text x="15" y="12" class="label">A</text>
+	<circle cx="15" cy="40" r="4" class="dot"/>
+	<text x="15" y="50" class="label">B</text>
+	<line x1="19" y1="20" x2="45" y2="30" class="line"/>
+	<line x1="19" y1="40" x2="45" y2="30" class="line"/>
+	<rect x="45" y="20" width="30" height="20" class="node"/>
+	<text x="60" y="30" class="text">OR</text>
+	<line x1="75" y1="30" x2="95" y2="30" class="line"/>
+	<circle cx="100" cy="30" r="4" style="fill:#FF9800;stroke:#F57C00"/>
+	<text x="100" y="22" class="label">Boolean</text>
+</svg>

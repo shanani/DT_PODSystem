@@ -1,0 +1,367 @@
+@*
+    DT_PODSystem/Areas/Security/Views/Dashboard/Index.cshtml
+    FRESH Security Dashboard - Standard Sample Dashboard Layout
+*@
+
+@model DT_PODSystem.Areas.Security.Models.ViewModels.SecurityDashboardViewModel
+@{
+    ViewData["Title"] = "Security Dashboard";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/apexcharts/dist/apexcharts.css" rel="stylesheet" />
+}
+
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/apexcharts/dist/apexcharts.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/js/demo/dashboard-security.js"></script>
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="javascript:;">Security</a></li>
+    <li class="breadcrumb-item active">Dashboard</li>
+</ol>
+<!-- END breadcrumb -->
+<!-- BEGIN page-header -->
+<h1 class="page-header">Security Dashboard <small>Monitor and manage security permissions, roles, and users</small></h1>
+<!-- END page-header -->
+<!-- BEGIN row -->
+<div class="row">
+    <!-- BEGIN col-3 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-blue">
+            <div class="stats-icon"><i class="fa fa-users"></i></div>
+            <div class="stats-info">
+                <h4>TOTAL USERS</h4>
+                <p>@Model.Statistics.TotalUsers</p>
+            </div>
+            <div class="stats-link">
+                <a href="@Url.Action("Index", "SecurityUsers")">View Detail <i class="fa fa-arrow-alt-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <!-- END col-3 -->
+    <!-- BEGIN col-3 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-green">
+            <div class="stats-icon"><i class="fa fa-shield-alt"></i></div>
+            <div class="stats-info">
+                <h4>SECURITY ROLES</h4>
+                <p>@Model.Statistics.TotalRoles</p>
+            </div>
+            <div class="stats-link">
+                <a href="@Url.Action("Index", "SecurityRoles")">View Detail <i class="fa fa-arrow-alt-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <!-- END col-3 -->
+    <!-- BEGIN col-3 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-orange">
+            <div class="stats-icon"><i class="fa fa-key"></i></div>
+            <div class="stats-info">
+                <h4>PERMISSIONS</h4>
+                <p>@Model.Statistics.TotalPermissions</p>
+            </div>
+            <div class="stats-link">
+                <a href="@Url.Action("Index", "Permissions")">View Detail <i class="fa fa-arrow-alt-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <!-- END col-3 -->
+    <!-- BEGIN col-3 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-red">
+            <div class="stats-icon"><i class="fa fa-cogs"></i></div>
+            <div class="stats-info">
+                <h4>PERMISSION TYPES</h4>
+                <p>@Model.Statistics.TotalPermissionTypes</p>
+            </div>
+            <div class="stats-link">
+                <a href="@Url.Action("Index", "SuperAdmin")">View Detail <i class="fa fa-arrow-alt-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <!-- END col-3 -->
+</div>
+<!-- END row -->
+<!-- BEGIN row -->
+<div class="row">
+    <!-- BEGIN col-8 -->
+    <div class="col-xl-8">
+        <!-- BEGIN panel -->
+        <div class="panel panel-inverse" data-sortable-id="index-1">
+            <div class="panel-heading">
+                <h4 class="panel-title">Security Analytics (Last 7 Days)</h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-danger" data-toggle="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="d-flex mb-3">
+                    <div class="me-auto">
+                        <div class="d-flex">
+                            <div class="me-4">
+                                <span class="text-muted">Active Users:</span>
+                                <span class="fw-bold">@Model.Statistics.UsersWithRoles</span>
+                            </div>
+                            <div class="me-4">
+                                <span class="text-muted">Active Roles:</span>
+                                <span class="fw-bold">@Model.Statistics.ActiveRoles</span>
+                            </div>
+                            <div>
+                                <span class="text-muted">Health:</span>
+                                <span class="fw-bold text-success">@Model.Statistics.HealthStatus</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <small class="text-muted">Last updated: @Model.LastUpdated.ToString("MMM dd, HH:mm")</small>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div id="securityChart" style="height: 350px;"></div>
+            </div>
+        </div>
+        <!-- END panel -->
+        <!-- BEGIN panel -->
+        <div class="panel panel-inverse" data-sortable-id="index-2">
+            <div class="panel-heading">
+                <h4 class="panel-title">Recent Security Activity</h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-danger" data-toggle="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+            </div>
+            <div class="panel-body p-0">
+                <div class="list-group list-group-flush">
+                    @if (Model.RecentActivity != null && Model.RecentActivity.Any())
+                    {
+                        @foreach (var activity in Model.RecentActivity.Take(8))
+                        {
+                            <div class="list-group-item d-flex align-items-center">
+                                <div class="me-3">
+                                    <div class="w-40px h-40px d-flex align-items-center justify-content-center bg-light rounded-circle">
+                                        <i class="fa fa-clock text-muted"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-fill">
+                                    <div class="fw-bold">@activity.Activity</div>
+                                    <div class="small text-muted">@activity.TimeAgo • by @activity.User</div>
+                                </div>
+                                <div>
+                                    <span class="badge @activity.TypeBadgeClass">@activity.Type</span>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="list-group-item text-center py-4">
+                            <i class="fa fa-clock fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No recent security activity</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <!-- END panel -->
+    </div>
+    <!-- END col-8 -->
+    <!-- BEGIN col-4 -->
+    <div class="col-xl-4">
+        <!-- BEGIN panel -->
+        <div class="panel panel-inverse" data-sortable-id="index-3">
+            <div class="panel-heading">
+                <h4 class="panel-title">Security Health</h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-danger" data-toggle="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+            </div>
+            <div class="panel-body text-center">
+                <div class="mb-3">
+                    <div class="progress mb-2" style="height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: @(Model.Statistics.RolesUtilization)%"></div>
+                    </div>
+                    <h3 class="text-success mb-1">@Model.Statistics.RolesUtilization.ToString("0.0")%</h3>
+                    <p class="text-muted mb-0">Overall System Health</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <div class="border rounded p-3 mb-2">
+                            <h5 class="text-primary mb-1">@Model.Statistics.UsersWithRolesPercentage.ToString("0.0")%</h5>
+                            <p class="small text-muted mb-0">Users with Roles</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-3 mb-2">
+                            <h5 class="text-success mb-1">@Model.Statistics.PermissionsUtilization.ToString("0.0")%</h5>
+                            <p class="small text-muted mb-0">Permission Usage</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <div class="border rounded p-3">
+                            <h5 class="text-warning mb-1">@Model.Statistics.ActiveRoles</h5>
+                            <p class="small text-muted mb-0">Active Roles</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-3">
+                            <h5 class="text-info mb-1">@Model.Statistics.ActivePermissionTypes</h5>
+                            <p class="small text-muted mb-0">Permission Types</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- END panel -->
+        <!-- BEGIN panel -->
+        <div class="panel panel-inverse" data-sortable-id="index-4">
+            <div class="panel-heading">
+                <h4 class="panel-title">Permission Types</h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-danger" data-toggle="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+            </div>
+            <div class="panel-body p-0">
+                <div class="list-group list-group-flush">
+                    @if (Model.PermissionTypes != null && Model.PermissionTypes.Any())
+                    {
+                        @foreach (var permType in Model.PermissionTypes.Take(6))
+                        {
+                            <div class="list-group-item d-flex align-items-center">
+                                <div class="me-3">
+                                    <div class="w-40px h-40px d-flex align-items-center justify-content-center bg-@(permType.Color ?? "primary") text-white rounded-circle">
+                                        <i class="@(permType.Icon ?? "fas fa-key")"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-fill">
+                                    <div class="fw-bold">@permType.Name</div>
+                                    <div class="small text-muted">@permType.PermissionCount permissions</div>
+                                </div>
+                                <div>
+                                    @if (permType.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="list-group-item text-center py-4">
+                            <i class="fa fa-cogs fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No permission types configured</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <!-- END panel -->
+        <!-- BEGIN panel -->
+        <div class="panel panel-inverse" data-sortable-id="index-5">
+            <div class="panel-heading">
+                <h4 class="panel-title">Quick Actions</h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="d-grid gap-2">
+                    @if (Model.CanManageUsers)
+                    {
+                        <a href="@Url.Action("Index", "SecurityUsers")" class="btn btn-outline-primary btn-sm">
+                            <i class="fa fa-users me-2"></i>Manage Users
+                        </a>
+                    }
+                    @if (Model.CanManageRoles)
+                    {
+                        <a href="@Url.Action("Index", "SecurityRoles")" class="btn btn-outline-success btn-sm">
+                            <i class="fa fa-shield-alt me-2"></i>Manage Roles
+                        </a>
+                    }
+                    @if (Model.CanManagePermissions)
+                    {
+                        <a href="@Url.Action("Index", "Permissions")" class="btn btn-outline-warning btn-sm">
+                            <i class="fa fa-key me-2"></i>Manage Permissions
+                        </a>
+                    }
+                    @if (Model.IsSuperAdmin)
+                    {
+                        <a href="@Url.Action("Index", "SuperAdmin")" class="btn btn-outline-danger btn-sm">
+                            <i class="fa fa-crown me-2"></i>Super Admin Panel
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+        <!-- END panel -->
+    </div>
+    <!-- END col-4 -->
+</div>
+<!-- END row -->
+
+<script>
+    $(document).ready(function() {
+        // Initialize Security Chart
+        if (typeof ApexCharts !== 'undefined') {
+            var options = {
+                series: [{
+                    name: 'Users',
+                    data: [30, 40, 35, 50, 49, 60, 70]
+                }, {
+                    name: 'Roles',
+                    data: [23, 20, 18, 25, 32, 28, 30]
+                }, {
+                    name: 'Permissions',
+                    data: [80, 85, 82, 90, 95, 88, 92]
+                }],
+                chart: {
+                    type: 'area',
+                    height: 350,
+                    toolbar: { show: false }
+                },
+                colors: ['#348fe2', '#00b94a', '#ff9500'],
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 2 },
+                fill: {
+                    type: 'gradient',
+                    gradient: { opacityFrom: 0.3, opacityTo: 0.1 }
+                },
+                xaxis: {
+                    categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                },
+                yaxis: { title: { text: 'Count' } },
+                legend: { position: 'top' },
+                grid: { borderColor: '#e7e7e7', strokeDashArray: 4 }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#securityChart"), options);
+            chart.render();
+        } else {
+            $('#securityChart').html('<div class="text-center text-muted py-5"><i class="fa fa-chart-line fa-3x mb-3"></i><p>Chart library not available</p></div>');
+        }
+    });
+</script>

@@ -1,0 +1,111 @@
+﻿{
+  "applicationMenu": [
+    {
+      "controller": "Dashboard",
+      "action": "Index",
+      "text": "Dashboard",
+      "icon": "fas fa-tachometer-alt",
+      "area": ""
+    },
+    {
+      "text": "Monthly Results",
+      "icon": "fas fa-cogs",
+      "children": [
+        {
+          "controller": "Report",
+          "action": "Index",
+          "text": "Results",
+          "area": ""
+        },
+        {
+          "controller": "Report",
+          "action": "Summary",
+          "text": "Results Summary",
+          "area": ""
+        },
+        {
+          "controller": "Report",
+          "action": "analysis",
+          "text": "Deep Analysis",
+          "area": ""
+        }
+      ]
+    }
+  ],
+
+  "adminApplicationMenu": [
+    {
+      "text": "Manage Queries",
+      "icon": "fas fa-project-diagram",
+      //"badge": "Admin",
+      //"adminOnly": "true",
+      "children": [
+        {
+          "controller": "Query",
+          "action": "Index",
+          "text": "All Queries",
+          "area": ""
+        },
+        {
+          "controller": "Query",
+          "action": "Create",
+          "text": "Create Query",
+          "area": "",
+          "highlight": "true"
+        }
+      ]
+    },
+     
+    {
+      "text": "Manage Templates",
+      "icon": "fas fa-file-alt",
+      //"badge": "Admin",
+      //"adminOnly": "true",
+      "children": [
+        {
+          "controller": "Template",
+          "action": "Index",
+          "text": "All Templates",
+          "area": ""
+        },
+        {
+          "controller": "Template",
+          "action": "Wizard",
+          "text": "Create Template",
+          "area": "",
+          "highlight": "true"
+        }
+      ]
+    },
+
+
+
+    {
+      "text": "Configuration",
+      "icon": "fas fa-database",
+      //"badge": "Admin",
+      //"adminOnly": "true",
+      "children": [
+        {
+          "controller": "Lookups",
+          "action": "Categories",
+          "text": "Categories",
+          "area": ""
+        },
+       
+        {
+          "controller": "Lookups",
+          "action": "Departments",
+          "text": "Departments",
+          "area": ""
+        },
+        {
+          "controller": "Lookups",
+          "action": "Vendors",
+          "text": "Vendors",
+          "area": ""
+        }
+      ]
+    }
+  ]
+}

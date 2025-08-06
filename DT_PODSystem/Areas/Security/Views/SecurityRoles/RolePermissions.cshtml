@@ -1,0 +1,219 @@
+﻿@model DT_PODSystem.Areas.Security.Models.ViewModels.RolePermissionAssignmentViewModel
+
+@{
+    ViewData["Title"] = $"Assign Permissions to {Model.RoleName}";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/jstree/dist/themes/default/style.min.css" rel="stylesheet" />
+    <link href="~/Security/css/role-permissions.css" rel="stylesheet" />
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard", new { area = "Security" })">Security</a></li>
+    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Security Roles</a></li>
+    <li class="breadcrumb-item active">Edit @Model.RoleName Permissions</li>
+</ol>
+<!-- END breadcrumb -->
+
+<div class="d-flex align-items-center mb-3">
+    <div>
+        <h1 class="page-header">Role Permissions Management</h1>
+    </div>
+    <div class="ms-auto">
+        <a href="@Url.Action("Index")" class="btn btn-outline-theme">
+            <i class="fa fa-arrow-left me-2"></i>Back to Roles
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-12">
+
+        <!-- Role Details Panel -->
+        <div class="panel panel-inverse mb-4">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fas fa-user-shield me-2"></i>Role Details & Statistics
+                </h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <!-- Role Information -->
+                    <div class="col-lg-6">
+                        <div class="role-info-card">
+                            <h5 class="role-name">
+                                <i class="fas fa-user-tag text-primary me-2"></i>
+                                @Model.RoleName
+                            </h5>
+                            <p class="role-description text-muted">
+                                @(!string.IsNullOrEmpty(Model.RoleDescription) ? Model.RoleDescription : "No description provided")
+                            </p>
+                            <div class="role-badges mt-3">
+                                <span class="badge bg-info">Role ID: @Model.RoleId</span>
+                                <span class="badge bg-secondary">Security Role</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permission Statistics -->
+                    <div class="col-lg-6">
+                        <div class="permission-stats">
+                            <div class="stats-header mb-3">
+                                <h6 class="mb-0">Permission Assignment Overview</h6>
+                            </div>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-value" id="assigned-count">@Model.GrantedPermissionIds.Count</div>
+                                    <div class="stat-label">Assigned</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="total-count">@Model.Permissions.Sum(p => p.Permissions.Count)</div>
+                                    <div class="stat-label">Total</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="assignment-percentage">
+                                        @{
+                                            var totalPerms = Model.Permissions.Sum(p => p.Permissions.Count);
+                                            var assignedPerms = Model.GrantedPermissionIds.Count;
+                                            var percentage = totalPerms > 0 ? Math.Round((double)assignedPerms / totalPerms * 100, 0) : 0;
+                                        }
+                                        @percentage%
+                                    </div>
+                                    <div class="stat-label">Coverage</div>
+                                </div>
+                            </div>
+                            <div class="progress mt-3" style="height: 8px;">
+                                <div class="progress-bar @(percentage >= 75 ? "bg-success" : percentage >= 50 ? "bg-warning" : percentage >= 25 ? "bg-info" : "bg-danger")"
+                                     id="assignment-progress" role="progressbar" style="width: @percentage%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Permission Assignment Panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fas fa-sitemap me-2"></i>Permission Assignment
+                </h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <!-- Tree Controls -->
+                <div class="tree-controls mb-3">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="search-container">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" id="permission-search" class="form-control"
+                                           placeholder="Search permissions..." />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="tree-action-buttons">
+                                <div class="btn-group btn-group-sm me-2" role="group">
+                                    <button type="button" id="expand-all" class="btn btn-outline-secondary">
+                                        <i class="fas fa-expand-arrows-alt me-1"></i>Expand All
+                                    </button>
+                                    <button type="button" id="collapse-all" class="btn btn-outline-secondary">
+                                        <i class="fas fa-compress-arrows-alt me-1"></i>Collapse All
+                                    </button>
+                                </div>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" id="select-all" class="btn btn-outline-success">
+                                        <i class="fas fa-check-square me-1"></i>Select All
+                                    </button>
+                                    <button type="button" id="deselect-all" class="btn btn-outline-danger">
+                                        <i class="fas fa-square me-1"></i>Deselect All
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Permission Tree Container -->
+                <div class="permission-tree-container">
+                    <div id="permission-tree"></div>
+                </div>
+
+                <!-- Form for submission -->
+                <form id="permissionsForm" asp-action="RolePermissions" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="RoleId" />
+                    <input type="hidden" asp-for="RoleName" />
+                    <input type="hidden" asp-for="RoleDescription" />
+                    <!-- GrantedPermissionIds will be populated by JavaScript -->
+
+                    <div class="form-actions mt-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="action-info">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Changes will be applied to the role immediately after saving.
+                                </small>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" id="save-permissions-ajax" class="btn btn-primary me-2">
+                                    <i class="fas fa-save me-1"></i>Save Changes
+                                </button>
+                                
+                                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/jstree/dist/jstree.min.js"></script>
+    <script src="~/Security/js/role-permissions.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize with server data
+            const roleData = {
+                roleId: @Model.RoleId,  // This should be a number
+                roleName: "@Html.Raw(Html.Encode(Model.RoleName))",
+                initialSelectedPermissions: [@string.Join(",", Model.GrantedPermissionIds)],
+                endpoints: {
+                    saveUrl: '@Url.Action("SaveRolePermissions", "SecurityRoles")',
+                    loadUrl: '@Url.Action("GetPermissionTreeData", "SecurityRoles")',
+                    redirectUrl: '@Url.Action("Index", "SecurityRoles")'
+                }
+            };
+
+            console.log('🎯 Role data from server:', roleData);
+            console.log('🎯 Role ID type:', typeof roleData.roleId, 'Value:', roleData.roleId);
+
+            // Initialize the role permissions manager
+            if (typeof RolePermissionsManager !== 'undefined') {
+                window.rolePermissionsManager = new RolePermissionsManager();
+                window.rolePermissionsManager.init(roleData);
+            } else {
+                console.error('❌ RolePermissionsManager not loaded');
+            }
+        });
+    </script>
+}

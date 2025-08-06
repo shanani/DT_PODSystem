@@ -1,0 +1,352 @@
+@model DT_PODSystem.Models.ViewModels.QueryListViewModel
+@{
+    ViewData["Title"] = "Query Management";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+}
+
+<div id="content">
+    <div class="d-flex align-items-center mb-3">
+        <div>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active">Queries</li>
+            </ol>
+            <h1 class="page-header mb-0">Query Management</h1>
+        </div>
+        <div class="ms-auto">
+            @if (Model.CanCreate)
+            {
+                <a href="@Url.Action("Create", "Query")" class="btn btn-green btn-lg">
+                    <i class="fa fa-plus fa-fw me-1"></i> Create Query
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="panel panel-inverse">
+                <div class="panel-heading">
+                    <h4 class="panel-title">Queries <span class="badge bg-primary ms-2">@Model.Queries.Count</span></h4>
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-green" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    </div>
+                </div>
+
+                <div class="panel-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="bulk-activate" disabled>
+                                    <i class="fa fa-play me-1"></i> Activate
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="bulk-test" disabled>
+                                    <i class="fa fa-flask me-1"></i> Test
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm" id="bulk-delete" disabled>
+                                    <i class="fa fa-trash me-1"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="global-search" placeholder="Search queries...">
+                                <button class="btn btn-outline-secondary" type="button" id="clear-search">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="queries-table" class="table table-striped table-bordered align-middle text-nowrap w-100">
+                            <thead>
+                                <tr>
+                                    <th width="30"><input type="checkbox" id="select-all"></th>
+                                    <th>Query Name</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Constants</th>
+                                    <th>Outputs</th>
+                                    <th>Executions</th>
+                                    <th>Created</th>
+                                    <th>Modified</th>
+                                    <th width="150">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var query in Model.Queries)
+                                {
+                                    <tr>
+                                        <td><input type="checkbox" class="row-select" data-id="@query.Id"></td>
+                                        <td>
+                                            <div class="fw-bold">@query.Name</div>
+                                            @if (!string.IsNullOrEmpty(query.Description))
+                                            {
+                                                <small class="text-muted">@query.Description</small>
+                                            }
+                                        </td>
+                                        <td><span class="badge @query.StatusBadgeClass">@query.StatusDisplayName</span></td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary">@query.ExecutionPriority</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info">@query.ConstantsCount</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-warning">@query.OutputsCount</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success">@query.ExecutionCount</span>
+                                        </td>
+                                        <td>@query.CreatedDate.ToString("dd/MM/yyyy")</td>
+                                        <td>@query.ModifiedDate.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="@Url.Action("Details", "Query", new { id = query.Id })" class="btn btn-outline-primary btn-xs" title="View">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                                @if (Model.CanEdit)
+                                                {
+                                                    <a href="@Url.Action("Edit", "Query", new { id = query.Id })" class="btn btn-outline-success btn-xs" title="Edit">
+                                                        <i class="fa fa-edit"></i>
+                                                    </a>
+                                                }
+                                                @if (query.Status == DT_PODSystem.Models.Enums.QueryStatus.Draft || query.Status == DT_PODSystem.Models.Enums.QueryStatus.Testing)
+                                                {
+                                                    <button onclick="testQuery(@query.Id)" class="btn btn-outline-warning btn-xs" title="Test Query">
+                                                        <i class="fa fa-flask"></i>
+                                                    </button>
+                                                }
+                                                @if (Model.CanDelete)
+                                                {
+                                                    <button onclick="deleteQuery(@query.Id)" class="btn btn-outline-danger btn-xs" title="Delete">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net/js/dataTables.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var table = $('#queries-table').DataTable({
+                responsive: true,
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                order: [[1, 'asc']],
+                columnDefs: [
+                    { targets: 0, orderable: false, searchable: false },
+                    { targets: -1, orderable: false, searchable: false }
+                ],
+                language: {
+                    emptyTable: 'No queries found',
+                    info: 'Showing _START_ to _END_ of _TOTAL_ queries',
+                    infoEmpty: 'No queries available',
+                    infoFiltered: '(filtered from _MAX_ total queries)',
+                    lengthMenu: 'Show _MENU_ queries per page',
+                    search: 'Search:',
+                    paginate: { first: 'First', last: 'Last', next: 'Next', previous: 'Previous' }
+                },
+                drawCallback: function() {
+                    updateBulkActions();
+                }
+            });
+
+            $('#global-search').on('keyup', function() {
+                table.search(this.value).draw();
+            });
+
+            $('#clear-search').on('click', function() {
+                $('#global-search').val('');
+                table.search('').draw();
+            });
+
+            $('#select-all').on('click', function() {
+                var checked = this.checked;
+                $('.row-select').prop('checked', checked);
+                updateBulkActions();
+            });
+
+            $(document).on('change', '.row-select', function() {
+                updateBulkActions();
+                var total = $('.row-select').length;
+                var checked = $('.row-select:checked').length;
+                $('#select-all').prop('checked', checked === total);
+            });
+
+            $('#bulk-activate').on('click', function() {
+                bulkAction('activate');
+            });
+
+            $('#bulk-test').on('click', function() {
+                bulkAction('test');
+            });
+
+            $('#bulk-delete').on('click', function() {
+                bulkAction('delete');
+            });
+
+            function updateBulkActions() {
+                var selectedCount = $('.row-select:checked').length;
+                $('#bulk-activate, #bulk-test, #bulk-delete').prop('disabled', selectedCount === 0);
+            }
+
+            function bulkAction(action) {
+                var selectedIds = [];
+                $('.row-select:checked').each(function() {
+                    selectedIds.push($(this).data('id'));
+                });
+
+                if (selectedIds.length === 0) return;
+
+                var actionText = action === 'delete' ? 'delete' : action === 'test' ? 'test' : 'update';
+                var message = 'Are you sure you want to ' + actionText + ' ' + selectedIds.length + ' query(s)?';
+
+                if (typeof swal !== 'undefined') {
+                    swal({
+                        title: 'Confirm ' + action.charAt(0).toUpperCase() + action.slice(1),
+                        text: message,
+                        icon: 'warning',
+                        buttons: {
+                            cancel: { text: 'Cancel', className: 'btn btn-default' },
+                            confirm: {
+                                text: action.charAt(0).toUpperCase() + action.slice(1),
+                                className: 'btn btn-' + (action === 'delete' ? 'danger' : action === 'test' ? 'warning' : 'primary')
+                            }
+                        }
+                    }).then(function(confirm) {
+                        if (confirm) {
+                            performBulkAction(action, selectedIds);
+                        }
+                    });
+                } else {
+                    if (confirm(message)) {
+                        performBulkAction(action, selectedIds);
+                    }
+                }
+            }
+
+            function performBulkAction(action, queryIds) {
+                $.post('@Url.Action("BulkAction", "Query")', { action: action, queryIds: queryIds }, function(result) {
+                    if (result.success) {
+                        showSuccess(result.message || action.charAt(0).toUpperCase() + action.slice(1) + ' completed successfully');
+                        location.reload();
+                    } else {
+                        showError(result.message || 'Action failed');
+                    }
+                }).fail(function() {
+                    showError('An error occurred');
+                });
+            }
+
+            window.deleteQuery = function(id) {
+                if (typeof swal !== 'undefined') {
+                    swal({
+                        title: 'Delete Query?',
+                        text: 'This action cannot be undone!',
+                        icon: 'warning',
+                        buttons: {
+                            cancel: { text: 'Cancel', className: 'btn btn-default' },
+                            confirm: { text: 'Delete', className: 'btn btn-danger' }
+                        }
+                    }).then(function(confirm) {
+                        if (confirm) {
+                            performDelete(id);
+                        }
+                    });
+                } else {
+                    if (confirm('Delete this query? This action cannot be undone!')) {
+                        performDelete(id);
+                    }
+                }
+            };
+
+            window.testQuery = function(id) {
+                if (typeof swal !== 'undefined') {
+                    swal({
+                        title: 'Test Query?',
+                        text: 'This will validate the query formulas and dependencies.',
+                        icon: 'info',
+                        buttons: {
+                            cancel: { text: 'Cancel', className: 'btn btn-default' },
+                            confirm: { text: 'Test', className: 'btn btn-warning' }
+                        }
+                    }).then(function(confirm) {
+                        if (confirm) {
+                            performTest(id);
+                        }
+                    });
+                } else {
+                    if (confirm('Test this query?')) {
+                        performTest(id);
+                    }
+                }
+            };
+
+            function performDelete(id) {
+                $.post('@Url.Action("Delete", "Query")', { id: id }, function(result) {
+                    if (result.success) {
+                        showSuccess('Query deleted successfully');
+                        location.reload();
+                    } else {
+                        showError(result.message || 'Delete failed');
+                    }
+                }).fail(function() {
+                    showError('An error occurred');
+                });
+            }
+
+            function performTest(id) {
+                $.post('@Url.Action("Test", "Query")', { id: id }, function(result) {
+                    if (result.success) {
+                        showSuccess('Query test completed successfully');
+                        if (result.testResults) {
+                            console.log('Test Results:', result.testResults);
+                        }
+                    } else {
+                        showError(result.message || 'Test failed');
+                    }
+                }).fail(function() {
+                    showError('An error occurred during testing');
+                });
+            }
+
+            function showSuccess(message) {
+                if (typeof gritter !== 'undefined') {
+                    gritter.add({ title: 'Success', text: message, class_name: 'my-sticky-class' });
+                } else if (typeof alert !== 'undefined' && alert.success) {
+                    alert.success(message);
+                } else {
+                    console.log('Success: ' + message);
+                }
+            }
+
+            function showError(message) {
+                if (typeof gritter !== 'undefined') {
+                    gritter.add({ title: 'Error', text: message, class_name: 'gritter-error' });
+                } else if (typeof alert !== 'undefined' && alert.error) {
+                    alert.error(message);
+                } else {
+                    console.error('Error: ' + message);
+                }
+            }
+        });
+    </script>
+}

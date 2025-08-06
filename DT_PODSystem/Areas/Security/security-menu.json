@@ -1,0 +1,41 @@
+﻿{
+  "securityMenu": [
+    {
+      "controller": "SecurityUsers",
+      "action": "Index",
+      "text": "Users",
+      "icon": "fas fa-users",
+      "area": "Security"  
+    }
+  ],
+  "superAdminMenu": [
+    {
+      "text": "Super Admin",
+      "icon": "fas fa-crown",
+      "badge": "DEV",
+      "superAdminOnly": "true",
+      "devOnly": "true",
+      "children": [
+        {
+          "controller": "SuperAdmin",
+          "action": "Index",
+          "text": "Dashboard",
+          "area": "Security",
+          "highlight": "true"
+        },
+        {
+          "controller": "SecurityRoles",
+          "action": "Index",
+          "text": "Roles",
+          "area": "Security"
+        },
+        {
+          "controller": "Permissions",
+          "action": "Index",
+          "text": "Permissions",
+          "area": "Security"
+        }
+      ]
+    }
+  ]
+}

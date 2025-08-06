@@ -1,0 +1,1153 @@
+﻿@* ============================================================================================
+   Areas/Security/Views/SecurityUsers/Index.cshtml
+   Security Users Management Index Page - COMPLETE FIXED VERSION
+   ============================================================================================ *@
+@model DT_PODSystem.Areas.Security.Models.ViewModels.SecurityUsersIndexViewModel
+@{
+    ViewData["Title"] = "Security Users Management";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css" rel="stylesheet" />
+    <style>
+        .stats-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .user-status-badge {
+            display: inline-block;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .btn-group .btn {
+            margin-right: 2px;
+        }
+
+        .filters-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* User Selection Modal Styles */
+        .user-search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .user-search-input {
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+            .user-search-input:focus {
+                border-color: #007bff;
+                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            }
+
+        .search-results-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            display: none;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #f8f9fa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+            .user-card:last-child {
+                border-bottom: none;
+            }
+
+            .user-card:hover {
+                background: #f8f9fa;
+                transform: translateX(5px);
+            }
+
+            .user-card.selected {
+                background: #e3f2fd;
+                border-left: 4px solid #007bff;
+            }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .user-avatar img {
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                object-fit: cover;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+
+            .user-avatar .initials {
+                position: relative;
+                z-index: 1;
+            }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+
+        .user-title {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .user-details {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .user-detail {
+            font-size: 12px;
+            color: #8e8e93;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .search-hint {
+            text-align: center;
+            padding: 30px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        /* Loading Animation */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+        }
+
+            .loading-overlay.show {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+        .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 300px;
+            width: 90%;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @@keyframes spin {
+            0%
+
+        {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+
+        }
+
+        .loading-content h5 {
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+
+        .loading-content p {
+            margin-bottom: 0;
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .already-exists {
+            background: #fff3cd !important;
+            border-left: 4px solid #ffc107 !important;
+        }
+
+            .already-exists .user-card-overlay {
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                background: rgba(255, 193, 7, 0.1);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+        .exists-badge {
+            background: #ffc107;
+            color: #212529;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .user-card.disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+            .user-card.disabled:hover {
+                transform: none;
+                background: inherit;
+            }
+
+        /* User thumbnail styles for table */
+        .user-table-thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .user-table-initials {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        /* Enhanced table user display */
+        .user-display {
+            min-width: 220px;
+        }
+
+            .user-display .fw-semibold {
+                font-size: 14px;
+                color: #2c3e50;
+                margin-bottom: 2px;
+            }
+
+            .user-display small {
+                font-size: 12px;
+                color: #6c757d;
+            }
+
+        /* Badge flex styling */
+        .badge.d-flex {
+            padding: 6px 10px;
+            min-height: 32px;
+        }
+    </style>
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard", new { area = "Security" })">Security</a></li>
+    <li class="breadcrumb-item active">Security Users</li>
+</ol>
+<!-- END breadcrumb -->
+<!-- BEGIN page-header -->
+<h1 class="page-header">
+    <i class="fa fa-users text-primary me-2"></i>
+    Security Users Management
+    <small>Manage user accounts and roles</small>
+    <div class="float-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userSelectionModal">
+            <i class="fa fa-plus"></i> Add User
+        </button>
+        <div class="btn-group ms-2">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="fa fa-download"></i> Export
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="@Url.Action("ExportToExcel")"><i class="fa fa-file-excel text-success"></i> Export to Excel</a></li>
+                <li><a class="dropdown-item" href="#" onclick="exportToPdf()"><i class="fa fa-file-pdf text-danger"></i> Export to PDF</a></li>
+            </ul>
+        </div>
+    </div>
+</h1>
+<!-- END page-header -->
+<!-- Statistics Header -->
+<div class="row">
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-blue">
+            <div class="stats-icon"><i class="fa fa-users"></i></div>
+            <div class="stats-info">
+                <h4>Total Users</h4>
+                <p id="totalUsers">@Model.Statistics.TotalUsers</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-green">
+            <div class="stats-icon"><i class="fa fa-user-check"></i></div>
+            <div class="stats-info">
+                <h4>Active Users</h4>
+                <p id="activeUsers">@Model.Statistics.ActiveUsers</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-orange">
+            <div class="stats-icon"><i class="fa fa-user-shield"></i></div>
+            <div class="stats-info">
+                <h4>Users with Roles</h4>
+                <p id="usersWithRoles">@Model.Statistics.UsersWithRoles</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-red">
+            <div class="stats-icon"><i class="fa fa-user-times"></i></div>
+            <div class="stats-info">
+                <h4>Inactive Users</h4>
+                <p id="inactiveUsers">@Model.Statistics.InactiveUsers</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters Section -->
+<div class="filters-section">
+    <div class="row">
+        <div class="col-md-3">
+            <label class="form-label">Filter by Role:</label>
+            <select id="roleFilter" class="form-select">
+                <option value="">All Roles</option>
+                @foreach (var role in Model.RoleFilters)
+                {
+                    <option value="@role.Value">@role.Text</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Filter by Status:</label>
+            <select id="statusFilter" class="form-select">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">&nbsp;</label>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-primary" onclick="applyFilters()">
+                    <i class="fa fa-filter"></i> Apply Filters
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">
+                    <i class="fa fa-times"></i> Clear
+                </button>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Quick Actions:</label>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-info" onclick="refreshTable()">
+                    <i class="fa fa-refresh"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="panel panel-inverse">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            <i class="fa fa-list"></i> Users List
+            <span class="badge bg-primary ms-2" id="recordCount">Loading...</span>
+        </h4>
+    </div>
+    <div class="panel-body">
+        <div class="table-responsive">
+            <table id="usersTable" class="table table-striped table-bordered table-hover" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Department</th>
+                        <th>User Class</th>
+                        <th>Roles</th>
+                        <th>Status</th>
+                        <th>Last Login</th>
+                        <th width="180">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be loaded via AJAX -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- User Selection Modal -->
+<div class="modal fade" id="userSelectionModal" tabindex="-1" aria-labelledby="userSelectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userSelectionModalLabel">
+                    <i class="fa fa-search text-primary me-2"></i>
+                    Select User to Add
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @Html.AntiForgeryToken()
+
+                <div class="user-search-container">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fa fa-search"></i>
+                        </span>
+                        <input type="text" id="userSearchInput" class="form-control user-search-input"
+                               placeholder="Search by name, email, department, or employee ID..."
+                               autocomplete="off">
+                    </div>
+                    <div class="form-text">
+                        <i class="fa fa-info-circle text-info"></i>
+                        Type at least 2 characters to search for users
+                    </div>
+                </div>
+
+                <div id="searchResultsContainer" class="search-results-container">
+                    <div class="search-hint">
+                        <i class="fa fa-search text-muted" style="font-size: 3rem;"></i>
+                        <p class="mt-3">Start typing to search for users...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fa fa-times me-2"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="addSelectedUserBtn" disabled>
+                    <i class="fa fa-plus me-2"></i>Add Selected User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <h5>Adding User...</h5>
+        <p class="text-muted">Please wait while we process your request</p>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net/js/dataTables.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+
+    <script>
+        let usersTable;
+        let selectedUser = null;
+        let searchTimeout = null;
+
+        $(document).ready(function() {
+            initializeDataTable();
+            setupEventHandlers();
+            initializeUserSelection();
+        });
+
+        function initializeDataTable() {
+            usersTable = $('#usersTable').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                order: [[1, 'asc']],
+                ajax: {
+                    url: '@Url.Action("GetSecurityUsersData")',
+                    type: 'POST',
+                    data: function(d) {
+                        d.roleFilter = $('#roleFilter').val();
+                        d.statusFilter = $('#statusFilter').val();
+                    },
+                    error: function(xhr, error, thrown) {
+                        console.error('DataTable AJAX error:', error);
+                        if (typeof alert !== 'undefined' && alert.error) {
+                            alert.error('Error loading users data');
+                        } else {
+                            console.error('Error loading users data');
+                        }
+                    }
+                },
+                columns: [
+                    { data: 'user', name: 'User', orderable: false },
+                    { data: 'department', name: 'Department' },
+                    {
+                        data: 'userClass',
+                        name: 'UserClass',
+                        orderable: false,
+                        className: 'text-center'
+                    },
+                    { data: 'roles', name: 'Roles', orderable: false },
+                    {
+                        data: 'statusBadge',
+                        name: 'Status',
+                        orderable: false,
+                        className: 'text-center'
+                    },
+                    { data: 'lastLoginAt', name: 'LastLoginAt' },
+                    {
+                        data: 'actions',
+                        name: 'Actions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    }
+                ],
+                columnDefs: [
+                    { targets: [0, 2, 3, 4, 6], orderable: false },
+                    { targets: [4, 6], searchable: false }
+                ],
+                drawCallback: function(settings) {
+                    updateRecordCount(settings.json.recordsTotal);
+                },
+                language: {
+                    processing: '<i class="fa fa-spinner fa-spin"></i> Loading users...',
+                    emptyTable: 'No users found',
+                    zeroRecords: 'No matching users found'
+                }
+            });
+        }
+
+        function setupEventHandlers() {
+            $('#roleFilter, #statusFilter').on('change', function() {
+                applyFilters();
+            });
+
+            $(document).on('click', '.delete-user-btn', function() {
+                const userId = $(this).data('user-id');
+                const userName = $(this).data('user-name');
+                deleteUser(userId, userName);
+            });
+        }
+
+        function initializeUserSelection() {
+            $('#userSearchInput').on('input', function() {
+                const query = $(this).val().trim();
+                clearTimeout(searchTimeout);
+
+                if (query.length < 2) {
+                    showSearchHint();
+                    return;
+                }
+
+                searchTimeout = setTimeout(function() {
+                    searchUsers(query);
+                }, 500);
+            });
+
+            $('#addSelectedUserBtn').on('click', function() {
+                if (selectedUser) {
+                    addUser(selectedUser);
+                }
+            });
+
+            $('#userSelectionModal').on('hidden.bs.modal', function() {
+                resetModal();
+            });
+        }
+
+        // VIEW USER DETAILS
+        function viewUserDetails(userId) {
+            window.location.href = '@Url.Action("Details", "SecurityUsers", new { area = "Security", id = 0 })'.replace('0', userId);
+        }
+
+        // TOGGLE STATUS
+        function toggleStatus(userId, currentStatus) {
+            const actionText = currentStatus ? 'deactivate' : 'activate';
+            const title = currentStatus ? 'Deactivate User?' : 'Activate User?';
+
+            if (typeof swal !== 'undefined') {
+                swal({
+                    title: title,
+                    text: `Are you sure you want to ${actionText} this user?`,
+                    icon: 'warning',
+                    buttons: true,
+                    dangerMode: actionText === 'deactivate'
+                }).then(function(result) {
+                    if (result) {
+                        performToggleStatus(userId, actionText);
+                    }
+                });
+            } else if (typeof alert !== 'undefined' && alert.confirm) {
+                alert.confirm(title, `Are you sure you want to ${actionText} this user?`, function() {
+                    performToggleStatus(userId, actionText);
+                });
+            } else {
+                if (confirm(`Are you sure you want to ${actionText} this user?`)) {
+                    performToggleStatus(userId, actionText);
+                }
+            }
+        }
+
+        function performToggleStatus(userId, actionText) {
+            $.ajax({
+                url: '@Url.Action("ToggleStatus")',
+                type: 'POST',
+                data: {
+                    id: userId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        if (typeof alert !== 'undefined' && alert.success) {
+                            alert.success(response.message || `User ${actionText}d successfully!`, { popup: false });
+                        }
+                        usersTable.ajax.reload(null, false);
+                        updateStatistics();
+                    } else {
+                        if (typeof alert !== 'undefined' && alert.error) {
+                            alert.error(response.message || `Failed to ${actionText} user`);
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Toggle status error:', xhr.status, error);
+                    if (typeof alert !== 'undefined' && alert.error) {
+                        alert.error(`Error ${actionText}ing user. Please try again.`);
+                    }
+                }
+            });
+        }
+
+        // TOGGLE ADMIN STATUS
+        function toggleAdminStatus(userId) {
+            if (typeof swal !== 'undefined') {
+                swal({
+                    title: 'Toggle Admin Status?',
+                    text: 'This will change the user\'s administrative privileges.',
+                    icon: 'warning',
+                    buttons: true,
+                    dangerMode: true
+                }).then(function(result) {
+                    if (result) {
+                        performToggleAdminStatus(userId);
+                    }
+                });
+            } else if (typeof alert !== 'undefined' && alert.confirm) {
+                alert.confirm('Toggle Admin Status', 'This will change the user\'s administrative privileges.', function() {
+                    performToggleAdminStatus(userId);
+                });
+            } else {
+                if (confirm('Are you sure you want to toggle admin status?')) {
+                    performToggleAdminStatus(userId);
+                }
+            }
+        }
+
+        function performToggleAdminStatus(userId) {
+            $.ajax({
+                url: '@Url.Action("ToggleAdminStatus")',
+                type: 'POST',
+                data: {
+                    id: userId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        if (typeof alert !== 'undefined' && alert.success) {
+                            alert.success(response.message, { popup: false });
+                        }
+                        usersTable.ajax.reload(null, false);
+                        updateStatistics();
+                    } else {
+                        if (typeof alert !== 'undefined' && alert.error) {
+                            alert.error(response.message || 'Failed to update admin status');
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Toggle admin status error:', error);
+                    if (typeof alert !== 'undefined' && alert.error) {
+                        alert.error('Error updating admin status. Please try again.');
+                    }
+                }
+            });
+        }
+
+        // TOGGLE SUPER ADMIN STATUS
+        function toggleSuperAdminStatus(userId) {
+            if (typeof swal !== 'undefined') {
+                swal({
+                    title: 'Toggle Super Admin Status?',
+                    text: 'This will change the user\'s Super Administrator privileges. ⚠️ This is a high-level security action!',
+                    icon: 'warning',
+                    buttons: true,
+                    dangerMode: true
+                }).then(function(result) {
+                    if (result) {
+                        performToggleSuperAdminStatus(userId);
+                    }
+                });
+            } else if (typeof alert !== 'undefined' && alert.confirm) {
+                alert.confirm('Toggle Super Admin Status', 'This will change the user\'s Super Administrator privileges. ⚠️ This is a high-level security action!', function() {
+                    performToggleSuperAdminStatus(userId);
+                });
+            } else {
+                if (confirm('Are you sure you want to toggle Super Admin status? This is a high-level security action!')) {
+                    performToggleSuperAdminStatus(userId);
+                }
+            }
+        }
+
+        function performToggleSuperAdminStatus(userId) {
+            $.ajax({
+                url: '@Url.Action("ToggleSuperAdminStatus")',
+                type: 'POST',
+                data: {
+                    id: userId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        if (typeof alert !== 'undefined' && alert.success) {
+                            alert.success(response.message, { popup: false });
+                        }
+                        usersTable.ajax.reload(null, false);
+                        updateStatistics();
+                    } else {
+                        if (typeof alert !== 'undefined' && alert.error) {
+                            alert.error(response.message || 'Failed to update Super Admin status');
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Toggle super admin status error:', error);
+                    if (typeof alert !== 'undefined' && alert.error) {
+                        alert.error('Error updating Super Admin status. Please try again.');
+                    }
+                }
+            });
+        }
+
+        // DELETE USER
+        function deleteUser(userId, userName) {
+            if (typeof swal !== 'undefined') {
+                swal({
+                    title: 'Delete User?',
+                    text: `Are you sure you want to permanently delete: ${userName}? ⚠️ This action cannot be undone!`,
+                    icon: 'error',
+                    buttons: true,
+                    dangerMode: true
+                }).then(function(result) {
+                    if (result) {
+                        performDeleteUser(userId, userName);
+                    }
+                });
+            } else if (typeof alert !== 'undefined' && alert.confirm) {
+                alert.confirm('Delete User', `Are you sure you want to permanently delete: ${userName}? ⚠️ This action cannot be undone!`, function() {
+                    performDeleteUser(userId, userName);
+                });
+            } else {
+                if (confirm(`Are you sure you want to permanently delete: ${userName}? This action cannot be undone!`)) {
+                    performDeleteUser(userId, userName);
+                }
+            }
+        }
+
+        function performDeleteUser(userId, userName) {
+            $.ajax({
+                url: '@Url.Action("DeleteUser")',
+                type: 'POST',
+                data: {
+                    id: userId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        if (typeof alert !== 'undefined' && alert.success) {
+                            alert.success(response.message || 'User has been deleted successfully.', { popup: false });
+                        }
+                        usersTable.ajax.reload();
+                        updateStatistics();
+                    } else {
+                        if (typeof alert !== 'undefined' && alert.error) {
+                            alert.error(response.message || 'Failed to delete user');
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Delete user error:', xhr.status, error);
+                    if (typeof alert !== 'undefined' && alert.error) {
+                        alert.error('Error deleting user. Please try again.');
+                    }
+                }
+            });
+        }
+
+        function searchUsers(query) {
+            showLoading();
+
+            $.ajax({
+                url: '@Url.Action("SearchAvailableUsers")',
+                type: 'GET',
+                data: { query: query },
+                success: function(users) {
+                    if (users && users.error) {
+                        showError(users.error);
+                    } else {
+                        displaySearchResults(users || []);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Search error:', xhr.status, error);
+                    if (xhr.status === 404) {
+                        showError('Search functionality not available. Please contact your administrator.');
+                    } else {
+                        showError('Error searching users. Please try again.');
+                    }
+                }
+            });
+        }
+
+        function displaySearchResults(users) {
+            const container = $('#searchResultsContainer');
+            container.show();
+
+            if (users.length === 0) {
+                container.html(`
+                    <div class="no-results">
+                        <i class="fa fa-users text-muted" style="font-size: 3rem;"></i>
+                        <p class="mt-3">No users found matching your search.</p>
+                        <small class="text-muted">Try different keywords or check spelling.</small>
+                    </div>
+                `);
+                return;
+            }
+
+            let html = '';
+            users.forEach(function(user, index) {
+                const initials = getInitials(user.fullName);
+                const avatarSrc = user.photoUrl || '';
+                const isExists = user.alreadyExists;
+                const userDataId = `userData_${index}`;
+
+                window.userDataStore = window.userDataStore || {};
+                window.userDataStore[userDataId] = user;
+
+                html += `
+                    <div class="user-card ${isExists ? 'already-exists' : ''}" data-user-id="${userDataId}">
+                        <div class="user-avatar">
+                            ${avatarSrc ? `<img src="${avatarSrc}" alt="${escapeHtml(user.fullName)}">` : `<span class="initials">${initials}</span>`}
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">${escapeHtml(user.fullName)}</div>
+                            <div class="user-title">${escapeHtml(user.jobTitle || user.department || 'Employee')}</div>
+                            <div class="user-details">
+                                <div class="user-detail">
+                                    <i class="fa fa-envelope"></i>
+                                    ${escapeHtml(user.email)}
+                                </div>
+                                <div class="user-detail">
+                                    <i class="fa fa-building"></i>
+                                    ${escapeHtml(user.department || 'N/A')}
+                                </div>
+                                <div class="user-detail">
+                                    <i class="fa fa-user-tie"></i>
+                                    Manager: ${escapeHtml(user.manager || 'N/A')}
+                                </div>
+                                <div class="user-detail">
+                                    <i class="fa fa-id-badge"></i>
+                                    ${escapeHtml(user.employeeId || user.code || 'N/A')}
+                                </div>
+                            </div>
+                        </div>
+                        ${isExists ? `
+                            <div class="user-card-overlay">
+                                <span class="exists-badge">
+                                    <i class="fa fa-check"></i> Already Added
+                                </span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+
+            container.html(html);
+
+            $('.user-card:not(.already-exists)').on('click', function() {
+                selectUser($(this));
+            });
+        }
+
+        function selectUser($userCard) {
+            $('.user-card').removeClass('selected');
+            $userCard.addClass('selected');
+            const userDataId = $userCard.data('user-id');
+            selectedUser = window.userDataStore[userDataId];
+            $('#addSelectedUserBtn').prop('disabled', false);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        function addUser(user) {
+            const hasEmployeeId = user.employeeId || user.code || user.loginName;
+            const hasEmail = user.email || user.emailAddress;
+
+            if (!hasEmployeeId && !hasEmail) {
+                if (typeof alert !== 'undefined' && alert.warning) {
+                    alert.warning('Please select a valid user with employee ID or email');
+                } else {
+                    alert('Please select a valid user with employee ID or email');
+                }
+                return;
+            }
+
+            showModalLoading();
+            $('#addSelectedUserBtn').prop('disabled', true);
+
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            const requestData = {
+                employeeId: user.employeeId || user.code || user.loginName || '',
+                email: user.email || user.emailAddress || '',
+                __RequestVerificationToken: token
+            };
+
+            $.ajax({
+                url: '@Url.Action("AddExistingUser")',
+                type: 'POST',
+                data: requestData,
+                success: function(response) {
+                    if (response.success) {
+                        hideModalLoading();
+                        $('#userSelectionModal').modal('hide');
+                        $('#loadingOverlay').addClass('show');
+
+                        setTimeout(function() {
+                            window.location.href = response.editUrl;
+                        }, 500);
+                    } else {
+                        hideModalLoading();
+                        $('#addSelectedUserBtn').prop('disabled', false);
+                        if (typeof alert !== 'undefined' && alert.error) {
+                            alert.error(response.message || 'Failed to add user');
+                        } else {
+                            alert(response.message || 'Failed to add user');
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    hideModalLoading();
+                    $('#addSelectedUserBtn').prop('disabled', false);
+
+                    let errorMessage = 'Error adding user. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    } else if (xhr.status === 400) {
+                        errorMessage = 'Invalid request. Please check the user data.';
+                    } else if (xhr.status === 404) {
+                        errorMessage = 'Add user functionality not found. Please contact administrator.';
+                    }
+
+                    if (typeof alert !== 'undefined' && alert.error) {
+                        alert.error(errorMessage);
+                    } else {
+                        alert(errorMessage);
+                    }
+                }
+            });
+        }
+
+        function showModalLoading() {
+            $('#addSelectedUserBtn').html('<i class="fa fa-spinner fa-spin me-2"></i>Validating...');
+            $('#userSearchInput').prop('disabled', true);
+            $('.user-card').addClass('disabled');
+        }
+
+        function hideModalLoading() {
+            $('#addSelectedUserBtn').html('<i class="fa fa-plus me-2"></i>Add Selected User');
+            $('#userSearchInput').prop('disabled', false);
+            $('.user-card').removeClass('disabled');
+        }
+
+        function showLoading() {
+            $('#searchResultsContainer').html(`
+                <div class="loading-spinner">
+                    <i class="fa fa-spinner fa-spin fa-2x text-primary"></i>
+                    <p class="mt-3 text-muted">Searching users...</p>
+                </div>
+            `).show();
+        }
+
+        function showError(message) {
+            $('#searchResultsContainer').html(`
+                <div class="no-results">
+                    <i class="fa fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                    <p class="mt-3">${message}</p>
+                </div>
+            `).show();
+        }
+
+        function showSearchHint() {
+            $('#searchResultsContainer').html(`
+                <div class="search-hint">
+                    <i class="fa fa-search text-muted" style="font-size: 3rem;"></i>
+                    <p class="mt-3">Start typing to search for users...</p>
+                    <small class="text-muted">Enter at least 2 characters</small>
+                </div>
+            `).show();
+        }
+
+        function resetModal() {
+            $('#userSearchInput').val('');
+            selectedUser = null;
+            $('#addSelectedUserBtn').prop('disabled', true);
+            showSearchHint();
+            hideModalLoading();
+            window.userDataStore = {};
+        }
+
+        function getInitials(name) {
+            return name.split(' ')
+                      .map(function(word) { return word.charAt(0); })
+                      .join('')
+                      .substring(0, 2)
+                      .toUpperCase();
+        }
+
+        function applyFilters() {
+            usersTable.ajax.reload();
+        }
+
+        function clearFilters() {
+            $('#roleFilter').val('');
+            $('#statusFilter').val('');
+            usersTable.ajax.reload();
+        }
+
+        function refreshTable() {
+            usersTable.ajax.reload();
+        }
+
+        function updateRecordCount(count) {
+            $('#recordCount').text(count + ' users');
+        }
+
+        function updateStatistics() {
+            $.ajax({
+                url: '@Url.Action("GetStatistics")',
+                type: 'GET',
+                success: function(stats) {
+                    if (stats) {
+                        $('#totalUsers').text(stats.totalUsers);
+                        $('#activeUsers').text(stats.activeUsers);
+                        $('#inactiveUsers').text(stats.inactiveUsers);
+                        $('#usersWithRoles').text(stats.usersWithRoles);
+                    }
+                },
+                error: function() {
+                    console.log('Error updating statistics');
+                }
+            });
+        }
+
+        function exportToPdf() {
+            if (typeof alert !== 'undefined' && alert.info) {
+                alert.info('PDF export functionality coming soon!', { popup: false });
+            } else {
+                alert('PDF export functionality coming soon!');
+            }
+        }
+    </script>
+}

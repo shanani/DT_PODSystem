@@ -1,0 +1,794 @@
+﻿{
+  "samplesMenu": [
+    {
+      "controller": "Dashboard",
+      "icon": "fa fa-sitemap",
+      "text": "Dashboard",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "Dashboard",
+          "action": "DashboardV1",
+          "text": "Dashboard v1",
+          "area": "Samples"
+        },
+        {
+          "controller": "Dashboard",
+          "action": "DashboardV2",
+          "text": "Dashboard v2",
+          "area": "Samples"
+        },
+        {
+          "controller": "Dashboard",
+          "action": "DashboardV3",
+          "text": "Dashboard v3",
+          "area": "Samples"
+        }
+      ]
+    },
+    {
+      "controller": "Email",
+      "icon": "fa fa-hdd",
+      "text": "Email",
+      "badge": "10",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "Email",
+          "action": "Inbox",
+          "text": "Inbox",
+          "area": "Samples"
+        },
+        {
+          "controller": "Email",
+          "action": "Compose",
+          "text": "Compose",
+          "area": "Samples"
+        },
+        {
+          "controller": "Email",
+          "action": "Detail",
+          "text": "Detail",
+          "area": "Samples"
+        }
+      ]
+    },
+    {
+      "controller": "Widget",
+      "action": "Index",
+      "icon": "fab fa-simplybuilt",
+      "text": "Widgets",
+      "area": "Samples"
+    },
+    {
+      "controller": "Ui",
+      "icon": "fa fa-gem",
+      "text": "UI Elements",
+      "label": "NEW",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "Ui",
+          "action": "General",
+          "text": "General",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "Typography",
+          "text": "Typography",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "TabsAccordions",
+          "text": "Tabs & Accordions",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "UnlimitedNavTabs",
+          "text": "Unlimited Nav Tabs",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "ModalNotification",
+          "text": "Modal & Notification",
+          "highlight": "true",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "WidgetBoxes",
+          "text": "Widget Boxes",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "MediaObject",
+          "text": "Media Object",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "Buttons",
+          "text": "Buttons",
+          "highlight": "true",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "IconFontAwesome",
+          "text": "FontAwesome",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "IconBootstrapIcons",
+          "text": "Bootstrap Icons",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "IconDuotone",
+          "text": "Duotone Icons",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "IconSimpleLineIcons",
+          "text": "Simple Line Icons",
+          "area": "Samples"
+        },
+        {
+          "controller": "UI",
+          "action": "IconIonicons",
+          "text": "Ionicons",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "TreeView",
+          "text": "Tree View",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "LanguageBarIcon",
+          "text": "Language Bar & Icon",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "SocialButtons",
+          "text": "Social Buttons",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "IntroJs",
+          "text": "Intro JS",
+          "area": "Samples"
+        },
+        {
+          "controller": "Ui",
+          "action": "OffcanvasToasts",
+          "text": "Offcanvas & Toasts ",
+          "area": "Samples"
+        }
+      ]
+    },
+    {
+      "controller": "Bootstrap5",
+      "action": "Index",
+      "img": "https://ops_cdn.stc.com.sa/ca/img/logo/logo-bs5.png",
+      "text": "Bootstrap 5",
+      "label": "NEW",
+      "area": "Samples"
+    },
+    {
+      "controller": "Form",
+      "icon": "fa fa-list-ol",
+      "text": "Form Stuff",
+      "label": "NEW",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "Form",
+          "action": "Elements",
+          "text": "Form Elements",
+          "area": "Samples"
+        },
+        {
+          "controller": "Form",
+          "action": "Plugins",
+          "text": "Form Plugins",
+          "area": "Samples"
+        },
+        {
+          "controller": "Form",
+          "action": "SliderSwitcher",
+          "text": "Form Slider + Switcher",
+          "area": "Samples"
+        },
+        {
+          "controller": "Form",
+          "action": "Validation",
+          "text": "Form Validation",
+          "area": "Samples"
+        },
+        {
+          "controller": "Form",
+          "action": "Wizards",
+          "text": "Form Wizards",
+          "area": "Samples"
+        },
+        {
+          "controller": "Form",
+          "action": "Wysiwyg",
+          "text": "WYSIWYG",
+          "area": "Samples"
+        },
+        {
+          "controller": "Form",
+          "action": "XEditable",
+          "text": "X-Editable",
+          "area": "Samples"
+        },
+        {
+          "controller": "Form",
+          "action": "MultipleFileUpload",
+          "text": "Multiple File Upload",
+          "area": "Samples"
+        },
+        {
+          "controller": "Form",
+          "action": "Summernote",
+          "text": "Summernote",
+          "area": "Samples"
+        },
+        {
+          "controller": "Form",
+          "action": "Dropzone",
+          "text": "Dropzone",
+          "area": "Samples"
+        }
+      ]
+    },
+    {
+      "controller": "Table",
+      "icon": "fa fa-table",
+      "text": "Tables",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "Table",
+          "action": "Basic",
+          "text": "Basic",
+          "area": "Samples"
+        },
+        {
+          "text": "Managed Tables",
+          "controller": "Table",
+          "area": "Samples",
+          "children": [
+            {
+              "controller": "Table",
+              "action": "TableManageDefault",
+              "text": "Default",
+              "area": "Samples"
+            },
+            {
+              "controller": "Table",
+              "action": "TableManageButtons",
+              "text": "Buttons",
+              "area": "Samples"
+            },
+            {
+              "controller": "Table",
+              "action": "TableManageColReorder",
+              "text": "ColReorder",
+              "area": "Samples"
+            },
+            {
+              "controller": "Table",
+              "action": "TableManageFixedColumn",
+              "text": "Fixed Column",
+              "area": "Samples"
+            },
+            {
+              "controller": "Table",
+              "action": "TableManageFixedHeader",
+              "text": "Fixed Header",
+              "area": "Samples"
+            },
+            {
+              "controller": "Table",
+              "action": "TableManageKeyTable",
+              "text": "KeyTable",
+              "area": "Samples"
+            },
+            {
+              "controller": "Table",
+              "action": "TableManageResponsive",
+              "text": "Responsive",
+              "area": "Samples"
+            },
+            {
+              "controller": "Table",
+              "action": "TableManageRowReorder",
+              "text": "RowReorder",
+              "area": "Samples"
+            },
+            {
+              "controller": "Table",
+              "action": "TableManageScroller",
+              "text": "Scroller",
+              "area": "Samples"
+            },
+            {
+              "controller": "Table",
+              "action": "TableManageSelect",
+              "text": "Select",
+              "area": "Samples"
+            },
+            {
+              "controller": "Table",
+              "action": "TableManageCombine",
+              "text": "Extension Combination",
+              "area": "Samples"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "controller": "Pos",
+      "icon": "fa fa-cash-register",
+      "text": "POS System",
+      "label": "NEW",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "Pos",
+          "action": "CustomerOrder",
+          "text": "Customer Order",
+          "area": "Samples"
+        },
+        {
+          "controller": "Pos",
+          "action": "KitchenOrder",
+          "text": "Kitchen Order",
+          "area": "Samples"
+        },
+        {
+          "controller": "Pos",
+          "action": "CounterCheckout",
+          "text": "Counter Checkout",
+          "area": "Samples"
+        },
+        {
+          "controller": "Pos",
+          "action": "TableBooking",
+          "text": "Table Booking",
+          "area": "Samples"
+        },
+        {
+          "controller": "Pos",
+          "action": "MenuStock",
+          "text": "Menu Stock",
+          "area": "Samples"
+        }
+      ]
+    },
+    {
+      "controller": "Chart",
+      "icon": "fa fa-chart-pie",
+      "text": "Chart",
+      "label": "NEW",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "Chart",
+          "action": "FlotChart",
+          "text": "Flot Chart",
+          "area": "Samples"
+        },
+        {
+          "controller": "Chart",
+          "action": "ChartJs",
+          "text": "Chart JS",
+          "area": "Samples"
+        },
+        {
+          "controller": "Chart",
+          "action": "d3Chart",
+          "text": "d3 Chart",
+          "area": "Samples"
+        },
+        {
+          "controller": "Chart",
+          "action": "ApexChart",
+          "text": "Apex Chart",
+          "area": "Samples"
+        }
+      ]
+    },
+    {
+      "controller": "Landing",
+      "action": "Index",
+      "icon": "fa fa-crown",
+      "text": "Landing Page",
+      "label": "NEW",
+      "area": "Samples"
+    },
+    {
+      "controller": "Calendar",
+      "action": "Index",
+      "icon": "fa fa-calendar",
+      "text": "Calendar",
+      "area": "Samples"
+    },
+    {
+      "controller": "Map",
+      "icon": "fa fa-map",
+      "text": "Map",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "Map",
+          "action": "Vector",
+          "text": "Vector Map",
+          "area": "Samples"
+        },
+        {
+          "controller": "Map",
+          "action": "Google",
+          "text": "Google Map",
+          "area": "Samples"
+        }
+      ]
+    },
+    {
+      "controller": "Gallery",
+      "icon": "fa fa-image",
+      "text": "Gallery",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "Gallery",
+          "action": "GalleryV1",
+          "text": "Gallery v1",
+          "area": "Samples"
+        },
+        {
+          "controller": "Gallery",
+          "action": "GalleryV2",
+          "text": "Gallery v2",
+          "area": "Samples"
+        }
+      ]
+    },
+    {
+      "controller": "PageOption",
+      "icon": "fa fa-cogs",
+      "text": "Page Options",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "PageOption",
+          "action": "PageBlank",
+          "text": "Blank Page",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithFooter",
+          "text": "Page with Footer",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithFixedFooter",
+          "text": "Page with Fixed Footer",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithoutSidebar",
+          "text": "Page without Sidebar",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithRightSidebar",
+          "text": "Page with Right Sidebar",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithMinifiedSidebar",
+          "text": "Page with Minified Sidebar",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithTwoSidebar",
+          "text": "Page with Two Sidebar",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageFullHeight",
+          "text": "Full Height Content",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithWideSidebar",
+          "text": "Page with Wide Sidebar",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithLightSidebar",
+          "text": "Page with Light Sidebar",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithMegaMenu",
+          "text": "Page with Mega Menu",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithTopMenu",
+          "text": "Page with Top Menu",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithBoxedLayout",
+          "text": "Page with Boxed Layout",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithMixedMenu",
+          "text": "Page with Mixed Menu",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "BoxedLayoutWithMixedMenu",
+          "text": "Boxed Layout with Mixed Menu",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithTransparentSidebar",
+          "text": "Page with Transparent Sidebar",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithSearchSidebar",
+          "text": "Page with Search Sidebar",
+          "area": "Samples"
+        },
+        {
+          "controller": "PageOption",
+          "action": "PageWithHoverSidebar",
+          "text": "Page with Hover Sidebar",
+          "area": "Samples"
+        }
+      ]
+    },
+    {
+      "controller": "Extra",
+      "icon": "fa fa-gift",
+      "text": "Extra",
+      "label": "NEW",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "Extra",
+          "action": "Timeline",
+          "text": "Timeline",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "ComingSoon",
+          "text": "Coming Soon Page",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "SearchResult",
+          "text": "Search Results",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "Invoice",
+          "text": "Invoice",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "ErrorPage",
+          "text": "404 Error Page",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "Profile",
+          "text": "Profile Page",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "ScrumBoard",
+          "text": "Scrum Board",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "CookieAcceptanceBanner",
+          "text": "Cookie Acceptance Banner",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "Orders",
+          "text": "Orders",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "OrderDetails",
+          "text": "Order Details",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "Products",
+          "text": "Products",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "ProductDetails",
+          "text": "Product Details",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "FileManager",
+          "text": "File Manager",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "PricingPage",
+          "text": "Pricing Page",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "MessengerPage",
+          "text": "Messenger Page",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "DataManagement",
+          "text": "Data Management",
+          "area": "Samples"
+        },
+        {
+          "controller": "Extra",
+          "action": "SettingsPage",
+          "text": "Settings Page",
+          "area": "Samples"
+        }
+      ]
+    },
+    {
+      "controller": "LoginRegister",
+      "icon": "fa fa-key",
+      "text": "Login & Register",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "LoginRegister",
+          "action": "LoginV1",
+          "text": "Login",
+          "area": "Samples"
+        },
+        {
+          "controller": "LoginRegister",
+          "action": "LoginV2",
+          "text": "Login v2",
+          "area": "Samples"
+        },
+        {
+          "controller": "LoginRegister",
+          "action": "LoginV3",
+          "text": "Login v3",
+          "area": "Samples"
+        },
+        {
+          "controller": "LoginRegister",
+          "action": "RegisterV3",
+          "text": "Register v3",
+          "area": "Samples"
+        }
+      ]
+    },
+    {
+      "controller": "Helper",
+      "icon": "fa fa-medkit",
+      "text": "Helper",
+      "area": "Samples",
+      "children": [
+        {
+          "controller": "Helper",
+          "action": "Css",
+          "text": "Predefined CSS Classes",
+          "area": "Samples"
+        }
+      ]
+    },
+    {
+      "icon": "fa fa-align-left",
+      "text": "Menu Level",
+      "area": "Samples",
+      "children": [
+        {
+          "text": "Menu 1.1",
+          "area": "Samples",
+          "children": [
+            {
+              "text": "Menu 2.1",
+              "area": "Samples",
+              "children": [
+                {
+                  "text": "Menu 3.1",
+                  "area": "Samples"
+                },
+                {
+                  "text": "Menu 3.2",
+                  "area": "Samples"
+                },
+                {
+                  "text": "Menu 3.3",
+                  "area": "Samples"
+                }
+              ]
+            },
+            {
+              "text": "Menu 2.2",
+              "area": "Samples"
+            },
+            {
+              "text": "Menu 2.3",
+              "area": "Samples"
+            }
+          ]
+        },
+        {
+          "text": "Menu 1.2",
+          "area": "Samples"
+        },
+        {
+          "text": "Menu 1.3",
+          "area": "Samples"
+        }
+      ]
+    }
+  ]
+}

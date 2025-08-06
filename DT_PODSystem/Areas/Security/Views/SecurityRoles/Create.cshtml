@@ -1,0 +1,424 @@
+@model SecurityRoleManagementViewModel
+
+@{
+    ViewData["Title"] = "Create Security Role";
+}
+
+@section Styles {
+    <style>
+        .form-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .role-info-card {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .help-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
+        .role-examples {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .role-example {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin: 0.25rem;
+        }
+
+        .template-btn {
+            margin-bottom: 0.5rem;
+        }
+
+            .template-btn:hover {
+                transform: translateY(-1px);
+                transition: transform 0.2s ease;
+            }
+
+        .info-alert {
+            border-left: 4px solid #17a2b8;
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+        }
+
+        .quick-action-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+
+            .quick-action-card:hover {
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                transform: translateY(-2px);
+            }
+    </style>
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard", new { area = "Security" })">Security</a></li>
+    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Security Roles</a></li>
+    <li class="breadcrumb-item active">Create</li>
+</ol>
+<!-- END breadcrumb -->
+<!-- BEGIN page-header -->
+<h1 class="page-header">
+    <i class="fa fa-plus text-primary me-2"></i>
+    Create Security Role
+    <small>Add a new security role to the system</small>
+    <div class="float-end">
+        <a href="@Url.Action("Index")" class="btn btn-outline-theme">
+            <i class="fa fa-arrow-left me-2"></i>Back to Roles
+        </a>
+    </div>
+</h1>
+<!-- END page-header -->
+
+<div class="row">
+    <div class="col-xl-8">
+        <!-- Role Basic Information Panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-plus-circle me-2"></i>New Security Role
+                </h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-danger" data-toggle="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <form id="createRoleForm" asp-action="Create" method="post" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Name" class="form-label">Role Name <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control" maxlength="100" onchange="updatePermissionExamples(this.value)" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                                <div class="help-text">
+                                    Enter a descriptive name for the role (e.g., Admin, Manager, Viewer).
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="IsActive" class="form-label">Status</label>
+                                <div class="form-check form-switch">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                                    <label asp-for="IsActive" class="form-check-label">Active Role</label>
+                                </div>
+                                <div class="help-text">
+                                    Active roles can be assigned to users and grant permissions.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" maxlength="500"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                        <div class="help-text">
+                            Describe the purpose and responsibilities of this role.
+                            <span class="float-end">
+                                <span id="descriptionCount">0</span>/500 characters
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Permission Examples Section -->
+                    <div id="permissionExamplesSection" class="role-examples" style="display: none;">
+                        <h6 class="mb-2">
+                            <i class="fa fa-lightbulb text-warning me-1"></i>
+                            Suggested Permissions for this Role:
+                        </h6>
+                        <div id="permissionExamples">
+                            <!-- Generated by JavaScript -->
+                        </div>
+                        <small class="text-muted">
+                            These are just suggestions. You can assign specific permissions after creating the role.
+                        </small>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                <i class="fa fa-undo me-2"></i>Reset Form
+                            </button>
+                        </div>
+                        <div>
+                            <a href="@Url.Action("Index")" class="btn btn-default me-2">
+                                <i class="fa fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success" id="createRoleBtn">
+                                <i class="fa fa-save me-2"></i>Create Role
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <!-- Quick Information Panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">Quick Actions</h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-danger" data-toggle="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <!-- Role Preview Card -->
+                <div class="role-info-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4 class="mb-1" id="previewRoleName">New Role</h4>
+                            <p class="mb-2 opacity-75" id="previewDescription">Role description will appear here...</p>
+                        </div>
+                        <div>
+                            <span class="badge bg-success" id="previewStatus">Active</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between text-center mt-3">
+                        <div>
+                            <div class="h5 mb-0">0</div>
+                            <small class="opacity-75">Users</small>
+                        </div>
+                        <div>
+                            <div class="h5 mb-0">0</div>
+                            <small class="opacity-75">Permissions</small>
+                        </div>
+                        <div>
+                            <div class="h5 mb-0" id="previewCreatedDate">Today</div>
+                            <small class="opacity-75">Created</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Role Templates -->
+                <div class="quick-action-card">
+                    <h6 class="mb-3">
+                        <i class="fa fa-magic text-primary me-1"></i>
+                        Role Templates
+                    </h6>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary template-btn" onclick="applyTemplate('Administrator')">
+                            <i class="fa fa-crown me-1"></i> Administrator
+                        </button>
+                        <button class="btn btn-outline-info template-btn" onclick="applyTemplate('Manager')">
+                            <i class="fa fa-users-cog me-1"></i> Manager
+                        </button>
+                        <button class="btn btn-outline-success template-btn" onclick="applyTemplate('Editor')">
+                            <i class="fa fa-edit me-1"></i> Content Editor
+                        </button>
+                        <button class="btn btn-outline-warning template-btn" onclick="applyTemplate('Viewer')">
+                            <i class="fa fa-eye me-1"></i> Viewer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Help Information -->
+                <div class="alert info-alert">
+                    <h6 class="alert-heading">
+                        <i class="fa fa-info-circle me-1"></i>
+                        Role Creation Tips
+                    </h6>
+                    <ul class="mb-0 small">
+                        <li>Choose descriptive names that clearly indicate the role's purpose</li>
+                        <li>Keep descriptions concise but informative</li>
+                        <li>You can assign permissions after creating the role</li>
+                        <li>Use templates for common role types</li>
+                    </ul>
+                </div>
+
+                <!-- Next Steps -->
+                <div class="quick-action-card">
+                    <h6 class="mb-2">
+                        <i class="fa fa-arrow-right text-success me-1"></i>
+                        After Creation
+                    </h6>
+                    <small class="text-muted">
+                        Once created, you can:
+                        <ul class="mt-2 mb-0">
+                            <li>Assign permissions to the role</li>
+                            <li>Add users to the role</li>
+                            <li>Edit role details</li>
+                            <li>View role usage statistics</li>
+                        </ul>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            setupFormValidation();
+            setupCharacterCounter();
+            setupRealTimePreview();
+            updatePreviewDate();
+        });
+
+        function setupFormValidation() {
+            $('#createRoleForm').on('submit', function(e) {
+                const roleName = $('#Name').val().trim();
+                if (!roleName) {
+                    e.preventDefault();
+                    alert.error('Role name is required');
+                    return false;
+                }
+
+                // Show loading state
+                $('#createRoleBtn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-2"></i>Creating...');
+            });
+        }
+
+        function setupCharacterCounter() {
+            $('#Description').on('input', function() {
+                const length = $(this).val().length;
+                $('#descriptionCount').text(length);
+
+                if (length > 450) {
+                    $('#descriptionCount').addClass('text-warning');
+                } else if (length > 480) {
+                    $('#descriptionCount').addClass('text-danger').removeClass('text-warning');
+                } else {
+                    $('#descriptionCount').removeClass('text-warning text-danger');
+                }
+            });
+        }
+
+        function setupRealTimePreview() {
+            $('#Name').on('input', function() {
+                const name = $(this).val() || 'New Role';
+                $('#previewRoleName').text(name);
+            });
+
+            $('#Description').on('input', function() {
+                const desc = $(this).val() || 'Role description will appear here...';
+                $('#previewDescription').text(desc);
+            });
+
+            $('#IsActive').on('change', function() {
+                const isActive = $(this).is(':checked');
+                const badge = $('#previewStatus');
+                if (isActive) {
+                    badge.removeClass('bg-secondary').addClass('bg-success').text('Active');
+                } else {
+                    badge.removeClass('bg-success').addClass('bg-secondary').text('Inactive');
+                }
+            });
+        }
+
+        function updatePermissionExamples(roleName) {
+            let examples = [];
+            const name = roleName.toLowerCase();
+
+            if (name.includes('admin') || name.includes('administrator')) {
+                examples = ['System_FullAccess', 'User_ManageAll', 'Portal_ManageAll', 'Security_ManageRoles'];
+            } else if (name.includes('manager') || name.includes('supervisor')) {
+                examples = ['Portal_Manage', 'User_View', 'Content_Publish', 'Analytics_ViewAdvanced'];
+            } else if (name.includes('editor') || name.includes('content')) {
+                examples = ['Content_Create', 'Content_Edit', 'Content_Publish', 'Portal_Edit'];
+            } else if (name.includes('viewer') || name.includes('user')) {
+                examples = ['Portal_View', 'Content_View', 'Analytics_ViewBasic'];
+            } else if (name.includes('security') || name.includes('audit')) {
+                examples = ['Security_ViewLogs', 'Security_ManagePermissions', 'User_ViewAll', 'System_ViewStatistics'];
+            } else if (name.includes('support') || name.includes('help')) {
+                examples = ['User_ViewAll', 'Support_ManageTickets', 'Content_View', 'Portal_View'];
+            } else if (name) {
+                examples = ['Portal_View', 'Content_View', 'User_ViewOwn', 'Analytics_ViewBasic'];
+            }
+
+            if (examples.length > 0) {
+                const exampleHtml = examples.map(permission =>
+                    `<span class="role-example">${permission}</span>`
+                ).join('');
+
+                $('#permissionExamples').html(exampleHtml);
+                $('#permissionExamplesSection').show();
+            } else {
+                $('#permissionExamplesSection').hide();
+            }
+        }
+
+        function applyTemplate(templateType) {
+            let name, description;
+
+            switch(templateType) {
+                case 'Administrator':
+                    name = 'Administrator';
+                    description = 'Full system access with all administrative privileges including user management, system configuration, and security controls.';
+                    break;
+                case 'Manager':
+                    name = 'Manager';
+                    description = 'Supervisory role with access to manage team members, review content, and access advanced analytics and reporting features.';
+                    break;
+                case 'Editor':
+                    name = 'Content Editor';
+                    description = 'Content management role with permissions to create, edit, and publish content across portals with workflow approval capabilities.';
+                    break;
+                case 'Viewer':
+                    name = 'Viewer';
+                    description = 'Read-only access role for viewing content, basic analytics, and portal information without modification permissions.';
+                    break;
+            }
+
+            $('#Name').val(name).trigger('input');
+            $('#Description').val(description).trigger('input');
+            updatePermissionExamples(name);
+
+            alert.success(`Applied ${templateType} template successfully!`);
+        }
+
+        function resetForm() {
+            if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
+                $('#createRoleForm')[0].reset();
+                $('#previewRoleName').text('New Role');
+                $('#previewDescription').text('Role description will appear here...');
+                $('#previewStatus').removeClass('bg-secondary').addClass('bg-success').text('Active');
+                $('#permissionExamplesSection').hide();
+                $('#descriptionCount').text('0').removeClass('text-warning text-danger');
+            }
+        }
+
+        function updatePreviewDate() {
+            const today = new Date().toLocaleDateString();
+            $('#previewCreatedDate').text(today);
+        }
+    </script>
+}

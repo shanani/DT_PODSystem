@@ -1,0 +1,874 @@
+﻿@model DT_PODSystem.Models.ViewModels.QueryBuilderViewModel
+@{
+    ViewData["Title"] = "Edit Query";
+    Layout = "_Layout";
+}
+@section Styles{
+  
+<link href="https://ops_cdn.stc.com.sa/ca/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
+<link href="~/site/query-builder.css" rel="stylesheet" />
+<link href="~/site/drawflow.min.css" rel="stylesheet" />
+    <style>
+    /* 90 Degree Rotated Vertical Nav Pills */
+    .vertical-nav {
+        min-height: 400px;
+        width: auto !important;
+        background-color: #f8f9fc;
+    }
+
+    .vertical-pill {
+        padding: 25px 8px !important;
+        min-height: 120px;
+        width: 43px !important;
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0 !important;
+        border-bottom: 1px solid #dee2e6;
+        text-align: center;
+        position: relative;
+    }
+
+        .vertical-pill:last-child {
+            border-bottom: none;
+        }
+
+        .vertical-pill i {
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .vertical-pill:hover {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+
+        .vertical-pill.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+            .vertical-pill.active .rotated-text {
+                color: white;
+            }
+
+            .vertical-pill.active i {
+                color: white;
+            }
+
+    /* Status dropdown styling */
+    .status-dropdown {
+        min-width: 140px;
+    }
+    
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+    }
+</style>
+}
+
+<!-- Page Header -->
+<div class="d-flex align-items-center mb-3">
+    <div class="flex-grow-1">
+        <h1 class="page-header mb-0">
+            <i class="fa fa-project-diagram text-theme me-2"></i>Edit Query
+        </h1>
+        <p class="text-muted mb-0">Build formula calculations and define constants</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <!-- Status Dropdown -->
+        <div class="dropdown">
+            @{
+                var isDraft = Model.Status == DT_PODSystem.Models.Enums.QueryStatus.Draft;
+                var isTesting = Model.Status == DT_PODSystem.Models.Enums.QueryStatus.Testing;
+                var isActive = Model.Status == DT_PODSystem.Models.Enums.QueryStatus.Active;
+                
+                var statusText = isDraft ? "Draft" : (isTesting ? "Testing" : "Active");
+                var statusClass = isDraft ? "bg-secondary" : (isTesting ? "bg-warning" : "bg-success");
+                var statusIcon = isDraft ? "fa-edit" : (isTesting ? "fa-flask" : "fa-check-circle");
+            }
+            <a href="@Url.Action("Index", "Query")" class="btn btn-outline-secondary">
+                <i class="fa fa-arrow-left me-1"></i>Back to Queries
+            </a>
+            <button class="btn btn-primary dropdown-toggle status-dropdown" type="button" 
+                    id="header-status-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa @statusIcon me-1"></i>
+                <span id="header-status-text">@statusText</span>
+                <span class="status-badge @statusClass text-white ms-1" id="header-status-badge">@statusText</span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="header-status-dropdown">
+                <li>
+                    <a class="dropdown-item @(isDraft ? "active" : "")" href="#" data-status="Draft">
+                        <i class="fa fa-edit me-2"></i>Draft
+                        <small class="text-gray ms-auto">Work in progress</small>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item @(isTesting ? "active" : "")" href="#" data-status="Testing">
+                        <i class="fa fa-flask me-2"></i>Testing
+                        <small class="text-gray ms-auto">Under validation</small>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item @(isActive ? "active" : "")" href="#" data-status="Active">
+                        <i class="fa fa-check-circle me-2"></i>Active
+                        <small class="text-gray ms-auto">Production ready</small>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+      
+        <button type="button" class="btn btn-green" id="save-query-btn">
+            <i class="fa fa-save me-1"></i>Save Query
+        </button>
+    </div>
+</div>
+
+ 
+<!-- Query Builder HTML -->
+<div class="row">
+    <!-- Left Panel - Query Elements -->
+    <div class="col-lg-4">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-cubes me-2"></i>Query Elements
+                </h4>
+            </div>
+            <div class="panel-body p-0">
+                <div class="row g-0">
+                    <!-- Left Vertical Pills Navigation -->
+                    <div class="col-auto">
+                        <div class="nav flex-column nav-pills vertical-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                           
+                            <button class="nav-link active vertical-pill" id="v-pills-outputs-tab" data-bs-toggle="pill" data-bs-target="#v-pills-outputs" type="button" role="tab" aria-controls="v-pills-outputs" aria-selected="false">
+                                <i class="fa fa-chart-line"></i>
+                                <span class="rotated-text"></span>
+                            </button>
+                            <button class="nav-link vertical-pill" id="v-pills-constants-tab" data-bs-toggle="pill" data-bs-target="#v-pills-constants" type="button" role="tab" aria-controls="v-pills-constants" aria-selected="true">
+                                <i class="fa fa-hash">#</i>
+                                <span class="rotated-text"></span>
+                            </button>
+                            <button class="nav-link vertical-pill" id="v-pills-mapped-fields-tab" data-bs-toggle="pill" data-bs-target="#v-pills-mapped-fields" type="button" role="tab" aria-controls="v-pills-mapped-fields" aria-selected="false">
+                                <i class="fa fa-map-marker"></i>
+                                <span class="rotated-text"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Content Area -->
+                    <div class="col">
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="v-pills-tabContent" style="max-height: 500px; overflow-y: auto;">
+
+                            <!-- Outputs Tab -->
+                            <div class="tab-pane fade show active" id="v-pills-outputs" role="tabpanel" aria-labelledby="v-pills-outputs-tab" tabindex="0">
+                                <div class="p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">Output Fields</h6>
+                                        <button class="btn btn-sm btn-outline-primary" id="add-output-btn">
+                                            <i class="fa fa-plus me-1"></i>Add Output
+                                        </button>
+                                    </div>
+                                    <div id="output-fields-list" class="variable-list">
+                                        @if (Model.OutputFields.Any())
+                                        {
+                                            @foreach (var output in Model.OutputFields)
+                                            {
+                                                <div class="variable-item mb-2 p-2 border rounded" data-output-id="@output.Id">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div class="flex-grow-1">
+                                                            <div class="fw-bold text-warning">@output.Name</div>
+                                                            @if (!string.IsNullOrEmpty(output.DisplayName))
+                                                            {
+                                                                <div class="text-muted small">@output.DisplayName</div>
+                                                            }
+                                                        </div>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <button class="btn btn-outline-secondary btn-xs" title="Edit" data-action="edit">
+                                                                <i class="fa fa-edit"></i>
+                                                            </button>
+                                                            <button class="btn btn-outline-danger btn-xs" title="Delete" data-action="delete">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    @if (!string.IsNullOrEmpty(output.Description))
+                                                    {
+                                                        <div class="text-muted small mt-1">@output.Description</div>
+                                                    }
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div id="no-outputs-message" class="text-center text-muted py-4">
+                                                <i class="fa fa-chart-line fa-2x mb-2"></i>
+                                                <p class="mb-0">No output fields created</p>
+                                                <small>Create calculated outputs for your query</small>
+                                            </div>
+                                        }
+                                    
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Constants Tab -->
+                            <div class="tab-pane fade show" id="v-pills-constants" role="tabpanel" aria-labelledby="v-pills-constants-tab" tabindex="0">
+                                <div class="p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">Constants</h6>
+                                        <button class="btn btn-sm btn-outline-primary" id="add-constant-btn">
+                                            <i class="fa fa-plus me-1"></i>Add
+                                        </button>
+                                    </div>
+
+                                    <!-- Global Constants -->
+                                    <div class="mb-3">
+                                        <label class="form-label form-label-sm text-muted">GLOBAL CONSTANTS</label>
+                                        <div id="global-constants-list" class="variable-list">
+                                            @if (Model.GlobalConstants.Any())
+                                            {
+                                                @foreach (var constant in Model.GlobalConstants)
+                                                {
+                                                    <div class="variable-item mb-2 p-2 border rounded bg-light" data-constant-id="@constant.Id" data-constant-type="global">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="flex-grow-1">
+                                                                <div class="fw-bold text-primary">@constant.Name</div>
+                                                                <small class="text-muted">@constant.DefaultValue</small>
+                                                            </div>
+                                                            <div class="btn-group btn-group-sm">
+                                                                <button class="btn btn-outline-secondary btn-xs" title="Edit" data-action="edit">
+                                                                    <i class="fa fa-edit"></i>
+                                                                </button>
+                                                                <button class="btn btn-outline-danger btn-xs" title="Delete" data-action="delete">
+                                                                    <i class="fa fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        @if (!string.IsNullOrEmpty(constant.Description))
+                                                        {
+                                                            <div class="text-muted small mt-1">@constant.Description</div>
+                                                        }
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <!-- Local Constants -->
+                                    <div class="mb-3">
+                                        <label class="form-label form-label-sm text-muted">LOCAL CONSTANTS</label>
+                                        <div id="local-constants-list" class="variable-list">
+                                            @if (Model.LocalConstants.Any())
+                                            {
+                                                @foreach (var constant in Model.LocalConstants)
+                                                {
+                                                    <div class="variable-item mb-2 p-2 border rounded" data-constant-id="@constant.Id" data-constant-type="local">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="flex-grow-1">
+                                                                <div class="fw-bold text-success">@constant.Name</div>
+                                                                <small class="text-muted">@constant.DefaultValue</small>
+                                                            </div>
+                                                            <div class="btn-group btn-group-sm">
+                                                                <button class="btn btn-outline-secondary btn-xs" title="Edit" data-action="edit">
+                                                                    <i class="fa fa-edit"></i>
+                                                                </button>
+                                                                <button class="btn btn-outline-danger btn-xs" title="Delete" data-action="delete">
+                                                                    <i class="fa fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        @if (!string.IsNullOrEmpty(constant.Description))
+                                                        {
+                                                            <div class="text-muted small mt-1">@constant.Description</div>
+                                                        }
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+
+                                    @if (!Model.GlobalConstants.Any() && !Model.LocalConstants.Any())
+                                    {
+                                        <div id="no-constants-message" class="text-center text-muted py-4">
+                                            <i class="fa fa-lock fa-2x mb-2"></i>
+                                            <p class="mb-0">No constants defined</p>
+                                            <small>Click "Add" to create constants</small>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                             
+                            <!-- Mapped Fields Tab with Search and Template Filter -->
+                            <!-- Mapped Fields Tab with Search and Template Filter -->
+                            <div class="tab-pane fade" id="v-pills-mapped-fields" role="tabpanel" aria-labelledby="v-pills-mapped-fields-tab" tabindex="0">
+                                <div class="p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">Mapped Fields</h6>
+                                        <span class="badge bg-info" id="mapped-count">0</span>
+                                    </div>
+
+                                    <!-- Search and Filter Rows -->
+                                    <div class="mb-3">
+                                        <!-- First Row: Search Box -->
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-12">
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text">
+                                                        <i class="fa fa-search"></i>
+                                                    </span>
+                                                    <input type="text" class="form-control" id="template-search"
+                                                           placeholder="Search by template, vendor, category, or field name..."
+                                                           autocomplete="off">
+                                                    <button class="btn btn-outline-secondary" type="button" id="clear-search">
+                                                        <i class="fa fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Second Row: Template Filter (Full Width for Multi-select Growth) -->
+                                        <div class="row g-2">
+                                            <div class="col-12">                                                
+                                                <select class="form-control" id="template-filter" multiple>
+                                                    <!-- Options will be populated dynamically -->
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Help Text -->
+                                        <div class="form-text mt-2">
+                                            <i class="fa fa-info-circle me-1"></i>
+                                            Search across all mapped fields or select specific templates to filter
+                                        </div>
+                                    </div>
+
+                                    <!-- Loading Indicator -->
+                                    <div id="template-search-loading" class="text-center py-3" style="display: none;">
+                                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <span class="ms-2 text-muted">Searching...</span>
+                                    </div>
+
+                                    <!-- Search Results Container -->
+                                    <div id="template-variables-list" class="variable-list">
+                                        <!-- Initial State Message -->
+                                        <div id="no-search-performed" class="text-center text-muted py-4">
+                                            <i class="fa fa-search fa-2x mb-2"></i>
+                                            <p class="mb-0">Search for mapped fields</p>
+                                            <small>Type in the search box to find mapped fields from any template</small>
+                                        </div>
+
+                                        <!-- No Results Message -->
+                                        <div id="no-search-results" class="text-center text-muted py-4" style="display: none;">
+                                            <i class="fa fa-search-minus fa-2x mb-2"></i>
+                                            <p class="mb-0">No mapped fields found</p>
+                                            <small>Try different search terms or adjust the template filter</small>
+                                        </div>
+
+                                        <!-- Show More Button Container -->
+                                        <div id="show-more-container" class="text-center mt-3" style="display: none;">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" id="show-more-btn">
+                                                <i class="fa fa-chevron-down me-1"></i>
+                                                Show More (<span id="shown-count">0</span> of <span id="total-count">0</span>)
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel - Formula Canvas & Display -->
+    <div class="col-lg-8">    
+
+       
+
+        <!-- Formula Canvas -->
+        <div class="panel panel-inverse mb-3">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-project-diagram me-2"></i>Formula Canvas
+                </h4>
+                <div class="panel-heading-btn">
+                    <button class="btn btn-xs btn-info" id="sync-mapped-fields-btn" title="Sync Mapped Fields - Updates field names and detects deleted fields">
+                        <i class="fa fa-sync-alt me-1"></i>Sync
+                    </button>
+                </div>
+            </div>
+            <div class="panel-body p-0" style="position: relative;">
+                <!-- Operations toolbar will be generated by JavaScript -->
+                <div id="formula-canvas" class="canvas-container" style="height: 400px;" data-query-id="@Model.QueryId"></div>
+                <input type="hidden" id="canvas-state" value="@Model.CanvasState" />
+            </div>
+        </div>
+
+         <!-- Formula Display Panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-code me-2"></i>Generated Formulas
+                </h4>
+                <div class="panel-heading-btn">
+                    <button class="btn btn-xs btn-green" id="regenerate-formula-btn" title="Validate & Generate Formulas">
+                        <i class="fa fa-sync-alt me-1"></i>Regenerate
+                    </button>
+                    <button class="btn btn-xs btn-info" id="test-formula-btn" title="Test with Sample Values">
+                        <i class="fa fa-play me-1"></i>Test
+                    </button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <!-- Formula Status -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center">
+                        <div id="formula-status-icon" class="me-2">
+                            <i class="fa fa-circle text-muted" title="No formula generated"></i>
+                        </div>
+                        <span id="formula-status-text" class="text-muted">Click "Regenerate" to validate and generate formulas</span>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted">Last updated: <span id="formula-timestamp">Never</span></small>
+                    </div>
+                </div>
+
+                <!-- Individual Formula Fields Container -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fa fa-equals me-1"></i>Output Formulas
+                        <small class="text-muted ms-2">(Read-only - Generated from canvas)</small>
+                    </label>
+                    <div id="formula-fields-container">
+                         
+                    </div>
+                </div>
+
+                <!-- Formula Validation Errors -->
+                <div id="formula-errors" class="alert alert-danger" style="display: none;">
+                    <h6><i class="fa fa-exclamation-triangle me-1"></i>Validation Errors:</h6>
+                    <ul id="formula-errors-list" class="mb-0"></ul>
+                </div>
+
+                <!-- Formula Test Results -->
+                <div id="formula-test-results" class="alert alert-info" style="display: none;">
+                    <h6><i class="fa fa-calculator me-1"></i>Test Results:</h6>
+                    <div id="formula-test-content"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Query Details -->
+        <div class="panel panel-inverse mb-3">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-info-circle me-2"></i>Query Information
+                </h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-bs-toggle="collapse" data-bs-target="#query-info-panel" aria-expanded="true">
+                        <i class="fa fa-minus"></i>
+                    </a>
+                </div>
+            </div>
+            <!-- ✅ FIXED: Added 'show' class to make form visible by default -->
+            <div class="panel-body collapse show" id="query-info-panel">
+                <form id="query-info-form">
+                    <input type="hidden" id="query-id" value="@Model.QueryId" />
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="query-name" class="form-label">Query Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="query-name"
+                                       value="@Model.QueryName"
+                                       placeholder="Enter query name"
+                                       pattern="^[a-zA-Z_][a-zA-Z0-9_\s]*$"
+                                       maxlength="200"
+                                       required>
+                                <div class="form-text">Use descriptive name for your query</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="query-status" class="form-label">Status</label>
+                                @{
+                                    var isDraft = Model.Status == DT_PODSystem.Models.Enums.QueryStatus.Draft;
+                                    var isTesting = Model.Status == DT_PODSystem.Models.Enums.QueryStatus.Testing;
+                                    var isActive = Model.Status == DT_PODSystem.Models.Enums.QueryStatus.Active;
+                                }
+
+                                <select class="form-select" id="query-status">
+                                    @if (isDraft)
+                                    {
+                                        <option value="Draft" selected>Draft</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Draft">Draft</option>
+                                    }
+
+                                    @if (isTesting)
+                                    {
+                                        <option value="Testing" selected>Testing</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Testing">Testing</option>
+                                    }
+
+                                    @if (isActive)
+                                    {
+                                        <option value="Active" selected>Active</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Active">Active</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="query-description" class="form-label">Description</label>
+                        <textarea class="form-control" id="query-description" rows="3"
+                                  placeholder="Describe what this query calculates">@Model.Description</textarea>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+
+
+<!-- Constants Modal -->
+<div class="modal fade" id="constant-modal" tabindex="-1" aria-labelledby="constant-modal-title" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="constant-modal-title">Add Constant</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="constant-form">
+                    <input type="hidden" id="constant-id" />
+                    <div class="mb-3">
+                        <label for="constant-name" class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="constant-name" required
+                               placeholder="e.g., TAX_RATE"
+                               pattern="^[a-zA-Z_][a-zA-Z0-9_]*$"
+                               maxlength="50"
+                               title="Must start with letter, only letters/numbers/underscores allowed">
+                        <div class="form-text">Use alphanumeric characters and underscores only</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="constant-value" class="form-label">Value <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="constant-value" placeholder="e.g., 0.15" required>
+                        <div class="form-text">Enter the constant value (numbers only for numeric types)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="constant-category" class="form-label">Category</label>
+                        <select class="form-select" id="constant-category">
+                            <option value="local">Local (Query specific)</option>
+                            <option value="global">Global (System wide)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="constant-description" class="form-label">Description</label>
+                        <textarea class="form-control" id="constant-description" rows="2" placeholder="Optional description"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-green" id="save-constant-modal">
+                    <i class="fa fa-save me-1"></i>Save Constant
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Output Field Modal -->
+<div class="modal fade" id="output-modal" tabindex="-1" aria-labelledby="output-modal-title" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="output-modal-title">Add Output Field</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="output-form">
+                    <input type="hidden" id="output-id" />
+                    <div class="mb-3">
+                        <label for="output-name" class="form-label">Output Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="output-name"
+                               placeholder="e.g., Total_Amount"
+                               pattern="^[a-zA-Z_][a-zA-Z0-9_]*$"
+                               maxlength="50"
+                               title="Must start with letter, only letters/numbers/underscores allowed"
+                               required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="output-display-name" class="form-label">Display Name</label>
+                        <input type="text" class="form-control" id="output-display-name" placeholder="e.g., Total Amount">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="output-description" class="form-label">Description</label>
+                        <textarea class="form-control" id="output-description" rows="2" placeholder="Optional description"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-green" id="save-output">
+                    <i class="fa fa-save me-1"></i>Create Output
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {   
+ 
+ <script src="https://ops_cdn.stc.com.sa/ca/plugins/select2/dist/js/select2.min.js"></script>
+
+
+    <!-- ✅ SERVER DATA INITIALIZATION -->
+    <script>
+        // ✅ SINGLE SERVER DATA SETUP
+        window.queryId = @Model.QueryId;
+        window.serverQueryData = @Html.Raw(Json.Serialize(new {
+            GlobalConstants = Model.GlobalConstants,
+            LocalConstants = Model.LocalConstants,
+            OutputFields = Model.OutputFields,
+            CanvasState = Model.CanvasState
+        }));
+
+        console.log('🔍 Server data loaded:', window.serverQueryData);
+    </script>
+
+    <!-- ✅ SCRIPTS IN CORRECT ORDER -->
+    <script src="~/site/drawflow.min.js"></script>
+    <script src="~/site/query-formula-generator.js"></script>
+    <script src="~/site/query-builder.js"></script>
+
+    <!-- ✅ SINGLE PAGE INITIALIZATION -->
+    <script>
+        // ✅ Query Edit Page - Clean Implementation
+        let isSaving = false;
+        let hasUnsavedChanges = false;
+        let originalData = {};
+
+        $(document).ready(function () {
+            console.log('🎯 Initializing Query Edit Page...');
+
+            // ✅ SINGLE INITIALIZATION CALL
+            initializeQueryEdit();
+
+            // Setup change detection
+            setTimeout(() => {
+                initializeChangeDetection();
+            }, 1000); // Increased timeout to ensure everything is loaded
+
+            console.log('✅ Query Edit Page initialized');
+        });
+
+        function initializeQueryEdit() {
+            // ✅ Call the main initialization from query-builder.js
+            if (typeof initializeQuery === 'function') {
+                initializeQuery();
+            } else {
+                console.error('initializeQuery function not found');
+                return;
+            }
+
+            // Setup page-specific event handlers
+            setupQueryPageEventHandlers();
+            setupStatusSynchronization();
+        }
+
+        function setupQueryPageEventHandlers() {
+            // Save query button
+            $('#save-query-btn').off('click').on('click', function() {
+                saveQueryFromPage();
+            });
+
+            // Query info form changes
+            $('#query-name, #query-description, #query-status').on('input change', function() {
+                markAsChanged();
+            });
+        }
+
+        // ✅ STATUS SYNCHRONIZATION BETWEEN HEADER AND FORM
+        function setupStatusSynchronization() {
+            // When header dropdown changes, update form select
+            $('#header-status-dropdown').next('.dropdown-menu').on('click', '.dropdown-item', function(e) {
+                e.preventDefault();
+                const newStatus = $(this).data('status');
+                
+                // Update form select
+                $('#query-status').val(newStatus);
+                
+                // Update header display
+                updateHeaderStatusDisplay(newStatus);
+                
+                // Mark as changed
+                markAsChanged();
+                
+                console.log('📊 Status updated from header to:', newStatus);
+            });
+
+            // When form select changes, update header dropdown
+            $('#query-status').on('change', function() {
+                const newStatus = $(this).val();
+                updateHeaderStatusDisplay(newStatus);
+                console.log('📊 Status updated from form to:', newStatus);
+            });
+        }
+
+        function updateHeaderStatusDisplay(status) {
+            const statusConfig = {
+                'Draft': { icon: 'fa-edit', class: 'bg-secondary', text: 'Draft' },
+                'Testing': { icon: 'fa-flask', class: 'bg-warning', text: 'Testing' },
+                'Active': { icon: 'fa-check-circle', class: 'bg-success', text: 'Active' }
+            };
+            
+            const config = statusConfig[status] || statusConfig['Draft'];
+            
+            // Update button content
+            $('#header-status-dropdown').html(`
+                <i class="fa ${config.icon} me-1"></i>
+                <span>${config.text}</span>
+                <span class="status-badge ${config.class} text-white ms-1">${config.text}</span>
+            `);
+            
+            // Update dropdown active state
+            $('#header-status-dropdown').next('.dropdown-menu').find('.dropdown-item').removeClass('active');
+            $('#header-status-dropdown').next('.dropdown-menu').find(`[data-status="${status}"]`).addClass('active');
+        }
+
+        // ✅ CHANGE DETECTION SYSTEM
+        function initializeChangeDetection() {
+            captureInitialState();
+            setupChangeListeners();
+            updateSaveUI();
+        }
+
+        function captureInitialState() {
+            originalData = {
+                name: $('#query-name').val() || '',
+                description: $('#query-description').val() || '',
+                status: $('#query-status').val() || '',
+                constants: JSON.stringify((queryData.globalConstants || []).concat(queryData.localConstants || [])),
+                outputs: JSON.stringify(queryData.outputs || []),
+                canvasState: queryData.canvasState || null
+            };
+            console.log('📸 Initial state captured');
+        }
+
+        function setupChangeListeners() {
+            // Form inputs
+            $('#query-name, #query-description, #query-status').on('input change', markAsChanged);
+
+            // Canvas changes via Drawflow events (if editor is available)
+            setTimeout(() => {
+                if (window.editor) {
+                    window.editor.on('nodeCreated', markAsChanged);
+                    window.editor.on('nodeRemoved', markAsChanged);
+                    window.editor.on('connectionCreated', markAsChanged);
+                    window.editor.on('connectionRemoved', markAsChanged);
+                }
+            }, 500);
+        }
+
+        function markAsChanged() {
+            if (!hasUnsavedChanges) {
+                hasUnsavedChanges = true;
+                updateSaveUI();
+            }
+        }
+
+        function resetChangeDetection() {
+            hasUnsavedChanges = false;
+            captureInitialState();
+            updateSaveUI();
+        }
+
+        function updateSaveUI() {
+            if (hasUnsavedChanges) {
+                $('#save-query-btn').removeClass('btn-green').addClass('btn-warning')
+                    .html('<i class="fa fa-save me-1"></i>Save Changes');
+            } else {
+                $('#save-query-btn').removeClass('btn-warning').addClass('btn-green')
+                    .html('<i class="fa fa-save me-1"></i>Saved');
+            }
+        }
+
+        // ✅ SAVE FUNCTION WITH PROPER ERROR HANDLING
+        async function saveQueryFromPage() {
+            if (isSaving) return;
+
+            try {
+                isSaving = true;
+                $('#save-query-btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-1"></i>Saving...');
+
+                // Update queryData with current form values
+                if (typeof queryData !== 'undefined') {
+                    queryData.queryName = $('#query-name').val();
+                    queryData.description = $('#query-description').val();
+                    queryData.status = $('#query-status').val();
+                }
+
+                // Call the save function from query-builder.js
+                if (typeof window.saveQueryData === 'function') {
+                    const result = await window.saveQueryData();
+                    if (result) {
+                        resetChangeDetection();
+                    }
+                } else {
+                    console.error('saveQueryData function not found in query-builder.js');
+                    alert.error('Save function not available');
+                }
+
+            } catch (error) {
+                console.error('❌ Error saving query from page:', error);
+                alert.error('Error saving query: ' + error.message);
+            } finally {
+                isSaving = false;
+                $('#save-query-btn').prop('disabled', false);
+                updateSaveUI();
+            }
+        }
+
+        // ✅ PREVENT DUPLICATE WINDOW ASSIGNMENTS
+        // Formula data compatibility (for formula-generator.js)
+        setTimeout(() => {
+            if (typeof queryData !== 'undefined') {
+                window.formulaData = {
+                    operators: [],
+                    functions: [],
+                    variables: queryData?.mappedFields || [],
+                    constants: (queryData?.globalConstants || []).concat(queryData?.localConstants || [])
+                };
+            }
+        }, 1500);
+    </script>
+}

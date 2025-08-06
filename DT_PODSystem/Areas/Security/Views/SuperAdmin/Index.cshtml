@@ -1,0 +1,616 @@
+@model DT_PODSystem.Areas.Security.Models.ViewModels.SuperAdminDashboardViewModel
+@{
+    ViewData["Title"] = "Super Admin Panel";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/apexcharts/dist/apexcharts.css" rel="stylesheet" />
+    <style>
+        .super-admin-header {
+            background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+            color: white;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+
+            .super-admin-header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+                opacity: 0.1;
+            }
+
+            .super-admin-header .header-content {
+                position: relative;
+                z-index: 2;
+            }
+
+        .environment-badge {
+            font-size: 0.7rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-left: 10px;
+        }
+
+        .danger-zone {
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            background: rgba(220, 53, 69, 0.05);
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+            .danger-zone h5 {
+                color: #dc3545;
+                font-weight: 600;
+                margin-bottom: 15px;
+            }
+
+        .permission-type-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .permission-type-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+            }
+
+        .system-health-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin: 2px;
+        }
+
+        .health-healthy {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .health-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .health-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .quick-action-btn {
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+            .quick-action-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+
+        .recent-actions {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .action-item {
+            border-bottom: 1px solid #eee;
+            padding: 12px 0;
+        }
+
+            .action-item:last-child {
+                border-bottom: none;
+            }
+
+        .action-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            margin-right: 12px;
+        }
+
+        .action-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+    </style>
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard", new { area = "Security" })">Security</a></li>
+    <li class="breadcrumb-item active">Super Admin Panel</li>
+</ol>
+<!-- END breadcrumb -->
+<!-- BEGIN page-header -->
+<h1 class="page-header">Super Admin Panel <small>System security oversight and management</small></h1>
+<!-- END page-header -->
+<!-- BEGIN super admin header -->
+<div class="super-admin-header">
+    <div class="header-content">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-2">
+                    <i class="fas fa-crown me-2"></i>
+                    Super Administrator Dashboard
+                    <span class="environment-badge @(Model.IsProductionMode ? "bg-danger" : "bg-warning text-dark")">
+                        @(Model.IsProductionMode ? "PRODUCTION" : "DEVELOPMENT")
+                    </span>
+                </h3>
+                <p class="mb-0 opacity-75">Complete system control and security management</p>
+            </div>
+            <div class="text-end">
+                <div class="system-health-indicator health-healthy">
+                    <i class="fas fa-shield-check me-1"></i>
+                    Security Module: Operational
+                </div>
+                <div class="system-health-indicator health-healthy">
+                    <i class="fas fa-database me-1"></i>
+                    Database: Connected
+                </div>
+                <div class="system-health-indicator health-healthy">
+                    <i class="fas fa-users-cog me-1"></i>
+                    Identity System: Active
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END super admin header -->
+<!-- BEGIN statistics panels -->
+<div class="row">
+    <!-- BEGIN security stats -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-red">
+            <div class="stats-icon"><i class="fas fa-users-cog"></i></div>
+            <div class="stats-info">
+                <h4>@Model.SystemStatistics.TotalUsers</h4>
+                <p>Total Users</p>
+            </div>
+            <div class="stats-link">
+                <a href="@Url.Action("Index", "SecurityUsers", new { area = "Security" })">
+                    Manage Users <i class="fa fa-arrow-alt-circle-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- END security stats -->
+    <!-- BEGIN roles stats -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-blue">
+            <div class="stats-icon"><i class="fas fa-shield-alt"></i></div>
+            <div class="stats-info">
+                <h4>@Model.SystemStatistics.TotalRoles</h4>
+                <p>Security Roles</p>
+            </div>
+            <div class="stats-link">
+                <a href="@Url.Action("Index", "SecurityRoles", new { area = "Security" })">
+                    Manage Roles <i class="fa fa-arrow-alt-circle-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- END roles stats -->
+    <!-- BEGIN permissions stats -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-green">
+            <div class="stats-icon"><i class="fas fa-key"></i></div>
+            <div class="stats-info">
+                <h4>@Model.SystemStatistics.TotalPermissions</h4>
+                <p>Permissions</p>
+            </div>
+            <div class="stats-link">
+                <a href="@Url.Action("Index", "Permissions", new { area = "Security" })">
+                    Manage Permissions <i class="fa fa-arrow-alt-circle-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- END permissions stats -->
+    <!-- BEGIN permission types stats -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-orange">
+            <div class="stats-icon"><i class="fas fa-folder-open"></i></div>
+            <div class="stats-info">
+                <h4>@Model.PermissionTypes.Count</h4>
+                <p>Permission Types</p>
+            </div>
+            <div class="stats-link">
+                <a href="@Url.Action("Index", "Permissions", new { area = "Security" })">
+                    Manage Types <i class="fa fa-arrow-alt-circle-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- END permission types stats -->
+</div>
+<!-- END statistics panels -->
+<!-- BEGIN main content row -->
+<div class="row">
+    <!-- BEGIN permission types overview -->
+    <div class="col-xl-6">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fas fa-sitemap me-2"></i>Permission Type Overview
+                </h4>
+                <div class="panel-heading-btn">
+                    <a href="@Url.Action("Index", "Permissions", new { area = "Security" })"
+                       class="btn btn-xs btn-icon btn-primary" title="Manage Permission Types">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand">
+                        <i class="fa fa-expand"></i>
+                    </a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload">
+                        <i class="fa fa-redo"></i>
+                    </a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse">
+                        <i class="fa fa-minus"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="panel-body">
+                @if (Model.PermissionTypes.Any())
+                {
+                    <div class="row">
+                        @foreach (var permissionType in Model.PermissionTypes.Take(6))
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="permission-type-card" style="border-left-color: @GetPermissionTypeColor(permissionType.Color);">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="@permissionType.Icon" style="font-size: 1.5rem; color: @GetPermissionTypeColor(permissionType.Color);"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 fw-bold">@permissionType.Name</h6>
+                                            <p class="mb-1 text-muted small">@permissionType.Description</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="badge bg-@permissionType.Color">
+                                                    @permissionType.PermissionCount permissions
+                                                </span>
+                                                @if (permissionType.IsSystemType)
+                                                {
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="fas fa-lock me-1"></i>System
+                                                    </span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    @if (Model.PermissionTypes.Count > 6)
+                    {
+                        <div class="text-center mt-3">
+                            <a href="@Url.Action("ManagePermissionTypes", "SuperAdmin", new { area = "Security" })"
+                               class="btn btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i>
+                                View All @Model.PermissionTypes.Count Permission Types
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Permission Types Found</h5>
+                        <p class="text-muted">Get started by creating your first permission type.</p>
+                        <a href="@Url.Action("ManagePermissionTypes", "SuperAdmin", new { area = "Security" })"
+                           class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Create Permission Type
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <!-- END permission types overview -->
+    <!-- BEGIN system security stats -->
+    <div class="col-xl-6">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fas fa-chart-pie me-2"></i>Security Statistics
+                </h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand">
+                        <i class="fa fa-expand"></i>
+                    </a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload">
+                        <i class="fa fa-redo"></i>
+                    </a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse">
+                        <i class="fa fa-minus"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div id="securityStatsChart" style="height: 300px;"></div>
+                <div class="row mt-3">
+                    <div class="col-6 text-center">
+                        <div class="border rounded p-3">
+                            <h4 class="text-success mb-1">@Model.SystemStatistics.ActiveUsers</h4>
+                            <small class="text-muted">Active Users</small>
+                        </div>
+                    </div>
+                    <div class="col-6 text-center">
+                        <div class="border rounded p-3">
+                            <h4 class="text-info mb-1">@Model.SystemStatistics.ActivePermissions</h4>
+                            <small class="text-muted">Active Permissions</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END system security stats -->
+</div>
+<!-- END main content row -->
+<!-- BEGIN quick actions and recent activity -->
+<div class="row">
+    <!-- BEGIN quick actions -->
+    <div class="col-xl-4">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div class="d-grid gap-2">
+                    @if (Model.CanManagePermissionTypes)
+                    {
+                        <a href="@Url.Action("ManagePermissionTypes", "SuperAdmin", new { area = "Security" })"
+                           class="quick-action-btn btn btn-outline-primary">
+                            <i class="fas fa-folder-plus me-2"></i>
+                            Manage Permission Types
+                        </a>
+                    }
+                    @if (Model.CanManagePermissions)
+                    {
+                        <a href="@Url.Action("Index", "Permissions", new { area = "Security" })"
+                           class="quick-action-btn btn btn-outline-success">
+                            <i class="fas fa-key me-2"></i>
+                            Permission Manager
+                        </a>
+                    }
+                    @if (Model.CanAccessSystemSettings)
+                    {
+                        <a href="javascript:;" class="quick-action-btn btn btn-outline-warning">
+                            <i class="fas fa-cogs me-2"></i>
+                            System Settings
+                        </a>
+                    }
+                    @if (Model.CanViewAuditLogs)
+                    {
+                        <a href="javascript:;" class="quick-action-btn btn btn-outline-info">
+                            <i class="fas fa-clipboard-list me-2"></i>
+                            View Audit Logs
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END quick actions -->
+    <!-- BEGIN recent system actions -->
+    <div class="col-xl-8">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fas fa-history me-2"></i>Recent System Actions
+                </h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand">
+                        <i class="fa fa-expand"></i>
+                    </a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload">
+                        <i class="fa fa-redo"></i>
+                    </a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse">
+                        <i class="fa fa-minus"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="recent-actions">
+                    @if (Model.RecentSystemActions.Any())
+                    {
+                        @foreach (var action in Model.RecentSystemActions.Take(8))
+                        {
+                            <div class="action-item d-flex align-items-center">
+                                <div class="action-icon bg-@GetActionColor(action.ActionType) text-white">
+                                    <i class="@GetActionIcon(action.ActionType)"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold">@action.Description</div>
+                                    <div class="text-muted small">
+                                        by @(action.UserName ?? "System") in @(action.EntityType ?? "System")
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="action-time">@action.Timestamp.ToString("MMM dd, HH:mm")</div>
+                                    <span class="badge bg-@GetActionColor(action.ActionType)">
+                                        @action.ActionType
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-history fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">No recent system actions found.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END recent system actions -->
+</div>
+<!-- END quick actions and recent activity -->
+@if (!Model.IsProductionMode)
+{
+    <!-- BEGIN danger zone (development only) -->
+    <div class="danger-zone">
+        <h5>
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Development Environment Actions
+        </h5>
+        <p class="mb-3">These actions are only available in development mode and can affect system security.</p>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-danger btn-sm" onclick="resetPermissions()">
+                <i class="fas fa-refresh me-1"></i>Reset Permissions
+            </button>
+            <button class="btn btn-outline-warning btn-sm" onclick="generateTestData()">
+                <i class="fas fa-database me-1"></i>Generate Test Data
+            </button>
+            <button class="btn btn-outline-info btn-sm" onclick="exportSystemConfig()">
+                <i class="fas fa-download me-1"></i>Export Config
+            </button>
+        </div>
+    </div>
+    <!-- END danger zone -->
+}
+
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/apexcharts/dist/apexcharts.min.js"></script>
+    <script>
+        // Security Statistics Chart
+        $(document).ready(function() {
+            var securityStatsOptions = {
+                chart: {
+                    type: 'donut',
+                    height: 300
+                },
+                series: [@Model.SystemStatistics.TotalUsers, @Model.SystemStatistics.TotalRoles, @Model.SystemStatistics.TotalPermissions],
+                labels: ['Users', 'Roles', 'Permissions'],
+                colors: ['#dc3545', '#007bff', '#28a745'],
+                legend: {
+                    position: 'bottom'
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return Math.round(val) + '%'
+                    }
+                },
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 200
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            };
+
+            var securityStatsChart = new ApexCharts(document.querySelector("#securityStatsChart"), securityStatsOptions);
+            securityStatsChart.render();
+        });
+
+        // Development mode functions
+        function resetPermissions() {
+            if (confirm('Are you sure you want to reset all permissions? This action cannot be undone.')) {
+                // Implementation for reset permissions
+                alert.warning('Permission reset functionality not implemented yet.');
+            }
+        }
+
+        function generateTestData() {
+            if (confirm('Generate test data for the security module?')) {
+                // Implementation for generate test data
+                alert.info('Test data generation functionality not implemented yet.');
+            }
+        }
+
+        function exportSystemConfig() {
+            // Implementation for export system config
+            alert.info('System config export functionality not implemented yet.');
+        }
+    </script>
+}
+
+@functions {
+    string GetPermissionTypeColor(string color)
+    {
+        return color switch
+        {
+            "primary" => "#007bff",
+            "success" => "#28a745",
+            "info" => "#17a2b8",
+            "warning" => "#ffc107",
+            "danger" => "#dc3545",
+            "secondary" => "#6c757d",
+            "dark" => "#343a40",
+            _ => "#007bff"
+        };
+    }
+
+    string GetActionColor(string actionType)
+    {
+        return actionType?.ToLower() switch
+        {
+            "create" => "success",
+            "update" => "info",
+            "delete" => "danger",
+            "login" => "primary",
+            "logout" => "secondary",
+            _ => "primary"
+        };
+    }
+
+    string GetActionIcon(string actionType)
+    {
+        return actionType?.ToLower() switch
+        {
+            "create" => "fas fa-plus",
+            "update" => "fas fa-edit",
+            "delete" => "fas fa-trash",
+            "login" => "fas fa-sign-in-alt",
+            "logout" => "fas fa-sign-out-alt",
+            _ => "fas fa-cog"
+        };
+    }
+}

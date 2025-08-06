@@ -1,0 +1,210 @@
+@model DT_PODSystem.Models.ViewModels.Step1UploadViewModel
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-upload me-2"></i>Upload PDF Files
+                </h4>
+            </div>
+            <div class="panel-body">
+                <p class="text-muted mb-4">
+                    Upload one or more PDF files to create your template. The first file will be used as the primary template for field mapping.
+                </p>
+
+                <!-- Dropzone -->
+                <div class="dropzone-container">
+                    <form action="@Model.UploadUrl" class="dropzone needsclick" id="template-dropzone" enctype="multipart/form-data">
+                        <div class="dz-message needsclick">
+                            <i class="fa fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <h5>Drop PDF files here or click to upload</h5>
+                            <p class="text-muted">
+                                Maximum @Model.MaxFiles files, @((Model.MaxFileSize / 1024 / 1024).ToString("F0"))MB each<br>
+                                Supported formats: @string.Join(", ", Model.AcceptedTypes)
+                                @if (!Model.AllowMultiple)
+                                {
+                                    <br>
+                                
+                                    <strong>Single file upload only</strong>
+                                }
+                            </p>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Upload Progress -->
+                <div id="upload-progress" class="mt-3" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Uploading files...</span>
+                        <span id="upload-percentage" class="text-primary fw-bold">0%</span>
+                    </div>
+                    <div class="progress">
+                        <div id="upload-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                             role="progressbar" style="width: 0%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <!-- Uploaded Files -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-list me-2"></i>Uploaded Files (<span id="files-count">@Model.UploadedFiles.Count</span>)
+                </h4>
+            </div>
+            <div class="panel-body p-0">
+                <!-- ALWAYS render the table structure -->
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0" id="uploaded-files-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="40">Primary</th>
+                                <th>File</th>
+                                <th width="80">Status</th>
+                                <th width="80">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.UploadedFiles.Any())
+                            {
+                                @for (int i = 0; i < Model.UploadedFiles.Count; i++)
+                                {
+                                    var file = Model.UploadedFiles[i];
+                                    <tr data-file="@file.SavedFileName">
+                                        <td class="text-center">
+                                            <input type="radio" name="primaryFile" value="@file.SavedFileName"
+                                            @(i == 0 ? "checked" : "") class="primary-file-radio">
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fa fa-file-pdf text-danger me-2"></i>
+                                                <div>
+                                                    <div class="fw-bold" title="@file.OriginalFileName">
+                                                        @(file.OriginalFileName.Length > 25 ? file.OriginalFileName.Substring(0, 25) + "..." : file.OriginalFileName)
+                                                    </div>
+                                                    <small class="text-muted">
+                                                        @((file.FileSize / 1024.0 / 1024.0).ToString("F2")) MB
+                                                        @if (file.PageCount > 0)
+                                                        {
+                                                            <span> • @file.PageCount pages</span>
+                                                        }
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (file.Success)
+                                            {
+                                                <span class="badge bg-success">Success</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger" title="@file.Message">Error</span>
+                                            }
+                                        </td>
+                                        <td class="file-actions">
+                                            <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                                    onclick="previewFile('@file.SavedFileName')" title="Preview">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    onclick="removeFile('@file.SavedFileName')" title="Remove">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- No files message - show/hide with JavaScript -->
+                <div class="text-center p-4 text-muted" id="no-files-message"
+                     style="display: @(Model.UploadedFiles.Any() ? "none" : "block")">
+                    <i class="fa fa-inbox fa-2x mb-2"></i>
+                    <p class="mb-0">No files uploaded yet</p>
+                    <small>Drag and drop PDF files above</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Guidelines -->
+        <div class="panel panel-inverse mt-3">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-info-circle me-2"></i>Upload Requirements
+                </h4>
+            </div>
+            <div class="panel-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fa fa-check text-success me-2"></i>
+                        <strong>File Types:</strong> @string.Join(", ", Model.AcceptedTypes)
+                    </li>
+                    <li class="mb-2">
+                        <i class="fa fa-check text-success me-2"></i>
+                        <strong>Max Size:</strong> @((Model.MaxFileSize / 1024 / 1024).ToString("F0"))MB per file
+                    </li>
+                    <li class="mb-2">
+                        <i class="fa fa-check text-success me-2"></i>
+                        <strong>Max Files:</strong> @Model.MaxFiles files
+                        @if (!Model.AllowMultiple)
+                        {
+                            <span class="text-warning">(Single file only)</span>
+                        }
+                    </li>
+                    <li class="mb-2">
+                        <i class="fa fa-info text-info me-2"></i>
+                        <strong>Primary File:</strong> First file becomes the template base
+                    </li>
+                    <li>
+                        <i class="fa fa-lightbulb text-warning me-2"></i>
+                        <strong>Tip:</strong> Ensure PDFs have clear, readable text
+                    </li>
+                </ul>
+
+                @if (Model.UploadedFiles.Any(f => !f.Success))
+                {
+                    <div class="alert alert-warning mt-3">
+                        <h6><i class="fa fa-exclamation-triangle me-2"></i>Upload Issues:</h6>
+                        <ul class="mb-0">
+                            @foreach (var file in Model.UploadedFiles.Where(f => !f.Success))
+                            {
+                                <li><strong>@file.OriginalFileName:</strong> @file.Message</li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- File Preview Modal -->
+<div class="modal fade" id="file-preview-modal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">File Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="preview-content">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading preview...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Anti-forgery token -->
+ @Html.AntiForgeryToken()

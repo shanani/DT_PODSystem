@@ -1,0 +1,399 @@
+@{
+    ViewData["Title"] = "Security Roles Management";
+    Layout = "_Layout";  // FIXED: Use _Layout since it's your master page
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet" />
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard", new { area = "Security" })">Security</a></li>
+    <li class="breadcrumb-item active">Security Roles</li>
+</ol>
+<!-- END breadcrumb -->
+<!-- BEGIN page-header -->
+<h1 class="page-header">
+    <i class="fa fa-shield-alt text-primary me-2"></i>
+     Roles Management
+    <small>Manage system security roles and permissions</small>
+    <div class="float-end">
+        <a href="@Url.Action("Create")" class="btn btn-primary">
+            <i class="fa fa-plus"></i> Create New Role
+        </a>
+        <div class="btn-group ms-2">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="fa fa-download"></i> Export
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="@Url.Action("ExportToExcel")"><i class="fa fa-file-excel text-success"></i> Export to Excel</a></li>
+                <li><a class="dropdown-item" href="#" onclick="exportToPdf()"><i class="fa fa-file-pdf text-danger"></i> Export to PDF</a></li>
+            </ul>
+        </div>
+    </div>
+</h1>
+<!-- END page-header -->
+<!-- BEGIN row -->
+<div class="row">
+    <!-- BEGIN statistics cards -->
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-blue">
+            <div class="stats-icon"><i class="fa fa-shield-alt"></i></div>
+            <div class="stats-info">
+                <h4>Total Roles</h4>
+                <p id="totalRoles">Loading...</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-green">
+            <div class="stats-icon"><i class="fa fa-check-circle"></i></div>
+            <div class="stats-info">
+                <h4>Active Roles</h4>
+                <p id="activeRoles">Loading...</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-orange">
+            <div class="stats-icon"><i class="fa fa-users"></i></div>
+            <div class="stats-info">
+                <h4>Users with Roles</h4>
+                <p id="usersWithRoles">Loading...</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="widget widget-stats bg-red">
+            <div class="stats-icon"><i class="fa fa-cog"></i></div>
+            <div class="stats-info">
+                <h4>System Roles</h4>
+                <p id="systemRoles">Loading...</p>
+            </div>
+        </div>
+    </div>
+    <!-- END statistics cards -->
+</div>
+<!-- END row -->
+<!-- BEGIN row -->
+<div class="row">
+    <div class="col-xl-12">
+        <!-- BEGIN panel -->
+        <div class="panel panel-inverse">
+            <!-- BEGIN panel-heading -->
+            <div class="panel-heading">
+                <h4 class="panel-title">Security Roles Management</h4>
+                <div class="panel-heading-btn">
+                    
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>
+            </div>
+            <!-- END panel-heading -->
+            <!-- BEGIN panel-body -->
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table id="rolesTable" class="table table-striped table-bordered align-middle text-nowrap">
+                        <thead>
+                            <tr>
+                                <th width="80">ID</th>
+                                <th>Role Name</th>
+                                <th>Description</th>
+                                <th width="100">Status</th>
+                                <th width="100">Users</th>
+                                <th width="120">Created</th>
+                                <th width="200">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded via AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- END panel-body -->
+        </div>
+        <!-- END panel -->
+    </div>
+</div>
+<!-- END row -->
+@section Scripts {
+    <!-- FIXED: Correct script order based on your project samples -->
+    <!-- 1. Core DataTables first -->
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net/js/dataTables.min.js"></script>
+    <!-- 2. Bootstrap integration -->
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <!-- 3. Responsive extension -->
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <!-- 4. Responsive Bootstrap integration -->
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+    <!-- 5. Moment.js for date formatting -->
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/moment/min/moment.min.js"></script>
+
+    <script>
+        let rolesTable;
+
+        $(document).ready(function() {
+            // Debug: Check if DataTable is available
+            console.log('jQuery version:', $.fn.jquery);
+            console.log('DataTable available:', typeof $.fn.DataTable);
+
+            initializeDataTable();
+            loadStatistics();
+        });
+
+        function initializeDataTable() {
+            // Check if DataTable is available
+            if (typeof $.fn.DataTable === 'undefined') {
+                console.error('DataTable is not loaded!');
+                if (typeof alert !== 'undefined' && alert.error) {
+                    alert.error('DataTable library failed to load');
+                }
+                return;
+            }
+
+            rolesTable = $('#rolesTable').DataTable({
+                processing: true,
+                serverSide: true,
+                responsive: true,
+                ajax: {
+                    url: '@Url.Action("GetRolesData")',
+                    type: 'POST',
+                    error: function(xhr, error, thrown) {
+                        console.error('DataTable AJAX Error:', error);
+                        console.error('XHR Status:', xhr.status);
+                        console.error('XHR Response:', xhr.responseText);
+
+                        // Use your existing notification system
+                        if (typeof alert !== 'undefined' && alert.error) {
+                            alert.error('Error loading roles data');
+                        }
+                    }
+                },
+                columns: [
+                    { data: 'id', name: 'Id' },
+                    {
+                        data: 'name',
+                        name: 'Name',
+                        render: function(data, type, row) {
+                            return `<strong>${data}</strong>`;
+                        }
+                    },
+                    {
+                        data: 'description',
+                        name: 'Description',
+                        render: function(data, type, row) {
+                            if (!data || data === 'No description') {
+                                return '<em class="text-muted">No description</em>';
+                            }
+                            return data.length > 50 ? data.substring(0, 50) + '...' : data;
+                        }
+                    },
+                    {
+                        data: 'isActive',
+                        name: 'IsActive',
+                        render: function(data, type, row) {
+                            if (data) {
+                                return '<span class="badge bg-success role-status-badge">Active</span>';
+                            } else {
+                                return '<span class="badge bg-secondary role-status-badge">Inactive</span>';
+                            }
+                        }
+                    },
+                    {
+                        data: 'userCount',
+                        name: 'UserCount',
+                        render: function(data, type, row) {
+                            const badgeClass = data > 0 ? 'bg-info' : 'bg-light text-dark';
+                            return `<span class="badge ${badgeClass}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'createdAt',
+                        name: 'CreatedAt',
+                        render: function(data, type, row) {
+                            // Check if moment is available
+                            if (typeof moment !== 'undefined') {
+                                return moment(data).format('MMM DD, YYYY');
+                            } else {
+                                // Fallback to JavaScript Date
+                                try {
+                                    return new Date(data).toLocaleDateString();
+                                } catch(e) {
+                                    return data;
+                                }
+                            }
+                        }
+                    },
+                    {
+                        data: 'actions',
+                        name: 'Actions',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            return getActionButtons(row);
+                        }
+                    }
+                ],
+                order: [[1, 'asc']],
+                pageLength: 25,
+                language: {
+                    processing: '<div class="d-flex justify-content-center"><div class="spinner-border text-theme" role="status"><span class="visually-hidden">Loading...</span></div></div>',
+                    emptyTable: 'No security roles found',
+                    zeroRecords: 'No matching roles found'
+                },
+                drawCallback: function(settings) {
+                    // Initialize tooltips after table draw
+                    $('[data-bs-toggle="tooltip"]').tooltip();
+                }
+            });
+        }
+
+        function getActionButtons(row) {
+            const detailsUrl = '@Url.Action("Details", "SecurityRoles")/' + row.id;
+            const editUrl = '@Url.Action("Edit", "SecurityRoles")/' + row.id;
+
+            let buttons = '<div class="btn-group btn-group-sm" role="group">';
+
+            // Details button
+            buttons += `<a href="${detailsUrl}" class="btn btn-outline-info" title="View Details" data-bs-toggle="tooltip">
+                <i class="fa fa-eye"></i>
+            </a>`;
+
+            // Edit button
+            buttons += `<a href="${editUrl}" class="btn btn-outline-primary" title="Edit Role" data-bs-toggle="tooltip">
+                <i class="fa fa-edit"></i>
+            </a>`;
+
+            // Toggle status button
+            const statusIcon = row.isActive ? 'fa-toggle-on' : 'fa-toggle-off';
+            const statusTitle = row.isActive ? 'Deactivate Role' : 'Activate Role';
+            buttons += `<button type="button" class="btn btn-outline-warning" onclick="toggleStatus(${row.id})" title="${statusTitle}" data-bs-toggle="tooltip">
+                <i class="fa ${statusIcon}"></i>
+            </button>`;
+
+            // Permissions button
+            buttons += `<button type="button" class="btn btn-outline-success" onclick="managePermissions(${row.id})" title="Manage Permissions" data-bs-toggle="tooltip">
+                <i class="fa fa-key"></i>
+            </button>`;
+
+            // Delete button (only show for custom roles with no users)
+            if (!row.isSystemRole && row.userCount === 0) {
+                buttons += `<button type="button" class="btn btn-outline-danger" onclick="deleteRole(${row.id})" title="Delete Role" data-bs-toggle="tooltip">
+                    <i class="fa fa-trash"></i>
+                </button>`;
+            }
+
+            buttons += '</div>';
+            return buttons;
+        }
+
+        function refreshTable() {
+            if (rolesTable) {
+                rolesTable.ajax.reload();
+                loadStatistics();
+            }
+        }
+
+        function loadStatistics() {
+            $.get('@Url.Action("GetStatistics", "SecurityRoles")')
+                .done(function(data) {
+                    $('#totalRoles').text(data.totalRoles || 0);
+                    $('#activeRoles').text(data.activeRoles || 0);
+                    $('#usersWithRoles').text(data.usersWithRoles || 0);
+                    $('#systemRoles').text(data.systemRoles || 0);
+                })
+                .fail(function(xhr, status, error) {
+                    console.warn('Failed to load statistics:', error);
+                    // Set default values if statistics fail
+                    $('#totalRoles').text('0');
+                    $('#activeRoles').text('0');
+                    $('#usersWithRoles').text('0');
+                    $('#systemRoles').text('0');
+                });
+        }
+
+        function toggleStatus(id) {
+            // Use your existing SweetAlert system from _Layout
+            if (typeof swal !== 'undefined') {
+                swal({
+                    title: 'Toggle Status',
+                    text: 'Are you sure you want to change this role\'s status?',
+                    icon: 'warning',
+                    buttons: true,
+                    dangerMode: true,
+                }).then((confirmed) => {
+                    if (confirmed) {
+                        performToggleStatus(id);
+                    }
+                });
+            } else if (typeof alert !== 'undefined' && alert.confirm) {
+                alert.confirm('Toggle Status', 'Are you sure you want to change this role\'s status?', function() {
+                    performToggleStatus(id);
+                });
+            } else {
+                // Fallback to native confirm
+                if (confirm('Are you sure you want to change this role\'s status?')) {
+                    performToggleStatus(id);
+                }
+            }
+        }
+
+        function performToggleStatus(id) {
+            $.post('@Url.Action("ToggleStatus")', { id: id })
+                .done(function(response) {
+                    if (response.success) {
+                        if (typeof alert !== 'undefined' && alert.success) {
+                            alert.success(response.message, { popup: false });
+                        }
+                        refreshTable();
+                    } else {
+                        if (typeof alert !== 'undefined' && alert.error) {
+                            alert.error(response.message);
+                        } else {
+                            console.error(response.message);
+                        }
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    if (typeof alert !== 'undefined' && alert.error) {
+                        alert.error('Error updating role status: ' + error);
+                    } else {
+                        console.error('Error updating role status:', error);
+                    }
+                });
+        }
+
+        function deleteRole(id) {
+            if (typeof swal !== 'undefined') {
+                swal({
+                    title: 'Delete Role',
+                    text: 'Are you sure you want to delete this role? This action cannot be undone.',
+                    icon: 'error',
+                    buttons: true,
+                    dangerMode: true,
+                }).then((confirmed) => {
+                    if (confirmed) {
+                        window.location.href = '@Url.Action("Delete", "SecurityRoles")/' + id;
+                    }
+                });
+            } else if (typeof alert !== 'undefined' && alert.confirm) {
+                alert.confirm('Delete Role', 'Are you sure you want to delete this role? This action cannot be undone.', function() {
+                    window.location.href = '@Url.Action("Delete", "SecurityRoles")/' + id;
+                });
+            } else {
+                // Fallback to native confirm
+                if (confirm('Are you sure you want to delete this role? This action cannot be undone.')) {
+                    window.location.href = '@Url.Action("Delete", "SecurityRoles")/' + id;
+                }
+            }
+        }
+
+              function managePermissions(id) {
+            window.location.href = '@Url.Action("RolePermissions", "SecurityRoles")' + '?roleId=' + id;
+        }
+    </script>
+}

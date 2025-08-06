@@ -1,0 +1,455 @@
+﻿@model SecurityRoleManagementViewModel
+
+@{
+    ViewData["Title"] = $"Edit Security Role - {Model.Name}";
+
+}
+
+@section Styles {
+    <style>
+        .form-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .role-info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .help-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
+        .change-indicator {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .field-changed {
+            border-color: #ffc107 !important;
+            box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+        }
+
+        .warning-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+}
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard", new { area = "Security" })">Security</a></li>
+    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Security Roles</a></li>
+    <li class="breadcrumb-item active">Edit @Model.Name</li>
+</ol>
+<!-- END breadcrumb -->
+<div class="d-flex align-items-center mb-3">
+    <div>
+        <h1 class="page-header">Edit Security Role</h1>
+
+    </div>
+    <div class="ms-auto">
+        <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-info me-2">
+            <i class="fa fa-eye me-2"></i>View Details
+        </a>
+        <a href="@Url.Action("Index")" class="btn btn-outline-theme">
+            <i class="fa fa-arrow-left me-2"></i>Back to Roles
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-8">
+
+        <!-- Role Basic Information Panel -->
+        <div class="panel panel-inverse" >
+            <div class="panel-heading">
+                <h4 class="panel-title">Role Information</h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-danger" data-toggle="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <form id="basicRoleForm" asp-action="Edit" method="post" novalidate>
+                    <input asp-for="Id" type="hidden" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Name" class="form-label">Role Name <span class="text-danger">*</span></label>
+                                <input asp-for="Name" class="form-control" maxlength="100"
+                                       data-original="@Model.Name" onchange="trackChanges(this)" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                                <div class="help-text">
+                                    Update the role name if needed.
+                                </div>
+                                <div class="change-indicator" id="nameChange">
+                                    <i class="fa fa-exclamation-triangle text-warning me-1"></i>
+                                    Role name has been changed from: <strong class="original-value"></strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="IsActive" class="form-label">Status</label>
+                                <div class="form-check form-switch">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox"
+                                           data-original="@Model.IsActive.ToString().ToLower()" onchange="trackStatusChange(this)" />
+                                    <label asp-for="IsActive" class="form-check-label">Active Role</label>
+                                </div>
+                                <div class="help-text">
+                                    Active roles can be assigned to users and grant permissions.
+                                </div>
+                                <div class="change-indicator" id="statusChange">
+                                    <i class="fa fa-exclamation-triangle text-warning me-1"></i>
+                                    Status will change from: <strong class="original-value"></strong> to <strong class="new-value"></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3"
+                                  placeholder="Describe the purpose and responsibilities of this role..."
+                                  maxlength="500" data-original="@Model.Description" onchange="trackChanges(this)"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                        <div class="help-text">
+                            Provide a clear description of what this role is intended for (optional).
+                        </div>
+                        <div class="form-text">
+                            <small class="text-muted"><span id="descriptionCount">@(Model.Description?.Length ?? 0)</span>/500 characters</small>
+                        </div>
+                        <div class="change-indicator" id="descriptionChange">
+                            <i class="fa fa-exclamation-triangle text-warning me-1"></i>
+                            Description has been modified
+                        </div>
+                    </div>
+
+                    <!-- Change Summary for Basic Info -->
+                    <div id="basicChangeSummary" class="alert alert-warning" style="display: none;">
+                        <h6><i class="fa fa-list me-2"></i>Basic Information Changes</h6>
+                        <ul id="basicChangesList"></ul>
+                    </div>
+
+                    <!-- Basic Info Form Actions -->
+                    <div class="panel-footer">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <button type="button" class="btn btn-white" onclick="resetBasicForm()">
+                                    <i class="fa fa-undo me-2"></i>Reset Basic Info
+                                </button>
+                            </div>
+                            <div>
+                                <a href="@Url.Action("Index")" class="btn btn-default me-2">
+                                    <i class="fa fa-times me-2"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary" id="saveBasicBtn">
+                                    <i class="fa fa-save me-2"></i>Save Basic Info
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+     
+        
+    </div>
+    <div class="col-xl-4"> 
+       
+        <!-- Quick Actions Panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">Quick Actions</h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-danger" data-toggle="panel-remove"><i class="fa fa-times"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <!-- Role Information Card -->
+                <div class="role-info-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4 class="mb-1">@Model.Name</h4>
+                            <p class="mb-2 opacity-75">@(string.IsNullOrEmpty(Model.Description) ? "No description provided" : Model.Description)</p>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-light text-dark me-2">
+                                    <i class="fa fa-users me-1"></i>@Model.UserCount users assigned
+                                </span>
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fa fa-check-circle me-1"></i>Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        <i class="fa fa-pause-circle me-1"></i>Inactive
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fs-12px opacity-75">Created</div>
+                            <div class="fs-14px">@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+                            @if (Model.UpdatedAt != Model.CreatedAt)
+                            {
+                                <div class="fs-12px opacity-75 mt-2">Last Updated</div>
+                                <div class="fs-14px">@Model.UpdatedAt.ToString("MMM dd, yyyy")</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-3">
+                    <a href="@Url.Action("RolePermissions", "SecurityRoles", new { roleId = Model.Id })" class="btn btn-outline-success">
+                        <i class="fa fa-key me-2"></i>Manage Permissions
+                    </a>
+                    <a href="@Url.Action("Index", "SecurityUsers", new { roleId = Model.Id })" class="btn btn-outline-info">
+                        <i class="fa fa-users me-2"></i>View Assigned Users
+                    </a>
+                    <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-primary">
+                        <i class="fa fa-chart-bar me-2"></i>View Statistics
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+ 
+</div>
+
+@section Scripts {
+
+  
+
+    <script>
+        let originalValues = {};
+        let hasChanges = false;
+
+        $(document).ready(function() {
+            setupFormValidation();
+            setupCharacterCounter();
+            captureOriginalValues();
+            setupChangeTracking();
+        });
+
+        function captureOriginalValues() {
+            originalValues = {
+                name: '@Model.Name',
+                description: '@Html.Raw(Html.Encode(Model.Description ?? ""))',
+                isActive: @Model.IsActive.ToString().ToLower()
+            };
+        }
+
+        function setupCharacterCounter() {
+            $('#Description').on('input', function() {
+                const length = $(this).val().length;
+                $('#descriptionCount').text(length);
+
+                if (length > 450) {
+                    $('#descriptionCount').addClass('text-warning');
+                } else if (length > 480) {
+                    $('#descriptionCount').addClass('text-danger').removeClass('text-warning');
+                } else {
+                    $('#descriptionCount').removeClass('text-warning text-danger');
+                }
+            });
+        }
+
+        function setupChangeTracking() {
+            $('#Name, #Description').on('input', function() {
+                trackChanges(this);
+            });
+        }
+
+        function trackChanges(element) {
+            const fieldName = element.name;
+            const currentValue = $(element).val();
+            const originalValue = $(element).data('original');
+            const changeIndicator = $(`#${fieldName.toLowerCase()}Change`);
+
+            if (currentValue !== originalValue) {
+                $(element).addClass('field-changed');
+                changeIndicator.show();
+                changeIndicator.find('.original-value').text(originalValue);
+                hasChanges = true;
+            } else {
+                $(element).removeClass('field-changed');
+                changeIndicator.hide();
+            }
+
+            updateFormState();
+        }
+
+        function trackStatusChange(element) {
+            const currentValue = $(element).is(':checked');
+            const originalValue = $(element).data('original') === 'true';
+            const changeIndicator = $('#statusChange');
+
+            if (currentValue !== originalValue) {
+                changeIndicator.show();
+                changeIndicator.find('.original-value').text(originalValue ? 'Active' : 'Inactive');
+                changeIndicator.find('.new-value').text(currentValue ? 'Active' : 'Inactive');
+                hasChanges = true;
+            } else {
+                changeIndicator.hide();
+            }
+
+            updateFormState();
+        }
+
+        function updateFormState() {
+            const nameChanged = $('#Name').val() !== originalValues.name;
+            const descChanged = $('#Description').val() !== originalValues.description;
+            const statusChanged = $('#IsActive').is(':checked') !== originalValues.isActive;
+
+            hasChanges = nameChanged || descChanged || statusChanged;
+
+            $('#submitBtn').prop('disabled', !hasChanges);
+
+            if (hasChanges) {
+                updateChangeSummary();
+                $('#changeSummary').show();
+            } else {
+                $('#changeSummary').hide();
+            }
+        }
+
+        function updateChangeSummary() {
+            const changes = [];
+
+            if ($('#Name').val() !== originalValues.name) {
+                changes.push(`Name: "${originalValues.name}" → "${$('#Name').val()}"`);
+            }
+
+            if ($('#Description').val() !== originalValues.description) {
+                changes.push('Description has been modified');
+            }
+
+            if ($('#IsActive').is(':checked') !== originalValues.isActive) {
+                const from = originalValues.isActive ? 'Active' : 'Inactive';
+                const to = $('#IsActive').is(':checked') ? 'Active' : 'Inactive';
+                changes.push(`Status: ${from} → ${to}`);
+            }
+
+            const changesList = changes.map(change => `<li>${change}</li>`).join('');
+            $('#changesList').html(changesList);
+        }
+
+        function setupFormValidation() {
+            $('#editRoleForm').on('submit', function(e) {
+                let isValid = true;
+                const name = $('#Name').val().trim();
+                const submitBtn = $('#submitBtn');
+
+                // Reset any previous validation states
+                $('.is-invalid').removeClass('is-invalid');
+
+                if (!name) {
+                    isValid = false;
+                    $('#Name').addClass('is-invalid');
+                    alert.error('Role name is required');
+                }
+
+                if (name.length > 100) {
+                    isValid = false;
+                    $('#Name').addClass('is-invalid');
+                    alert.error('Role name cannot exceed 100 characters');
+                }
+
+                const description = $('#Description').val().trim();
+                if (description.length > 500) {
+                    isValid = false;
+                    $('#Description').addClass('is-invalid');
+                    alert.error('Description cannot exceed 500 characters');
+                }
+
+                if (!hasChanges) {
+                    isValid = false;
+                    alert.info('No changes detected to save');
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // Show loading state
+                const originalText = submitBtn.html();
+                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-2"></i>Saving...');
+
+                // Re-enable button after 10 seconds as fallback
+                setTimeout(function() {
+                    submitBtn.prop('disabled', false).html(originalText);
+                }, 10000);
+            });
+        }
+
+        function resetForm() {
+            if (!hasChanges) {
+                alert.info('No changes to reset');
+                return;
+            }
+
+            alert.confirm('Reset Changes?', 'This will discard all unsaved changes. Are you sure?', function() {
+                $('#Name').val(originalValues.name);
+                $('#Description').val(originalValues.description);
+                $('#IsActive').prop('checked', originalValues.isActive);
+
+                // Reset visual indicators
+                $('.field-changed').removeClass('field-changed');
+                $('.change-indicator').hide();
+                $('#changeSummary').hide();
+                $('.is-invalid').removeClass('is-invalid');
+
+                // Update character counter
+                $('#descriptionCount').text(originalValues.description.length);
+
+                hasChanges = false;
+                $('#submitBtn').prop('disabled', true);
+
+                alert.success('Changes reset successfully!', { popup: false });
+            });
+        }
+
+        // Warn user about unsaved changes
+        $(window).on('beforeunload', function() {
+            if (hasChanges) {
+                return 'You have unsaved changes. Are you sure you want to leave?';
+            }
+        });
+
+        // Remove warning when form is submitted
+        $('#editRoleForm').on('submit', function() {
+            $(window).off('beforeunload');
+        });
+    </script>
+
+}

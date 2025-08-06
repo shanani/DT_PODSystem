@@ -1,0 +1,651 @@
+﻿@* Views/Shared/_Sidebar.cshtml *@
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+@using DT_PODSystem.Helpers
+@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Hosting
+@inject IConfiguration Configuration
+
+@{
+    // Get current route information
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var currentArea = ViewContext.RouteData.Values["area"]?.ToString() ?? "";
+
+    // Helper method to check if menu item is active
+    bool IsMenuActive(string controller, string action = null, string area = null)
+    {
+        var isControllerMatch = string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase);
+        var isActionMatch = action == null || string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase);
+        var isAreaMatch = area == null || string.Equals(currentArea, area, StringComparison.OrdinalIgnoreCase);
+
+        return isControllerMatch && isActionMatch && isAreaMatch;
+    }
+
+    // Helper method for submenu parent active state
+    bool IsSubmenuParentActive(params string[] controllers)
+    {
+        return controllers.Any(c => string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase));
+    }
+
+    // Helper method to get active CSS class
+    string GetActiveClass(string controller, string action = null, string area = null)
+    {
+        return IsMenuActive(controller, action, area) ? "active" : "";
+    }
+
+    // Helper method to get active CSS class for submenu parent
+    string GetSubmenuActiveClass(params string[] controllers)
+    {
+        return IsSubmenuParentActive(controllers) ? "active" : "";
+    }
+
+    // Load Menu sections from Configuration
+    var applicationSection = Configuration.GetSection("applicationMenu");
+    var applicationMenu = applicationSection.Exists() ? applicationSection.GetChildren().ToArray() : Array.Empty<IConfigurationSection>();
+    
+
+    // Load Menu sections from Configuration
+    var adminApplicationSection = Configuration.GetSection("adminApplicationMenu");
+    var adminApplicationMenu = adminApplicationSection.Exists() ? adminApplicationSection.GetChildren().ToArray() : Array.Empty<IConfigurationSection>();
+
+
+    var securitySection = Configuration.GetSection("securityMenu");
+    var securityMenu = securitySection.Exists() ? securitySection.GetChildren().ToArray() : Array.Empty<IConfigurationSection>();
+    
+    var superAdminSection = Configuration.GetSection("superAdminMenu");
+    var superAdminMenu = superAdminSection.Exists() ? superAdminSection.GetChildren().ToArray() : Array.Empty<IConfigurationSection>();
+    
+    bool isProduction = env.IsProduction();
+    bool isSuperAdmin = Util.GetCurrentUser().IsSuperAdmin; // TODO: Update with your actual super admin check
+
+    // Helper method to check if menu item is active
+    bool IsMenuItemActive(IConfigurationSection menuItem)
+    {
+        var controller = menuItem["controller"];
+        var action = menuItem["action"];
+        var area = menuItem["area"] ?? "";
+        
+        if (!string.IsNullOrEmpty(controller) && !string.IsNullOrEmpty(action))
+        {
+            return IsMenuActive(controller, action, area);
+        }
+        
+        // Check children for active state
+        var children = menuItem.GetSection("children").GetChildren().ToArray();
+        foreach (var child in children)
+        {
+            if (IsMenuItemActive(child))
+                return true;
+        }
+        
+        return false;
+    }
+
+    // Helper method to get active class for menu section
+    string GetMenuActiveClass(IConfigurationSection menuItem)
+    {
+        return IsMenuItemActive(menuItem) ? "active" : "";
+    }
+
+    // Helper method to get submenu active class from controllers list
+    string GetSubmenuActiveFromMenu(IConfigurationSection menu)
+    {
+        var controllers = new List<string>();
+        
+        // Get controller from direct menu item
+        if (!string.IsNullOrEmpty(menu["controller"]))
+        {
+            controllers.Add(menu["controller"]);
+        }
+        
+        // Get controllers from children
+        var children = menu.GetSection("children").GetChildren().ToArray();
+        foreach (var child in children)
+        {
+            if (!string.IsNullOrEmpty(child["controller"]))
+            {
+                controllers.Add(child["controller"]);
+            }
+        }
+        
+        return GetSubmenuActiveClass(controllers.ToArray());
+    }
+
+    // Helper method to check if menu should be shown
+    bool ShouldShowMenuItem(IConfigurationSection menuItem)
+    {  
+        return true;
+    }
+}
+
+<!-- BEGIN #sidebar -->
+<div id="sidebar" class="app-sidebar @(ViewData["AppSidebarTransparent"] != null ? " app-sidebar-transparent" : "")" @(ViewData["AppSidebarLight"] != null ? "" : " data-bs-theme=dark")>
+    <!-- BEGIN scrollbar -->
+    <div class="app-sidebar-content" data-scrollbar="true" data-height="100%">
+        <!-- BEGIN menu -->
+        <div class="menu">
+             
+            @if (ViewData["AppSidebarSearch"] == null)
+            {
+                <div class="menu-profile">
+                    <a href="javascript:;" class="menu-profile-link" data-toggle="app-sidebar-profile" data-target="#appSidebarProfileMenu">
+                        <div class="menu-profile-cover with-shadow"></div>
+                        <div class="menu-profile-image menu-profile-image-icon bg-gray-100 text-gray-600">
+                            @if (Util.GetCurrentUser().Photo != null)
+                            {
+                                string imageSrc = $"data:image/jpeg;base64,{Util.GetCurrentUser().Photo_base64}";
+                                <img style="width:100%;height:100%;object-fit:cover" src="@imageSrc" />
+                            }
+                            else
+                            {
+                                <i class="fa fa-user"></i>
+                            }
+                        </div>
+                        <div class="menu-profile-info">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    @(string.IsNullOrEmpty(Util.GetCurrentUser().FirstName) ? Util.GetCurrentUser().FullName : Util.GetCurrentUser().FirstName)
+                                </div>
+                                <div class="menu-caret ms-auto"></div>
+                            </div>
+                            <small>
+                                @(string.IsNullOrEmpty(Util.GetCurrentUser().Title) ? Util.GetCurrentUser().Email : Util.GetCurrentUser().Title)
+                            </small>
+                        </div>
+                    </a>
+                </div>
+
+                <div id="appSidebarProfileMenu" class="collapse">
+                     
+                    @if (env.IsDevelopment())
+                    {
+                        <div class="menu-item pb-5px">
+                            <a asp-area="Samples" asp-controller="Dashboard" asp-action="DashboardV1" class="menu-link">
+                                <div class="menu-icon"><i class="fa fa-question-circle"></i></div>
+                                <div class="menu-text">Theme Samples</div>
+                            </a>
+                        </div>
+                    }
+                    <div class="menu-divider m-0"></div>
+                </div>
+            }
+
+            @if (ViewData["AppSidebarSearch"] != null)
+            {
+                <div class="menu-search mb-n3">
+                    <input type="text" class="form-control" placeholder="Menu filter..." data-sidebar-search="true" />
+                </div>
+            }
+
+            <div class="menu-header text-purple-400">Application Menu</div>
+               @foreach (var menu in applicationMenu)
+            { 
+                var menuChildren = menu.GetSection("children").GetChildren().ToArray();
+                var menuActive = GetMenuActiveClass(menu);
+                var submenuActive = GetSubmenuActiveFromMenu(menu);
+                
+                if (menuChildren.Length > 0)
+                {
+                    <!-- Menu with submenu -->
+                    <div class="menu-item has-sub @submenuActive">
+                        <a href="javascript:;" class="menu-link">
+                            @if (!string.IsNullOrEmpty(menu["icon"]))
+                            {
+                                <div class="menu-icon"><i class="@menu["icon"]"></i></div>
+                            }
+                            <div class="menu-text">@menu["text"]</div>
+                            @if (!string.IsNullOrEmpty(menu["badge"]))
+                            {
+                                <div class="menu-badge">@menu["badge"]</div>
+                            }
+                            <div class="menu-caret"></div>
+                        </a>
+                        <div class="menu-submenu">
+                            @foreach (var submenu in menuChildren)
+                            {
+                                
+                                var submenuActive2 = GetMenuActiveClass(submenu);
+                                var highlight = submenu["highlight"];
+                                
+                                <div class="menu-item @submenuActive2">
+                                    @if (!string.IsNullOrEmpty(submenu["controller"]) && !string.IsNullOrEmpty(submenu["action"]))
+                                    {
+                                        <a class="menu-link" asp-controller="@submenu["controller"]" asp-action="@submenu["action"]" asp-area="@(submenu["area"] ?? "")">
+                                            <div class="menu-text">
+                                                @submenu["text"]
+                                                @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                                {
+                                                    <i class="fa fa-paper-plane text-theme"></i>
+                                                }
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(submenu["label"]))
+                                            {
+                                                <div class="menu-label">@submenu["label"]</div>
+                                            }
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a class="menu-link" href="javascript:;">
+                                            <div class="menu-text">
+                                                @submenu["text"]
+                                                @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                                {
+                                                    <i class="fa fa-paper-plane text-theme"></i>
+                                                }
+                                            </div>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Single menu item -->
+                    var highlight = menu["highlight"];
+                    <div class="menu-item @menuActive">
+                        @if (!string.IsNullOrEmpty(menu["controller"]) && !string.IsNullOrEmpty(menu["action"]))
+                        {
+                            <a class="menu-link" asp-controller="@menu["controller"]" asp-action="@menu["action"]" asp-area="@(menu["area"] ?? "")">
+                                @if (!string.IsNullOrEmpty(menu["icon"]))
+                                {
+                                    <div class="menu-icon"><i class="@menu["icon"]"></i></div>
+                                }
+                                <div class="menu-text">
+                                    @menu["text"]
+                                    @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                    {
+                                        <i class="fa fa-paper-plane text-theme"></i>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(menu["label"]))
+                                {
+                                    <div class="menu-label">@menu["label"]</div>
+                                }
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="menu-link" href="javascript:;">
+                                @if (!string.IsNullOrEmpty(menu["icon"]))
+                                {
+                                    <div class="menu-icon"><i class="@menu["icon"]"></i></div>
+                                }
+                                <div class="menu-text">
+                                    @menu["text"]
+                                    @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                    {
+                                        <i class="fa fa-paper-plane text-theme"></i>
+                                    }
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+            }
+          @if(Util.GetCurrentUser().Roles.Contains("Portals Admin") || Util.GetCurrentUser().IsAdmin || Util.GetCurrentUser().IsSuperAdmin){
+               <!-- Dynamic Application Menu from JSON -->
+            @foreach (var menu in adminApplicationMenu)
+            { 
+                var menuChildren = menu.GetSection("children").GetChildren().ToArray();
+                var menuActive = GetMenuActiveClass(menu);
+                var submenuActive = GetSubmenuActiveFromMenu(menu);
+                
+                if (menuChildren.Length > 0)
+                {
+                    <!-- Menu with submenu -->
+                    <div class="menu-item has-sub @submenuActive">
+                        <a href="javascript:;" class="menu-link">
+                            @if (!string.IsNullOrEmpty(menu["icon"]))
+                            {
+                                <div class="menu-icon"><i class="@menu["icon"]"></i></div>
+                            }
+                            <div class="menu-text">@menu["text"]</div>
+                            @if (!string.IsNullOrEmpty(menu["badge"]))
+                            {
+                                <div class="menu-badge">@menu["badge"]</div>
+                            }
+                            <div class="menu-caret"></div>
+                        </a>
+                        <div class="menu-submenu">
+                            @foreach (var submenu in menuChildren)
+                            {
+                                
+                                var submenuActive2 = GetMenuActiveClass(submenu);
+                                var highlight = submenu["highlight"];
+                                
+                                <div class="menu-item @submenuActive2">
+                                    @if (!string.IsNullOrEmpty(submenu["controller"]) && !string.IsNullOrEmpty(submenu["action"]))
+                                    {
+                                        <a class="menu-link" asp-controller="@submenu["controller"]" asp-action="@submenu["action"]" asp-area="@(submenu["area"] ?? "")">
+                                            <div class="menu-text">
+                                                @submenu["text"]
+                                                @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                                {
+                                                    <i class="fa fa-paper-plane text-theme"></i>
+                                                }
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(submenu["label"]))
+                                            {
+                                                <div class="menu-label">@submenu["label"]</div>
+                                            }
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a class="menu-link" href="javascript:;">
+                                            <div class="menu-text">
+                                                @submenu["text"]
+                                                @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                                {
+                                                    <i class="fa fa-paper-plane text-theme"></i>
+                                                }
+                                            </div>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Single menu item -->
+                    var highlight = menu["highlight"];
+                    <div class="menu-item @menuActive">
+                        @if (!string.IsNullOrEmpty(menu["controller"]) && !string.IsNullOrEmpty(menu["action"]))
+                        {
+                            <a class="menu-link" asp-controller="@menu["controller"]" asp-action="@menu["action"]" asp-area="@(menu["area"] ?? "")">
+                                @if (!string.IsNullOrEmpty(menu["icon"]))
+                                {
+                                    <div class="menu-icon"><i class="@menu["icon"]"></i></div>
+                                }
+                                <div class="menu-text">
+                                    @menu["text"]
+                                    @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                    {
+                                        <i class="fa fa-paper-plane text-theme"></i>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(menu["label"]))
+                                {
+                                    <div class="menu-label">@menu["label"]</div>
+                                }
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="menu-link" href="javascript:;">
+                                @if (!string.IsNullOrEmpty(menu["icon"]))
+                                {
+                                    <div class="menu-icon"><i class="@menu["icon"]"></i></div>
+                                }
+                                <div class="menu-text">
+                                    @menu["text"]
+                                    @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                    {
+                                        <i class="fa fa-paper-plane text-theme"></i>
+                                    }
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+            }
+
+          }
+           
+            <!-- Admin Section (Only for Admins) -->
+            @if (Util.GetCurrentUser().IsAdmin || Util.GetCurrentUser().IsSuperAdmin)
+            {
+                
+                <div class="menu-header text-purple-400">Administration Menu</div>
+                  if (Util.GetCurrentUser().IsAdmin)
+                {
+                     @foreach (var menu in securityMenu)
+                {
+                    if (!ShouldShowMenuItem(menu)) continue;
+                    
+                    var menuChildren = menu.GetSection("children").GetChildren().ToArray();
+                    var menuActive = GetMenuActiveClass(menu);
+                    var submenuActive = GetSubmenuActiveFromMenu(menu);
+                    
+                    if (menuChildren.Length > 0)
+                    {
+                        <!-- Security Menu with submenu -->
+                        <div class="menu-item has-sub @submenuActive">
+                            <a href="javascript:;" class="menu-link">
+                                @if (!string.IsNullOrEmpty(menu["icon"]))
+                                {
+                                    <div class="menu-icon"><i class="@menu["icon"]"></i></div>
+                                }
+                                <div class="menu-text">@menu["text"]</div>
+                                @if (!string.IsNullOrEmpty(menu["badge"]))
+                                {
+                                    <div class="menu-badge">@menu["badge"]</div>
+                                }
+                                <div class="menu-caret"></div>
+                            </a>
+                            <div class="menu-submenu">
+                                @foreach (var submenu in menuChildren)
+                                {
+                                    if (!ShouldShowMenuItem(submenu)) continue;
+                                    
+                                    var submenuActive2 = GetMenuActiveClass(submenu);
+                                    var highlight = submenu["highlight"];
+                                    
+                                    <div class="menu-item @submenuActive2">
+                                        @if (!string.IsNullOrEmpty(submenu["controller"]) && !string.IsNullOrEmpty(submenu["action"]))
+                                        {
+                                            <a class="menu-link" asp-controller="@submenu["controller"]" asp-action="@submenu["action"]" asp-area="@(submenu["area"] ?? "Security")">
+                                                <div class="menu-text">
+                                                    @submenu["text"]
+                                                    @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                                    {
+                                                        <i class="fa fa-paper-plane text-theme"></i>
+                                                    }
+                                                </div>
+                                                @if (!string.IsNullOrEmpty(submenu["label"]))
+                                                {
+                                                    <div class="menu-label">@submenu["label"]</div>
+                                                }
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a class="menu-link" href="javascript:;">
+                                                <div class="menu-text">
+                                                    @submenu["text"]
+                                                    @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                                    {
+                                                        <i class="fa fa-paper-plane text-theme"></i>
+                                                    }
+                                                </div>
+                                            </a>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Single security menu item -->
+                        var highlight = menu["highlight"];
+                        <div class="menu-item @menuActive">
+                            @if (!string.IsNullOrEmpty(menu["controller"]) && !string.IsNullOrEmpty(menu["action"]))
+                            {
+                                <a class="menu-link" asp-controller="@menu["controller"]" asp-action="@menu["action"]" asp-area="@(menu["area"] ?? "Security")">
+                                    @if (!string.IsNullOrEmpty(menu["icon"]))
+                                    {
+                                        <div class="menu-icon"><i class="@menu["icon"]"></i></div>
+                                    }
+                                    <div class="menu-text">
+                                        @menu["text"]
+                                        @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                        {
+                                            <i class="fa fa-paper-plane text-theme"></i>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(menu["label"]))
+                                    {
+                                        <div class="menu-label">@menu["label"]</div>
+                                    }
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="menu-link" href="javascript:;">
+                                    @if (!string.IsNullOrEmpty(menu["icon"]))
+                                    {
+                                        <div class="menu-icon"><i class="@menu["icon"]"></i></div>
+                                    }
+                                    <div class="menu-text">
+                                        @menu["text"]
+                                        @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                        {
+                                            <i class="fa fa-paper-plane text-theme"></i>
+                                        }
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    }
+                    }
+                }
+                 
+
+                 if(Util.GetCurrentUser().IsSuperAdmin)
+                {
+                    <!-- Dynamic Super Admin Menu from JSON (Super Admin + Development Only) -->
+                     foreach (var menu in superAdminMenu)
+                {
+                    if (!ShouldShowMenuItem(menu)) continue;
+                    
+                    var menuChildren = menu.GetSection("children").GetChildren().ToArray();
+                    var menuActive = GetMenuActiveClass(menu);
+                    var submenuActive = GetSubmenuActiveFromMenu(menu);
+                    
+                    if (menuChildren.Length > 0)
+                    {
+                        <!-- Super Admin Menu with submenu -->
+                        <div class="menu-item has-sub @submenuActive">
+                            <a href="javascript:;" class="menu-link">
+                                @if (!string.IsNullOrEmpty(menu["icon"]))
+                                {
+                                    <div class="menu-icon"><i class="@menu["icon"]"></i></div>
+                                }
+                                <div class="menu-text">@menu["text"]</div>
+                                @if (!string.IsNullOrEmpty(menu["badge"]))
+                                {
+                                    <div class="menu-badge @(menu["badge"] == "DEV" ? "bg-danger" : "")">@menu["badge"]</div>
+                                }
+                                <div class="menu-caret"></div>
+                            </a>
+                            <div class="menu-submenu">
+                                @foreach (var submenu in menuChildren)
+                                {
+                                    if (!ShouldShowMenuItem(submenu)) continue;
+                                    
+                                    var submenuActive2 = GetMenuActiveClass(submenu);
+                                    var highlight = submenu["highlight"];
+                                    
+                                    <div class="menu-item @submenuActive2 @(!string.IsNullOrEmpty(highlight) && bool.Parse(highlight) ? "highlight" : "")">
+                                        @if (!string.IsNullOrEmpty(submenu["controller"]) && !string.IsNullOrEmpty(submenu["action"]))
+                                        {
+                                            <a class="menu-link" asp-controller="@submenu["controller"]" asp-action="@submenu["action"]" asp-area="@(submenu["area"] ?? "Security")">
+                                                <div class="menu-text">
+                                                    @submenu["text"]
+                                                    @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                                    {
+                                                        <i class="fa fa-paper-plane text-theme"></i>
+                                                    }
+                                                </div>
+                                                @if (!string.IsNullOrEmpty(submenu["label"]))
+                                                {
+                                                    <div class="menu-label">@submenu["label"]</div>
+                                                }
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a class="menu-link" href="javascript:;">
+                                                <div class="menu-text">
+                                                    @submenu["text"]
+                                                    @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                                    {
+                                                        <i class="fa fa-paper-plane text-theme"></i>
+                                                    }
+                                                </div>
+                                            </a>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Single super admin menu item -->
+                        var highlight = menu["highlight"];
+                        <div class="menu-item @menuActive @(!string.IsNullOrEmpty(highlight) && bool.Parse(highlight) ? "highlight" : "")">
+                            @if (!string.IsNullOrEmpty(menu["controller"]) && !string.IsNullOrEmpty(menu["action"]))
+                            {
+                                <a class="menu-link" asp-controller="@menu["controller"]" asp-action="@menu["action"]" asp-area="@(menu["area"] ?? "Security")">
+                                    @if (!string.IsNullOrEmpty(menu["icon"]))
+                                    {
+                                        <div class="menu-icon"><i class="@menu["icon"]"></i></div>
+                                    }
+                                    <div class="menu-text">
+                                        @menu["text"]
+                                        @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                        {
+                                            <i class="fa fa-paper-plane text-theme"></i>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(menu["label"]))
+                                    {
+                                        <div class="menu-label">@menu["label"]</div>
+                                    }
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="menu-link" href="javascript:;">
+                                    @if (!string.IsNullOrEmpty(menu["icon"]))
+                                    {
+                                        <div class="menu-icon"><i class="@menu["icon"]"></i></div>
+                                    }
+                                    <div class="menu-text">
+                                        @menu["text"]
+                                        @if (!string.IsNullOrEmpty(highlight) && bool.Parse(highlight))
+                                        {
+                                            <i class="fa fa-paper-plane text-theme"></i>
+                                        }
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    }
+                }  
+                }
+              
+            }
+
+            <!-- BEGIN minify-button -->
+            <div class="menu-item d-flex">
+                <a href="javascript:;" class="app-sidebar-minify-btn ms-auto" data-toggle="app-sidebar-minify">
+                    <i class="fa fa-angle-double-left"></i>
+                </a>
+            </div>
+            <!-- END minify-button -->
+        </div>
+        <!-- END menu -->
+    </div>
+    <!-- END scrollbar -->
+</div>
+<div class="app-sidebar-bg" @(ViewData["AppSidebarLight"] != null ? "" : " data-bs-theme=dark")></div>
+<!-- END #sidebar -->
+ 

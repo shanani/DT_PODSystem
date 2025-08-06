@@ -1,0 +1,772 @@
+﻿@model DT_PODSystem.Models.ViewModels.ReportSummaryViewModel
+@{
+    ViewData["Title"] = "Processing Summary & Analytics";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/apexcharts/dist/apexcharts.css" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet" />
+    <style>
+        .stats-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .chart-container {
+            position: relative;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .filter-badge {
+            display: inline-block;
+            margin: 2px;
+            padding: 4px 8px;
+            background: #e9ecef;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-badge.active {
+            background: #A54EE1;
+            color: white;
+        }
+        .filter-badge:hover {
+            background: #4F008C;
+            color: white;
+        }
+    </style>
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb float-xl-end">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+    <li class="breadcrumb-item active">Processing Summary</li>
+</ol>
+<!-- END breadcrumb -->
+
+<!-- BEGIN page-header -->
+<h1 class="page-header">
+    <i class="fa fa-chart-line text-primary me-2"></i>
+    Processing Summary & Analytics
+    <small>Interactive dashboard with filtering capabilities</small>
+</h1>
+<!-- END page-header -->
+
+<!-- BEGIN date-filter -->
+<div class="d-sm-flex align-items-center mb-4">
+    <a href="#" class="btn btn-purple me-2 text-truncate" id="daterange-filter">
+        <i class="fa fa-calendar fa-fw text-white me-1"></i>
+        <span>@Model.DateRange</span>
+        <b class="caret ms-1"></b>
+    </a>
+    <div class="text-gray-600 fw-bold mt-2 mt-sm-0">
+        Total: <span class="text-primary fw-bold">@Model.Summary.TotalProcessed.ToString("N0")</span> processed documents
+    </div>
+    <div class="ms-auto">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportSummary()">
+            <i class="fa fa-download"></i> Export Summary
+        </button>
+    </div>
+</div>
+<!-- END date-filter -->
+
+<!-- BEGIN stats-row -->
+<div class="row mb-4">
+    <!-- Success Rate Card -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stats-card h-100" onclick="filterByStatus('success')">
+            <div class="widget widget-stats bg-success">
+                <div class="stats-icon"><i class="fa fa-check-circle"></i></div>
+                <div class="stats-info">
+                    <h4>SUCCESS RATE</h4>
+                    <p class="mb-1">@Model.Summary.SuccessRate.ToString("F1")%</p>
+                    <small>@Model.Summary.SuccessCount.ToString("N0") / @Model.Summary.TotalProcessed.ToString("N0")</small>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">Click to filter <i class="fa fa-arrow-alt-circle-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Average Processing Time -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stats-card h-100" onclick="showProcessingTimeChart()">
+            <div class="widget widget-stats bg-info">
+                <div class="stats-icon"><i class="fa fa-clock"></i></div>
+                <div class="stats-info">
+                    <h4>AVG PROCESSING</h4>
+                    <p class="mb-1">@Model.Summary.AverageProcessingTime</p>
+                    <small>Per document</small>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View trends <i class="fa fa-arrow-alt-circle-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Categories -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stats-card h-100" onclick="showCategoryBreakdown()">
+            <div class="widget widget-stats bg-orange">
+                <div class="stats-icon"><i class="fa fa-folder-open"></i></div>
+                <div class="stats-info">
+                    <h4>CATEGORIES</h4>
+                    <p class="mb-1">@Model.Summary.TotalCategories</p>
+                    <small>Active categories</small>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View breakdown <i class="fa fa-arrow-alt-circle-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Vendors -->
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stats-card h-100" onclick="showVendorAnalysis()">
+            <div class="widget widget-stats bg-purple">
+                <div class="stats-icon"><i class="fa fa-building"></i></div>
+                <div class="stats-info">
+                    <h4>VENDORS</h4>
+                    <p class="mb-1">@Model.Summary.TotalVendors</p>
+                    <small>Active vendors</small>
+                </div>
+                <div class="stats-link">
+                    <a href="javascript:;">View analysis <i class="fa fa-arrow-alt-circle-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END stats-row -->
+
+<!-- BEGIN filter-section -->
+<div class="panel panel-inverse mb-4">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            <i class="fa fa-filter me-2"></i>Active Filters
+        </h4>
+        <div class="panel-heading-btn">
+            <button type="button" class="btn btn-xs btn-warning" onclick="clearAllFilters()">
+                <i class="fa fa-times"></i> Clear All
+            </button>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-md-3">
+                <label class="form-label">Categories:</label>
+                <div id="category-filters">
+                    @foreach(var category in Model.AvailableCategories)
+                    {
+                        <span class="filter-badge" data-type="category" data-value="@category.Id" onclick="toggleFilter(this)">
+                            @category.Name
+                        </span>
+                    }
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Vendors:</label>
+                <div id="vendor-filters">
+                    @foreach(var vendor in Model.AvailableVendors)
+                    {
+                        <span class="filter-badge" data-type="vendor" data-value="@vendor.Id" onclick="toggleFilter(this)">
+                            @vendor.Name
+                        </span>
+                    }
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Departments:</label>
+                <div id="department-filters">
+                    @foreach(var dept in Model.AvailableDepartments)
+                    {
+                        <span class="filter-badge" data-type="department" data-value="@dept.Id" onclick="toggleFilter(this)">
+                            @dept.Name
+                        </span>
+                    }
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status:</label>
+                <div id="status-filters">
+                    <span class="filter-badge" data-type="status" data-value="success" onclick="toggleFilter(this)">Success</span>
+                    <span class="filter-badge" data-type="status" data-value="failed" onclick="toggleFilter(this)">Failed</span>
+                    <span class="filter-badge" data-type="status" data-value="pending" onclick="toggleFilter(this)">Pending</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END filter-section -->
+
+<!-- BEGIN charts-row -->
+<div class="row">
+    <!-- Monthly Trends Chart -->
+    <div class="col-xl-8">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-chart-line me-2"></i>Monthly Processing Trends
+                </h4>
+                <div class="panel-heading-btn">
+                    <button type="button" class="btn btn-xs btn-purple" onclick="switchChartView('monthly')">Monthly</button>
+                    <button type="button" class="btn btn-xs btn-outline-purple" onclick="switchChartView('yearly')">Yearly</button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="chart-container">
+                    <div id="monthly-trends-chart" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Distribution -->
+    <div class="col-xl-4">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-pie-chart me-2"></i>Category Distribution
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div class="chart-container">
+                    <div id="category-distribution-chart" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Second charts row -->
+<div class="row mt-4">
+    <!-- Vendor Performance -->
+    <div class="col-xl-6">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-building me-2"></i>Vendor Performance
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div class="chart-container">
+                    <div id="vendor-performance-chart" style="height: 350px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Time Analysis -->
+    <div class="col-xl-6">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-clock me-2"></i>Processing Time Analysis
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div class="chart-container">
+                    <div id="processing-time-chart" style="height: 350px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Third charts row -->
+<div class="row mt-4">
+    <!-- Success Rate by Department -->
+    <div class="col-xl-12">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-chart-bar me-2"></i>Success Rate by Department
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div class="chart-container">
+                    <div id="department-success-chart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END charts-row -->
+
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/apexcharts/dist/apexcharts.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/moment/min/moment.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/bootstrap-daterangepicker/daterangepicker.js"></script>
+    <script>
+        // Global variables for charts
+        let charts = {};
+        let activeFilters = {
+            categories: [],
+            vendors: [],
+            departments: [],
+            status: [],
+            dateRange: '@Model.DateRange'
+        };
+
+        // STC Brand Colors
+        const stcColors = {
+            primary: '#A54EE1',
+            secondary: '#4F008C', 
+            success: '#00C48C',
+            danger: '#FF375E',
+            warning: '#EF7945',
+            info: '#1BCED8',
+            yellow: '#FFE923',
+            gray: '#ADB5BD',
+            dark: '#20252A'
+        };
+
+        $(document).ready(function() {
+            initializeDateRangePicker();
+            initializeCharts();
+            
+            // Auto-refresh every 5 minutes
+            setInterval(function() {
+                refreshChartsData();
+            }, 300000);
+        });
+
+        function initializeDateRangePicker() {
+            $('#daterange-filter').daterangepicker({
+                startDate: moment().subtract(29, 'days'),
+                endDate: moment(),
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                    'Last 3 Months': [moment().subtract(3, 'month').startOf('month'), moment().endOf('month')],
+                    'This Year': [moment().startOf('year'), moment()]
+                }
+            }, function(start, end, label) {
+                $('#daterange-filter span').html(start.format('D MMM YYYY') + ' - ' + end.format('D MMM YYYY'));
+                activeFilters.dateRange = start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD');
+                refreshChartsData();
+            });
+        }
+
+        function initializeCharts() {
+            initializeMonthlyTrendsChart();
+            initializeCategoryDistributionChart();
+            initializeVendorPerformanceChart();
+            initializeProcessingTimeChart();
+            initializeDepartmentSuccessChart();
+        }
+
+        function initializeMonthlyTrendsChart() {
+            const options = {
+                chart: {
+                    type: 'line',
+                    height: 400,
+                    toolbar: { show: true },
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            const selectedMonth = config.w.config.xaxis.categories[config.dataPointIndex];
+                            filterByMonth(selectedMonth);
+                        }
+                    }
+                },
+                colors: [stcColors.primary, stcColors.success, stcColors.danger],
+                series: [
+                    {
+                        name: 'Total Processed',
+                        data: @Html.Raw(Json.Serialize(Model.MonthlyTrends.TotalProcessed))
+                    },
+                    {
+                        name: 'Successful',
+                        data: @Html.Raw(Json.Serialize(Model.MonthlyTrends.Successful))
+                    },
+                    {
+                        name: 'Failed',
+                        data: @Html.Raw(Json.Serialize(Model.MonthlyTrends.Failed))
+                    }
+                ],
+                xaxis: {
+                    categories: @Html.Raw(Json.Serialize(Model.MonthlyTrends.Labels)),
+                    labels: { style: { colors: '#9aa0ac' } }
+                },
+                yaxis: { 
+                    labels: { style: { colors: '#9aa0ac' } }
+                },
+                stroke: { curve: 'smooth', width: 3 },
+                markers: { size: 6, hover: { size: 8 } },
+                legend: { position: 'top' },
+                tooltip: { 
+                    theme: 'dark',
+                    shared: true,
+                    intersect: false
+                },
+                grid: { borderColor: '#e7e7e7', strokeDashArray: 3 }
+            };
+            
+            charts.monthlyTrends = new ApexCharts(document.querySelector("#monthly-trends-chart"), options);
+            charts.monthlyTrends.render();
+        }
+
+        function initializeCategoryDistributionChart() {
+            const options = {
+                chart: {
+                    type: 'donut',
+                    height: 400,
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            const selectedCategory = config.w.config.labels[config.dataPointIndex];
+                            filterByCategory(selectedCategory);
+                        }
+                    }
+                },
+                colors: [stcColors.primary, stcColors.secondary, stcColors.success, stcColors.warning, stcColors.info],
+                series: @Html.Raw(Json.Serialize(Model.CategoryDistribution.Values)),
+                labels: @Html.Raw(Json.Serialize(Model.CategoryDistribution.Labels)),
+                legend: { position: 'bottom' },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '60%',
+                            labels: {
+                                show: true,
+                                total: {
+                                    show: true,
+                                    label: 'Total',
+                                    formatter: function() {
+                                        return '@Model.Summary.TotalProcessed.ToString("N0")'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                tooltip: { theme: 'dark' },
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: { height: 300 },
+                        legend: { position: 'bottom' }
+                    }
+                }]
+            };
+            
+            charts.categoryDistribution = new ApexCharts(document.querySelector("#category-distribution-chart"), options);
+            charts.categoryDistribution.render();
+        }
+
+        function initializeVendorPerformanceChart() {
+            const options = {
+                chart: {
+                    type: 'bar',
+                    height: 350,
+                    toolbar: { show: true },
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            const selectedVendor = config.w.config.xaxis.categories[config.dataPointIndex];
+                            filterByVendor(selectedVendor);
+                        }
+                    }
+                },
+                colors: [stcColors.success, stcColors.danger],
+                series: [
+                    {
+                        name: 'Success Rate %',
+                        data: @Html.Raw(Json.Serialize(Model.VendorPerformance.SuccessRates))
+                    },
+                    {
+                        name: 'Total Documents',
+                        data: @Html.Raw(Json.Serialize(Model.VendorPerformance.TotalDocuments))
+                    }
+                ],
+                xaxis: {
+                    categories: @Html.Raw(Json.Serialize(Model.VendorPerformance.VendorNames)),
+                    labels: { 
+                        style: { colors: '#9aa0ac' },
+                        rotate: -45
+                    }
+                },
+                yaxis: [
+                    {
+                        title: { text: 'Success Rate (%)' },
+                        labels: { style: { colors: '#9aa0ac' } }
+                    },
+                    {
+                        opposite: true,
+                        title: { text: 'Total Documents' },
+                        labels: { style: { colors: '#9aa0ac' } }
+                    }
+                ],
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '60%',
+                        endingShape: 'rounded'
+                    }
+                },
+                dataLabels: { enabled: false },
+                legend: { position: 'top' },
+                tooltip: { theme: 'dark' },
+                grid: { borderColor: '#e7e7e7' }
+            };
+            
+            charts.vendorPerformance = new ApexCharts(document.querySelector("#vendor-performance-chart"), options);
+            charts.vendorPerformance.render();
+        }
+
+        function initializeProcessingTimeChart() {
+            const options = {
+                chart: {
+                    type: 'area',
+                    height: 350,
+                    toolbar: { show: true }
+                },
+                colors: [stcColors.info, stcColors.warning],
+                series: [
+                    {
+                        name: 'Avg Processing Time (minutes)',
+                        data: @Html.Raw(Json.Serialize(Model.ProcessingTime.AverageTime))
+                    },
+                    {
+                        name: 'Document Volume',
+                        data: @Html.Raw(Json.Serialize(Model.ProcessingTime.DocumentVolume))
+                    }
+                ],
+                xaxis: {
+                    categories: @Html.Raw(Json.Serialize(Model.ProcessingTime.TimeLabels)),
+                    labels: { style: { colors: '#9aa0ac' } }
+                },
+                yaxis: [
+                    {
+                        title: { text: 'Processing Time (min)' },
+                        labels: { style: { colors: '#9aa0ac' } }
+                    },
+                    {
+                        opposite: true,
+                        title: { text: 'Document Count' },
+                        labels: { style: { colors: '#9aa0ac' } }
+                    }
+                ],
+                stroke: { curve: 'smooth' },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.9
+                    }
+                },
+                legend: { position: 'top' },
+                tooltip: { theme: 'dark' },
+                grid: { borderColor: '#e7e7e7' }
+            };
+            
+            charts.processingTime = new ApexCharts(document.querySelector("#processing-time-chart"), options);
+            charts.processingTime.render();
+        }
+
+        function initializeDepartmentSuccessChart() {
+            const options = {
+                chart: {
+                    type: 'bar',
+                    height: 300,
+                    toolbar: { show: true },
+                    events: {
+                        dataPointSelection: function(event, chartContext, config) {
+                            const selectedDept = config.w.config.xaxis.categories[config.dataPointIndex];
+                            filterByDepartment(selectedDept);
+                        }
+                    }
+                },
+                colors: [stcColors.primary],
+                series: [{
+                    name: 'Success Rate %',
+                    data: @Html.Raw(Json.Serialize(Model.DepartmentSuccess.SuccessRates))
+                }],
+                xaxis: {
+                    categories: @Html.Raw(Json.Serialize(Model.DepartmentSuccess.DepartmentNames)),
+                    labels: { style: { colors: '#9aa0ac' } }
+                },
+                yaxis: { 
+                    labels: { style: { colors: '#9aa0ac' } },
+                    min: 0,
+                    max: 100
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        columnWidth: '60%',
+                        endingShape: 'rounded'
+                    }
+                },
+                dataLabels: { enabled: true },
+                tooltip: { theme: 'dark' },
+                grid: { borderColor: '#e7e7e7' }
+            };
+            
+            charts.departmentSuccess = new ApexCharts(document.querySelector("#department-success-chart"), options);
+            charts.departmentSuccess.render();
+        }
+
+        // Filter Functions
+        function toggleFilter(element) {
+            $(element).toggleClass('active');
+            const filterType = $(element).data('type');
+            const filterValue = $(element).data('value');
+            
+            if ($(element).hasClass('active')) {
+                activeFilters[filterType + 's'].push(filterValue);
+            } else {
+                const index = activeFilters[filterType + 's'].indexOf(filterValue);
+                if (index > -1) {
+                    activeFilters[filterType + 's'].splice(index, 1);
+                }
+            }
+            
+            refreshChartsData();
+        }
+
+        function clearAllFilters() {
+            $('.filter-badge').removeClass('active');
+            activeFilters = {
+                categories: [],
+                vendors: [],
+                departments: [],
+                status: [],
+                dateRange: activeFilters.dateRange
+            };
+            refreshChartsData();
+        }
+
+        function filterByCategory(categoryName) {
+            // Find and toggle the category filter
+            const categoryBadge = $(`[data-type="category"]:contains("${categoryName}")`);
+            toggleFilter(categoryBadge[0]);
+        }
+
+        function filterByVendor(vendorName) {
+            const vendorBadge = $(`[data-type="vendor"]:contains("${vendorName}")`);
+            toggleFilter(vendorBadge[0]);
+        }
+
+        function filterByDepartment(deptName) {
+            const deptBadge = $(`[data-type="department"]:contains("${deptName}")`);
+            toggleFilter(deptBadge[0]);
+        }
+
+        function filterByStatus(status) {
+            const statusBadge = $(`[data-type="status"][data-value="${status}"]`);
+            toggleFilter(statusBadge[0]);
+        }
+
+        function filterByMonth(monthLabel) {
+            // Custom logic for monthly filtering
+            console.log('Filtering by month:', monthLabel);
+            refreshChartsData();
+        }
+
+        // Chart view switching
+        function switchChartView(viewType) {
+            $('.panel-heading-btn .btn').removeClass('btn-purple').addClass('btn-outline-purple');
+            $(event.target).removeClass('btn-outline-purple').addClass('btn-purple');
+            
+            if (viewType === 'yearly') {
+                // Update chart to show yearly data
+                updateMonthlyTrendsChart('yearly');
+            } else {
+                // Update chart to show monthly data
+                updateMonthlyTrendsChart('monthly');
+            }
+        }
+
+        function updateMonthlyTrendsChart(viewType) {
+            // AJAX call to get updated data based on viewType
+            $.ajax({
+                url: '@Url.Action("GetChartData", "Report")',
+                method: 'POST',
+                data: {
+                    viewType: viewType,
+                    filters: activeFilters
+                },
+                success: function(data) {
+                    charts.monthlyTrends.updateSeries(data.series);
+                    charts.monthlyTrends.updateOptions({
+                        xaxis: { categories: data.categories }
+                    });
+                }
+            });
+        }
+
+        function refreshChartsData() {
+            // AJAX call to refresh all charts with current filters
+            $.ajax({
+                url: '@Url.Action("GetFilteredData", "Report")',
+                method: 'POST',
+                data: { filters: activeFilters },
+                success: function(data) {
+                    // Update all charts with filtered data
+                    if (data.monthlyTrends) {
+                        charts.monthlyTrends.updateSeries(data.monthlyTrends.series);
+                    }
+                    if (data.categoryDistribution) {
+                        charts.categoryDistribution.updateSeries(data.categoryDistribution.values);
+                    }
+                    if (data.vendorPerformance) {
+                        charts.vendorPerformance.updateSeries(data.vendorPerformance.series);
+                    }
+                    if (data.processingTime) {
+                        charts.processingTime.updateSeries(data.processingTime.series);
+                    }
+                    if (data.departmentSuccess) {
+                        charts.departmentSuccess.updateSeries(data.departmentSuccess.series);
+                    }
+                }
+            });
+        }
+
+        // Card click handlers
+        function showProcessingTimeChart() {
+            $('html, body').animate({
+                scrollTop: $("#processing-time-chart").offset().top - 100
+            }, 1000);
+        }
+
+        function showCategoryBreakdown() {
+            $('html, body').animate({
+                scrollTop: $("#category-distribution-chart").offset().top - 100
+            }, 1000);
+        }
+
+        function showVendorAnalysis() {
+            $('html, body').animate({
+                scrollTop: $("#vendor-performance-chart").offset().top - 100
+            }, 1000);
+        }
+
+        function exportSummary() {
+            const exportData = {
+                filters: activeFilters,
+                format: 'excel' // or 'pdf'
+            };
+            
+            // Create form and submit for file download
+            const form = $('<form>', {
+                method: 'POST',
+                action: '@Url.Action("ExportSummary", "Report")'
+            });
+            
+            form.append($('<input>', { type: 'hidden', name: 'data', value: JSON.stringify(exportData) }));
+            form.appendTo('body').submit().remove();
+        }
+    </script>
+}

@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>dotnet-ED.DocManagerWorker-902b4949-da2b-4470-8699-48989557af6f</UserSecretsId>
+	</PropertyGroup>
+	<ItemGroup>
+		<Compile Remove="Data\**" />
+		<Content Remove="Data\**" />
+		<EmbeddedResource Remove="Data\**" />
+		<None Remove="Data\**" />
+	</ItemGroup>
+	<ItemGroup>
+		<!-- ✅ CORE: Essential hosting -->
+		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+
+		<!-- ✅ PDF LIBRARIES: Best NuGet-only options -->
+		<PackageReference Include="PdfPig" Version="0.1.11" />
+		<PackageReference Include="itext7" Version="9.2.0" />
+		<PackageReference Include="PdfSharp" Version="6.2.1" />
+		<PackageReference Include="SkiaSharp" Version="2.88.8" />
+		<PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.6" />
+		<PackageReference Include="PdfSharpCore" Version="1.3.65" />
+
+		<!-- ✅ REAL PDF RENDERING: Added for actual PDF to image conversion -->
+		<PackageReference Include="System.Windows.Forms" Version="2.0.0" />
+
+		<!-- ✅ OCR LIBRARIES: Tesseract OCR support -->
+		<PackageReference Include="Tesseract" Version="5.2.0" />
+
+		<!-- ✅ FIX: Updated to match the main project version -->
+		<PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+
+		<!-- ✅ LOGGING: Organized development logging -->
+		<PackageReference Include="Serilog" Version="4.3.0" />
+		<PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+		<PackageReference Include="Serilog.Filters.Expressions" Version="2.1.0" />
+		<PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+		<PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0" />
+		<PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="x86\" />
+	  <Folder Include="x64\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\DT_PODSystem\DT_PODSystem.csproj" />
+	</ItemGroup>
+</Project>

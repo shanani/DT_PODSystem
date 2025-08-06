@@ -1,0 +1,497 @@
+@* ============================================================================================
+   Areas/Security/Views/SecurityUsers/Edit.cshtml
+   Edit Security User Form - MATCHING CREATE PAGE LAYOUT
+   ============================================================================================ *@
+@model DT_PODSystem.Areas.Security.Models.ViewModels.SecurityUserManagementViewModel
+@{
+    ViewData["Title"] = $"Edit Security User - {Model.FirstName} {Model.LastName}";
+}
+
+@section Styles {
+    <style>
+        .form-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .user-info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .help-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
+        .role-selection {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 10px;
+            background: white;
+        }
+
+        .role-item {
+            padding: 5px 0;
+        }
+
+        .template-btn {
+            margin-bottom: 0.5rem;
+        }
+
+            .template-btn:hover {
+                transform: translateY(-1px);
+                transition: transform 0.2s ease;
+            }
+
+        .info-alert {
+            border-left: 4px solid #17a2b8;
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+        }
+
+        .quick-action-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+
+            .quick-action-card:hover {
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                transform: translateY(-2px);
+            }
+
+        .change-indicator {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .field-changed {
+            border-color: #ffc107 !important;
+            box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+        }
+
+        .warning-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard", new { area = "Security" })">Security</a></li>
+    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Security Users</a></li>
+    <li class="breadcrumb-item active">Edit @Model.FirstName @Model.LastName</li>
+</ol>
+<!-- END breadcrumb -->
+<!-- BEGIN page-header -->
+<h1 class="page-header">
+    <i class="fa fa-user-edit text-warning me-2"></i>
+    Edit Security User
+    <small>Update user information and roles</small>
+    <div class="float-end">
+        <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-info me-2">
+            <i class="fa fa-eye me-2"></i>View Details
+        </a>
+        <a href="@Url.Action("Index")" class="btn btn-outline-theme">
+            <i class="fa fa-arrow-left me-2"></i>Back to Users
+        </a>
+    </div>
+</h1>
+<!-- END page-header -->
+
+<div class="row">
+    <div class="col-xl-8">
+        <!-- User Basic Information Panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-user-circle me-2"></i>Edit Security User
+                </h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <form asp-action="Edit" method="post" id="editUserForm">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="Id" type="hidden" />
+
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="fa fa-user text-primary me-2"></i>
+                            Basic Information
+                        </h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Code" class="form-label">User Code <span class="text-danger">*</span></label>
+                                    <input asp-for="Code" class="form-control" placeholder="Enter unique user code" readonly />
+                                    <span asp-validation-for="Code" class="text-danger"></span>
+                                    <div class="help-text">User code cannot be changed after creation</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Department" class="form-label">Department</label>
+                                    <input asp-for="Department" class="form-control" placeholder="Enter department" />
+                                    <span asp-validation-for="Department" class="text-danger"></span>
+                                    <div class="help-text">User's department or organizational unit</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="FirstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                                    <input asp-for="FirstName" class="form-control" placeholder="Enter first name" />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="LastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                    <input asp-for="LastName" class="form-control" placeholder="Enter last name" />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                    <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                    <div class="help-text">Valid email address for system notifications</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <div class="form-check form-switch">
+                                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                        <label asp-for="IsActive" class="form-check-label">User is Active</label>
+                                    </div>
+                                    <div class="help-text">Active users can access the system</div>
+                                    @if (!Model.IsActive)
+                                    {
+                                        <div class="mt-2">
+                                            <span class="badge bg-warning">
+                                                <i class="fa fa-lock"></i> Account Locked
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role Assignment Section -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="fa fa-shield-alt text-primary me-2"></i>
+                            Role Assignment
+                        </h5>
+
+                        <div class="mb-3">
+                            <label class="form-label">Assign Roles</label>
+                            <div class="role-selection">
+                                @if (Model.AvailableRoles != null && Model.AvailableRoles.Any())
+                                {
+                                    @foreach (var role in Model.AvailableRoles)
+                                    {
+                                        <div class="role-item">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       name="SelectedRoleIds" value="@role.Value"
+                                                       id="role_@role.Value"
+                                                       @(role.Selected ? "checked" : "") />
+                                                <label class="form-check-label" for="role_@role.Value">
+                                                    <strong>@role.Text</strong>
+                                                    @if (!string.IsNullOrEmpty(role.Text))
+                                                    {
+                                                        <br>
+                                            
+                                                        <small class="text-muted">Security role with system permissions</small>
+                                                    }
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning">
+                                        <i class="fa fa-exclamation-triangle me-2"></i>
+                                        No roles available. Please create roles first.
+                                    </div>
+                                }
+                            </div>
+                            <div class="help-text">Select one or more roles to assign to this user</div>
+                        </div>
+                    </div>
+
+                    <!-- Audit Information Section -->
+                    <div class="form-section">
+                        <h5 class="section-title">
+                            <i class="fa fa-history text-info me-2"></i>
+                            Audit Information
+                        </h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Created</label>
+                                    <div class="form-control-plaintext">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+                                    <div class="help-text">By: @(Model.CreatedBy ?? "System")</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Last Modified</label>
+                                    <div class="form-control-plaintext">
+                                        @if (Model.UpdatedAt.HasValue)
+                                        {
+                                            @Model.UpdatedAt.Value.ToString("yyyy-MM-dd HH:mm")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Never</span>
+                                        }
+                                    </div>
+                                    <div class="help-text">By: @(Model.UpdatedBy ?? "N/A")</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.LastLoginAt.HasValue)
+                        {
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Last Login</label>
+                                        <div class="form-control-plaintext">@Model.LastLoginAt.Value.ToString("yyyy-MM-dd HH:mm")</div>
+                                        <div class="help-text">Last system access</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                            <i class="fa fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fa fa-save me-2"></i>Update User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- END panel -->
+    </div>
+
+    <!-- Right Column - Quick Actions & Help -->
+    <div class="col-xl-4">
+        <!-- User Update Tips -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-lightbulb text-warning me-2"></i>User Update Tips
+                </h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="alert alert-info info-alert">
+                    <h6><i class="fa fa-info-circle me-2"></i>Guidelines</h6>
+                    <ul class="mb-0">
+                        <li>User codes cannot be changed after creation</li>
+                        <li>Email addresses are used for system notifications</li>
+                        <li>Users can have multiple roles for different permissions</li>
+                        <li>Inactive users cannot access the system</li>
+                        <li>Changes are logged for audit purposes</li>
+                    </ul>
+                </div>
+
+                <div class="quick-action-card">
+                    <h6><i class="fa fa-users text-primary me-2"></i>Quick Actions</h6>
+                    <div class="d-grid gap-2">
+                        <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-outline-info btn-sm template-btn">
+                            <i class="fa fa-eye me-2"></i>View Details
+                        </a>
+                        <a href="@Url.Action("Index", "SecurityRoles")" class="btn btn-outline-primary btn-sm template-btn">
+                            <i class="fa fa-shield-alt me-2"></i>Manage Roles
+                        </a>
+                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm template-btn">
+                            <i class="fa fa-list me-2"></i>View All Users
+                        </a>
+                    </div>
+                </div>
+
+                <div class="warning-section">
+                    <h6><i class="fa fa-exclamation-triangle text-warning me-2"></i>Important Notes</h6>
+                    <ul class="mb-0 small">
+                        <li>Removing all roles will prevent user access</li>
+                        <li>Deactivating a user will immediately log them out</li>
+                        <li>Email changes require validation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- END panel -->
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Store original values for change detection
+            var originalValues = {
+                firstName: $('#FirstName').val(),
+                lastName: $('#LastName').val(),
+                email: $('#Email').val(),
+                department: $('#Department').val(),
+                isActive: $('#IsActive').prop('checked')
+            };
+
+            // Form validation
+            $('#editUserForm').on('submit', function(e) {
+                var isValid = true;
+                var requiredFields = ['FirstName', 'LastName', 'Email'];
+
+                requiredFields.forEach(function(field) {
+                    var input = $('[name="' + field + '"]');
+                    if (!input.val().trim()) {
+                        input.addClass('is-invalid');
+                        isValid = false;
+                    } else {
+                        input.removeClass('is-invalid');
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault();
+                    alert.warning('Please fill in all required fields.');
+                }
+            });
+
+            // Remove validation error styling on input
+            $('input').on('input', function() {
+                $(this).removeClass('is-invalid');
+            });
+
+            // Change detection and highlighting
+            function detectChanges() {
+                var hasChanges = false;
+
+                // Check each field for changes
+                if ($('#FirstName').val() !== originalValues.firstName) {
+                    $('#FirstName').addClass('field-changed');
+                    hasChanges = true;
+                } else {
+                    $('#FirstName').removeClass('field-changed');
+                }
+
+                if ($('#LastName').val() !== originalValues.lastName) {
+                    $('#LastName').addClass('field-changed');
+                    hasChanges = true;
+                } else {
+                    $('#LastName').removeClass('field-changed');
+                }
+
+                if ($('#Email').val() !== originalValues.email) {
+                    $('#Email').addClass('field-changed');
+                    hasChanges = true;
+                } else {
+                    $('#Email').removeClass('field-changed');
+                }
+
+                if ($('#Department').val() !== originalValues.department) {
+                    $('#Department').addClass('field-changed');
+                    hasChanges = true;
+                } else {
+                    $('#Department').removeClass('field-changed');
+                }
+
+                if ($('#IsActive').prop('checked') !== originalValues.isActive) {
+                    $('#IsActive').addClass('field-changed');
+                    hasChanges = true;
+                } else {
+                    $('#IsActive').removeClass('field-changed');
+                }
+
+                // Update submit button state
+                if (hasChanges) {
+                    $('button[type="submit"]').removeClass('btn-warning').addClass('btn-success');
+                    $('button[type="submit"] i').removeClass('fa-save').addClass('fa-check');
+                } else {
+                    $('button[type="submit"]').removeClass('btn-success').addClass('btn-warning');
+                    $('button[type="submit"] i').removeClass('fa-check').addClass('fa-save');
+                }
+            }
+
+            // Bind change detection to form inputs
+            $('#FirstName, #LastName, #Email, #Department').on('input', detectChanges);
+            $('#IsActive').on('change', detectChanges);
+
+            // Role selection counter
+            function updateRoleCounter() {
+                var selectedCount = $('input[name="SelectedRoleIds"]:checked').length;
+                var totalCount = $('input[name="SelectedRoleIds"]').length;
+                $('.role-counter').text(selectedCount + ' of ' + totalCount + ' roles selected');
+            }
+
+            $('input[name="SelectedRoleIds"]').on('change', function() {
+                updateRoleCounter();
+                detectChanges();
+            });
+
+            // Add counter element
+            $('.role-selection').after('<small class="text-muted role-counter"></small>');
+            updateRoleCounter();
+
+            // Warn before leaving if there are unsaved changes
+            window.addEventListener('beforeunload', function(e) {
+                var hasUnsavedChanges = $('.field-changed').length > 0;
+                if (hasUnsavedChanges) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+
+            // Remove warning when form is submitted
+            $('#editUserForm').on('submit', function() {
+                window.removeEventListener('beforeunload', arguments.callee);
+            });
+        });
+    </script>
+}

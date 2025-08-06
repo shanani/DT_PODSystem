@@ -1,0 +1,291 @@
+﻿/* Role Permissions Styles */
+
+/* Permission Tree Container */
+.permission-tree-container {
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    min-height: 400px;
+    max-height: 600px;
+    overflow-y: auto;
+    background: #fff;
+    position: relative;
+}
+
+    .permission-tree-container::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .permission-tree-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .permission-tree-container::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+
+        .permission-tree-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+/* Loading and Empty States */
+.tree-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #6c757d;
+    font-size: 16px;
+}
+
+.tree-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #6c757d;
+    font-size: 16px;
+}
+
+    .tree-empty i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+/* Permission Statistics */
+.permission-stats {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Role Info Card */
+.role-info-card {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid #007bff;
+}
+
+.role-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.role-description {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.role-badges .badge {
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* Tree Controls */
+.tree-controls {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.search-container .input-group-text {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+}
+
+.tree-action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+    .tree-action-buttons .btn-group-sm .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+/* Form Actions */
+.form-actions {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    border-top: 1px solid #dee2e6;
+    margin-top: 1rem;
+}
+
+.action-info {
+    display: flex;
+    align-items: center;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* Button Loading States */
+.btn[disabled] {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.btn .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Panel Enhancements */
+.panel-inverse .panel-heading {
+    background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+    border-bottom: 1px solid #495057;
+}
+
+.panel-inverse .panel-title {
+    color: white;
+    font-weight: 600;
+}
+
+.panel-inverse .panel-body {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-top: none;
+}
+
+/* JSTree Customizations for Role Permissions */
+#permission-tree .jstree-default .jstree-node {
+    min-height: 32px;
+    line-height: 32px;
+    margin: 2px 0;
+}
+
+#permission-tree .jstree-default .jstree-anchor {
+    padding: 4px 8px;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+    #permission-tree .jstree-default .jstree-anchor:hover {
+        background: #f8f9fa;
+        text-decoration: none;
+    }
+
+#permission-tree .jstree-default .jstree-clicked {
+    background: #e3f2fd !important;
+    color: #1976d2 !important;
+    box-shadow: none;
+}
+
+/* Permission Type Nodes */
+.permission-type-node > .jstree-anchor {
+    font-weight: 600;
+    color: #495057 !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    margin-bottom: 4px;
+}
+
+    .permission-type-node > .jstree-anchor:hover {
+        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%) !important;
+    }
+
+    .permission-type-node > .jstree-anchor i {
+        margin-right: 8px;
+    }
+
+/* Permission Nodes */
+.permission-node > .jstree-anchor {
+    color: #6c757d !important;
+    padding-left: 24px;
+    border-left: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+    .permission-node > .jstree-anchor:hover {
+        background: #fff3cd !important;
+        border-left-color: #ffc107;
+    }
+
+    .permission-node > .jstree-anchor i {
+        color: #6c757d;
+        margin-right: 6px;
+    }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .tree-controls .row {
+        flex-direction: column;
+    }
+
+    .tree-controls .col-lg-6 {
+        margin-bottom: 1rem;
+    }
+
+    .tree-action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .btn-group-sm .btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+        .action-buttons .btn {
+            width: 100%;
+        }
+}

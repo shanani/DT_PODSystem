@@ -1,0 +1,266 @@
+﻿@model DT_PODSystem.Models.ViewModels.Step2TemplateDetailsViewModel
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-info-circle me-2"></i>Template Information
+                </h4>
+            </div>
+            <div class="panel-body">
+                <form id="template-info-form" data-parsley-validate="true">
+
+                    <!-- Template Name -->
+                    <div class="row mb-15px">
+                        <label class="form-label col-form-label col-md-3">Template Name *</label>
+                        <div class="col-md-9">
+                            <input type="text" id="template-name" class="form-control"
+                                   placeholder="Enter template name"
+                                   value="@Model.Name"
+                                   data-parsley-required="true"
+                                   data-parsley-minlength="3"
+                                   data-parsley-maxlength="200" />
+                            <small class="form-text text-muted">
+                                Template name will be used for identification and file naming
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="row mb-15px">
+                        <label class="form-label col-form-label col-md-3">Description</label>
+                        <div class="col-md-9">
+                            <textarea id="template-description" class="form-control" rows="3"
+                                      placeholder="Describe the purpose of this template"
+                                      data-parsley-maxlength="1000">@Model.Description</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Organizational Structure -->
+                    <div class="row mb-15px">
+                        <div class="col-md-12">
+                            <h6 class="text-primary mb-3">
+                                <i class="fa fa-sitemap me-2"></i>Organizational Assignment
+                            </h6>
+                        </div>
+                    </div>
+
+                    <!-- Domain (Category) -->
+                    <div class="row mb-15px">
+                        <label class="form-label col-form-label col-md-3">Domain *</label>
+                        <div class="col-md-9">
+                            <select id="category-id" class="form-select"
+                                    data-parsley-required="true"
+                                    data-parsley-required-message="Please select a domain">
+                                <option value="">Select Domain (NOC, Finance, etc.)</option>
+                                @foreach (var category in Model.Categories)
+                                {
+                                    <option value="@category.Value"
+                                            selected="@(category.Value == Model.CategoryId.ToString())">
+                                        @category.Text
+                                    </option>
+                                }
+                            </select>
+                            <small class="form-text text-muted">
+                                Domain categorizes the template by business area
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Department (under General Directorate) -->
+                    <div class="row mb-15px">
+                        <label class="form-label col-form-label col-md-3">Department *</label>
+                        <div class="col-md-9">
+                            <select id="department-id" class="form-select"
+                                    data-parsley-required="true"
+                                    data-parsley-required-message="Please select a department">
+                                <option value="">Select Department</option>
+                                @foreach (var department in Model.Departments)
+                                {
+                                    <option value="@department.Value"
+                                            selected="@(department.Value == Model.DepartmentId.ToString())">
+                                        @department.Text
+                                    </option>
+                                }
+                            </select>
+                            <small class="form-text text-muted">
+                                Department under General Directorate that will use this template
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Vendor (Template Owner) -->
+                    <div class="row mb-15px">
+                        <label class="form-label col-form-label col-md-3">Vendor (Owner) *</label>
+                        <div class="col-md-9">
+                            <select id="vendor-id" class="form-select"
+                                    data-parsley-required="true"
+                                    data-parsley-required-message="Please select a vendor">
+                                <option value="">Select Template Owner</option>
+                                @foreach (var vendor in Model.Vendors)
+                                {
+                                    <option value="@vendor.Value"
+                                            selected="@(vendor.Value == Model.VendorId.ToString())">
+                                        @vendor.Text
+                                    </option>
+                                }
+                            </select>
+                            <small class="form-text text-muted">
+                                Vendor who owns and maintains this template
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Options -->
+                    <div class="row mb-15px">
+                        <div class="col-md-12">
+                            <h6 class="text-primary mb-3">
+                                <i class="fa fa-cogs me-2"></i>Processing Configuration
+                            </h6>
+                        </div>
+                    </div>
+
+                    <!-- File Name Prefix -->
+                    <div class="row mb-15px">
+                        <label class="form-label col-form-label col-md-3">File Name Prefix *</label>
+                        <div class="col-md-9">
+                            <div class="input-group">
+                                <input type="text" id="file-name-prefix" class="form-control"
+                                       placeholder="Enter file prefix (e.g., DOC_POD, INVOICE_NOC)"
+                                       value="@Model.NamingConvention"
+                                       data-parsley-required="true"
+                                       data-parsley-pattern="@Html.Raw("^[^<>:\"/\\\\|?*\\x00-\\x1f]+$")"
+                                       data-parsley-pattern-message="Prefix must start with letter, use only uppercase letters, numbers, and underscores" />
+                                <span class="input-group-text bg-light">_yyyyMM</span>
+                            </div>
+                            <small class="form-text text-muted">
+                                Prefix for generated file names. Will be combined with year-month (e.g., DOC_POD_202507)
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Processing Priority -->
+                    <div class="row mb-15px">
+                        <label class="form-label col-form-label col-md-3">Processing Priority</label>
+                        <div class="col-md-9">
+                            <div class="d-flex align-items-center">
+                                <input type="range" id="processing-priority" class="form-range me-3"
+                                       min="1" max="10" step="1" value="@Model.ProcessingPriority"
+                                       style="width: 200px;" />
+                                <span class="badge bg-primary" id="priority-label">@Model.ProcessingPriority</span>
+                                <span class="ms-2" id="priority-text">Medium</span>
+                            </div>
+                            <small class="form-text text-muted">
+                                1 = Low Priority, 5 = Medium Priority, 10 = High Priority
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Checkboxes -->
+                    <div class="row mb-15px">
+                        <label class="form-label col-form-label col-md-3">Options</label>
+                        <div class="col-md-9">
+                            <div class="form-check mb-3">
+                                <input type="checkbox" id="requires-approval" class="form-check-input"
+                                @(Model.RequiresApproval ? "checked" : "") />
+                                <label class="form-check-label" for="requires-approval">
+                                    <strong>Requires Approval</strong>
+                                    <br>
+                                    <small class="text-muted">Documents need approval before processing</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" id="is-financial" class="form-check-input"
+                                @(Model.IsFinancialData ? "checked" : "") />
+                                <label class="form-check-label" for="is-financial">
+                                    <strong>Contains Financial Data</strong>
+                                    <br>
+                                    <small class="text-muted">Template processes financial information</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Template Preview -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-eye me-2"></i>Template Preview
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div class="template-preview">
+                    <div class="mb-3">
+                        <strong>Template Name:</strong><br>
+                        <span id="preview-name" class="text-primary">@(string.IsNullOrEmpty(Model.Name) ? "Template Name" : Model.Name)</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>File Naming Convention:</strong><br>
+                        <code id="preview-convention">DOC_POD_yyyyMM</code>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Domain:</strong><br>
+                        <span id="preview-category" class="badge bg-info">@(Model.Categories.FirstOrDefault(c => c.Value == Model.CategoryId.ToString())?.Text ?? "Not Selected")</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Department:</strong><br>
+                        <span id="preview-department" class="text-muted">@(Model.Departments.FirstOrDefault(d => d.Value == Model.DepartmentId.ToString())?.Text ?? "Not Selected")</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Vendor:</strong><br>
+                        <span id="preview-vendor" class="text-muted">@(Model.Vendors.FirstOrDefault(v => v.Value == Model.VendorId.ToString())?.Text ?? "Not Selected")</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Priority:</strong><br>
+                        <span id="preview-priority" class="badge bg-secondary">Medium</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Status:</strong><br>
+                        <span class="badge bg-warning">Draft</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Validation Status -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-check-circle me-2"></i>Validation Status
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div id="validation-status">
+                    <div class="validation-item" data-field="name">
+                        <i class="fa fa-circle text-muted me-2"></i>Template Name
+                    </div>
+                    <div class="validation-item" data-field="prefix">
+                        <i class="fa fa-circle text-muted me-2"></i>File Name Prefix
+                    </div>
+                    <div class="validation-item" data-field="category">
+                        <i class="fa fa-circle text-muted me-2"></i>Domain Selection
+                    </div>
+                    <div class="validation-item" data-field="department">
+                        <i class="fa fa-circle text-muted me-2"></i>Department Selection
+                    </div>
+                    <div class="validation-item" data-field="vendor">
+                        <i class="fa fa-circle text-muted me-2"></i>Vendor Selection
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

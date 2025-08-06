@@ -1,0 +1,154 @@
+﻿@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+@using DT_PODSystem.Helpers
+@using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Hosting
+@using Microsoft.AspNetCore.Http
+@inject IConfiguration Configuration
+@{
+    string appMode = "";
+    if (Context.Request.Cookies.TryGetValue("app-theme-dark-mode", out string appModeValue))
+    {
+        appMode = (appModeValue == "dark-mode") ? "dark" : "";
+    }
+    
+     
+    var appVersion = Environment.GetEnvironmentVariable("APP_VERSION") ?? "1.0.0";
+}
+
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="@appMode" @ViewData["AppHtmlAttr"]>
+<head>
+    <meta charset="utf-8" />
+    <title>@Configuration["ProjectSettings:ProjectTitle"] | @ViewData["Title"]</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="~/site/favicon/apple-touch-icon.png?v=@appVersion" />
+    <link rel="icon" type="image/png" sizes="32x32" href="~/site/favicon/favicon-32x32.png?v=@appVersion" />
+    <link rel="icon" type="image/png" sizes="16x16" href="~/site/favicon/favicon-16x16.png?v=@appVersion" />
+    <link rel="shortcut icon" href="~/site/favicon/favicon.ico" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="@ViewData["MetaDescription"]" />
+    <meta name="author" content="@ViewData["MetaAuthor"]" />
+    <meta name="keywords" content="@ViewData["MetaKeywords"]" />
+
+    @RenderSection("MetaTag", required: false)
+
+    <!-- ================== BEGIN core-css ================== -->
+
+    <link href="~/fonts/fonts.css" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/css/vendor.min.css?v=@appVersion" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/css/material/app.min.css?v=@appVersion" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/gritter/css/jquery.gritter.css?v=@appVersion" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/simple-line-icons/css/simple-line-icons.css?v=@appVersion" rel="stylesheet" />
+    <link href="~/site/theme.css?v=@appVersion" rel="stylesheet" />
+    <link href="~/site/main.css?v=@appVersion" rel="stylesheet" />
+
+    <!-- ================== END core-css ================== -->
+    @RenderSection("Styles", required: false)
+</head>
+<body class="@ViewData["AppBodyClass"] theme-red">
+    <!-- BEGIN #app -->
+    <div id="app" class="app @(ViewData["AppSidebarNone"] == null ? "app-sidebar-fixed" : "") @(ViewData["AppHeaderNone"] == null ? "app-header-fixed" : "") @ViewData["AppClass"]">
+        @if (ViewData["AppHeaderNone"] == null)
+        {
+            <partial name="_Header" />
+        }
+
+        @if (ViewData["AppTopMenu"] != null)
+        {
+            <partial name="_TopMenu" />
+        }
+
+        @if (ViewData["AppSidebarNone"] == null)
+        {
+            <partial name="_Sidebar" />
+        }
+
+        @if (ViewData["AppSidebarTwo"] != null)
+        {
+            <partial name="_SidebarRight" />
+        }
+
+        @if (ViewData["AppEmpty"] == null)
+        {
+            <div id="content" class="app-content @ViewData["AppContentClass"]" @ViewData["AppContentAttr"]>
+                @RenderBody()
+            </div>
+        }
+        else
+        {
+            @RenderBody()
+        }
+
+
+
+
+        @RenderSection("AppOutterContent", required: false)
+    </div>
+    <!-- END #app -->
+    <!-- ================== BEGIN core-js ================== -->
+    <script>
+        window.paceOptions = {
+            ajax: { ignoreURLs: ['mainHub', '__browserLink', 'browserLinkSignalR'], trackWebSockets: false }
+        };
+    </script>
+    <script src="https://ops_cdn.stc.com.sa/ca/js/vendor.min.js?v=@appVersion"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/js/app.min.js?v=@appVersion"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/gritter/js/jquery.gritter.js?v=@appVersion"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/sweetalert/dist/sweetalert.min.js?v=@appVersion"></script>
+    <script src="/site/main.js?v=@appVersion"></script>
+    <!-- ================== END core-js ================== -->
+   
+    @RenderSection("Scripts", required: false)
+    <script>
+        //Escape to clear menu search input
+        $(function () {
+            $('.menu-search input').on('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    $(this).val(''); // Clear the input field
+                }
+            });
+        });
+    </script>
+
+    <script>
+        @if (TempData["Notifications"] != null)
+        {
+                    <text>
+                        console.log('TempData has notifications');
+                        console.log('@TempData["Notifications"]');
+
+                        document.addEventListener('DOMContentLoaded', function () {
+                            console.log('DOM loaded, processing notifications...');
+
+                            try {
+                                var notificationList = @Html.Raw(TempData["Notifications"]);
+                                console.log('Parsed notifications:', notificationList);
+
+                                notificationList.forEach(function (notification) {
+                                    console.log('Processing notification:', notification);
+                                    showNotification(notification.Message, {
+                                        type: notification.Type,
+                                        title: notification.Title,
+                                        time: notification.Duration,
+                                        popup: notification.popup
+                                    });
+                                });
+                            } catch (error) {
+                                console.error('Error processing notifications:', error);
+                            }
+                        });
+                    </text>
+        }
+        else
+        {
+                    <text>
+                        console.log('No TempData notifications found');
+                    </text>
+        }
+    </script>
+
+    
+    @await RenderSectionAsync("ValidationScripts", required: false)
+</body>
+</html>

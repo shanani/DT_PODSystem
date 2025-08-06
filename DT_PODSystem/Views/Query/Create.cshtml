@@ -1,0 +1,216 @@
+﻿@model DT_PODSystem.Models.ViewModels.QueryBuilderViewModel
+@{
+    ViewData["Title"] = "Create Query";
+    Layout = "_Layout";
+}
+
+<!-- Page Header -->
+<div class="d-flex align-items-center mb-3">
+    <div class="flex-grow-1">
+        <h1 class="page-header mb-0">
+            <i class="fa fa-project-diagram text-theme me-2"></i>Create New Query
+        </h1>
+        <p class="text-muted mb-0">Enter basic information to create a new query</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("Index", "Query")" class="btn btn-outline-secondary">
+            <i class="fa fa-arrow-left me-1"></i>Back to Queries
+        </a>
+    </div>
+</div>
+
+<!-- Query Basic Information Form -->
+<div class="panel panel-inverse">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            <i class="fa fa-info-circle me-2"></i>Query Information
+        </h4>
+    </div>
+    <div class="panel-body">
+        <form id="create-query-form" data-parsley-validate="true">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label for="query-name" class="form-label">Query Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="query-name"
+                               name="Name"
+                               placeholder="Enter a descriptive name for your query"
+                               pattern="^[a-zA-Z_][a-zA-Z0-9_\s]*$"
+                               maxlength="200"
+                               data-parsley-required="true"
+                               data-parsley-minlength="3"
+                               data-parsley-pattern="^[a-zA-Z_][a-zA-Z0-9_\s]*$"
+                               data-parsley-pattern-message="Query name must start with a letter and contain only letters, numbers, spaces, and underscores">
+                        <div class="form-text">Use a descriptive name that explains what your query calculates</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="query-status" class="form-label">Initial Status</label>
+                        <select class="form-select" id="query-status" name="Status" disabled>
+                            <option value="Draft" selected>Draft</option>
+                        </select>
+                        <div class="form-text">New queries start as drafts</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="query-description" class="form-label">Description</label>
+                <textarea class="form-control" id="query-description"
+                          name="Description"
+                          rows="4"
+                          maxlength="1000"
+                          placeholder="Describe what this query will calculate and its purpose...&#10;&#10;Examples:&#10;• Calculate monthly revenue totals from invoices&#10;• Compute tax amounts with regional rates&#10;• Generate expense reports with categories"></textarea>
+                <div class="form-text">Provide a clear description of the query's purpose and expected calculations</div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between">
+                <a href="@Url.Action("Index", "Query")" class="btn btn-outline-secondary">
+                    <i class="fa fa-times me-1"></i>Cancel
+                </a>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-primary" id="save-draft-btn" style="display: none;">
+                        <i class="fa fa-save me-1"></i>Save as Draft
+                    </button>
+                    <button type="submit" class="btn btn-green" id="create-and-build-btn">
+                        <i class="fa fa-save me-1"></i>Save & Build Query
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Help Section -->
+<div class="panel panel-outline-info mt-3">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            <i class="fa fa-question-circle me-2"></i>What's Next?
+        </h4>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="d-flex">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="btn btn-outline-primary btn-sm rounded-circle" style="width: 35px; height: 35px;">
+                            <span class="fw-bold">1</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">Define Constants</h6>
+                        <p class="text-muted mb-0 small">Set up global and local constants for calculations</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="d-flex">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="btn btn-outline-primary btn-sm rounded-circle" style="width: 35px; height: 35px;">
+                            <span class="fw-bold">2</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">Map Template Fields</h6>
+                        <p class="text-muted mb-0 small">Select fields from templates to use in calculations</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="d-flex">
+                    <div class="flex-shrink-0 me-3">
+                        <div class="btn btn-outline-primary btn-sm rounded-circle" style="width: 35px; height: 35px;">
+                            <span class="fw-bold">3</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">Build Formulas</h6>
+                        <p class="text-muted mb-0 small">Create visual formulas using the drag-and-drop canvas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Save as draft (without validation)
+            $('#save-draft-btn').on('click', function() {
+                saveDraft(false);
+            });
+
+            // Create and build (with validation + redirect)
+            $('#create-query-form').on('submit', function(e) {
+                e.preventDefault();
+                saveDraft(true); // Save and redirect to edit
+            });
+
+            function saveDraft(redirectToEdit = false) {
+                const formData = {
+                    Name: $('#query-name').val().trim(),
+                    Description: $('#query-description').val().trim(),
+                    Status: 'Draft'
+                };
+
+                // Disable buttons during save
+                $('#save-draft-btn, #create-and-build-btn').prop('disabled', true);
+
+                if (redirectToEdit) {
+                    $('#create-and-build-btn').html('<i class="fa fa-spinner fa-spin me-1"></i>Creating...');
+                } else {
+                    $('#save-draft-btn').html('<i class="fa fa-spinner fa-spin me-1"></i>Saving...');
+                }
+
+                // AJAX call to create query
+                $.ajax({
+                    url: '@Url.Action("Create", "Query")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            if (typeof alert !== 'undefined' && alert.success) {
+                                alert.success(response.message || 'Query created successfully!');
+                            }
+
+                            if (redirectToEdit && response.queryId) {
+                                // Redirect to edit page to build the query
+                                window.location.href = '@Url.Action("Edit", "Query")/' + response.queryId;
+                            } else {
+                                // Redirect to index page
+                                window.location.href = '@Url.Action("Index", "Query")';
+                            }
+                        } else {
+                            handleError(response.message || 'Failed to create query');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        handleError('An error occurred while creating the query: ' + error);
+                    }
+                });
+            }
+
+            function handleError(message) {
+                // Re-enable buttons
+                $('#save-draft-btn').prop('disabled', false).html('<i class="fa fa-save me-1"></i>Save as Draft');
+                $('#create-and-build-btn').prop('disabled', false).html('<i class="fa fa-plus me-1"></i>Create & Build Query');
+
+                // Show error message
+                if (typeof alert !== 'undefined' && alert.error) {
+                    alert.error(message);
+                } else {
+                    alert(message);
+                }
+            }
+        });
+    </script>
+}

@@ -1,0 +1,25 @@
+﻿<svg width="120" height="80" xmlns="http://www.w3.org/2000/svg">
+	<defs>
+		<style>
+			.node{fill:#A54EE1;stroke:#8E3BB7;stroke-width:2;rx:4}
+			.text{fill:white;font:bold 11px sans-serif;text-anchor:middle;dominant-baseline:central}
+			.line{stroke:#666;stroke-width:2}
+			.dot{fill:#4CAF50;stroke:#2E7D32}
+			.label{fill:#666;font:8px sans-serif;text-anchor:middle}
+		</style>
+	</defs>
+	<circle cx="15" cy="20" r="4" class="dot"/>
+	<text x="15" y="10" class="label">Condition</text>
+	<circle cx="15" cy="40" r="4" class="dot"/>
+	<text x="15" y="52" class="label">True</text>
+	<circle cx="15" cy="60" r="4" class="dot"/>
+	<text x="15" y="72" class="label">False</text>
+	<line x1="19" y1="20" x2="40" y2="35" class="line"/>
+	<line x1="19" y1="40" x2="40" y2="35" class="line"/>
+	<line x1="19" y1="60" x2="40" y2="35" class="line"/>
+	<rect x="40" y="25" width="30" height="20" class="node"/>
+	<text x="55" y="35" class="text">IF</text>
+	<line x1="70" y1="35" x2="90" y2="35" class="line"/>
+	<circle cx="95" cy="35" r="4" style="fill:#FF9800;stroke:#F57C00"/>
+	<text x="95" y="25" class="label">Result</text>
+</svg>

@@ -1,0 +1,506 @@
+@model DT_PODSystem.Models.ViewModels.LookupsViewModel
+
+@{
+    ViewData["Title"] = "Manage Vendors";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet" />
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Lookups</a></li>
+    <li class="breadcrumb-item active">Vendors</li>
+</ol>
+<!-- END breadcrumb -->
+<!-- BEGIN page-header -->
+<h1 class="page-header">Manage Vendors <small>Vendor companies and contacts</small></h1>
+<!-- END page-header -->
+<!-- BEGIN panel -->
+<div class="panel panel-inverse">
+    <div class="panel-heading">
+        <h4 class="panel-title">Vendors</h4>
+        <div class="panel-heading-btn">
+            <button type="button" class="btn btn-success btn-sm" onclick="showCreateModal()">
+                <i class="fa fa-plus"></i> Add Vendor
+            </button>
+        </div>
+    </div>
+    <div class="panel-body">
+        <table id="vendorsTable" class="table table-striped table-bordered align-middle text-nowrap">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Company</th>
+                    <th>Approval</th>
+                    <th>Status</th>
+                    <th width="200">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be loaded via AJAX -->
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- END panel -->
+<!-- Vendor Modal -->
+<div class="modal fade" id="vendorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="vendorModalTitle">Add Vendor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="vendorForm">
+                <div class="modal-body">
+                    <input type="hidden" id="vendorId" value="0" />
+
+                    <!-- Basic Information -->
+                    <div class="mb-3">
+                        <label for="vendorName" class="form-label">Vendor Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="vendorName" maxlength="200" required />
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="vendorCompanyName" class="form-label">Company Name</label>
+                        <input type="text" class="form-control" id="vendorCompanyName" maxlength="100" />
+                        <div class="form-text">Official company name if different from vendor name</div>
+                    </div>
+
+                    <!-- Approval Status -->
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="vendorIsApproved" />
+                        <label class="form-check-label" for="vendorIsApproved">
+                            <strong>Approved Vendor</strong>
+                        </label>
+                        <div class="form-text">Only approved vendors can be used in templates</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success" id="saveVendorBtn">
+                        <i class="fa fa-save"></i> Save Vendor
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Usage Details Modal -->
+<div class="modal fade" id="usageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Usage Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="usageModalBody">
+                <div class="text-center">
+                    <i class="fa fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2">Loading usage details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net/js/dataTables.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+
+    <script>
+        let vendorsTable;
+
+        $(document).ready(function() {
+            if (typeof $.fn.DataTable === 'undefined') {
+                console.error('DataTables not loaded');
+                return;
+            }
+
+            initializeDataTable();
+            setupFormValidation();
+            setupEventHandlers();
+        });
+
+        function initializeDataTable() {
+            try {
+                vendorsTable = $('#vendorsTable').DataTable({
+                    responsive: {
+                        details: {
+                            type: 'column',
+                            target: 'tr'
+                        }
+                    },
+                    processing: true,
+                    ajax: {
+                        url: '/Lookups/GetVendorsData',
+                        type: 'GET',
+                        dataSrc: 'data'
+                    },
+                    columns: [
+                        {
+                            data: 'name',
+                            render: function(data) {
+                                return `<strong>${data}</strong>`;
+                            }
+                        },
+                        {
+                            data: 'companyName',
+                            render: function(data) {
+                                return data || '-';
+                            }
+                        },
+                        {
+                            data: 'isApproved',
+                            render: function(data) {
+                                return data ?
+                                    '<span class="badge bg-success"><i class="fa fa-check"></i> Approved</span>' :
+                                    '<span class="badge bg-warning"><i class="fa fa-clock"></i> Pending</span>';
+                            }
+                        },
+                        {
+                            data: 'isActive',
+                            render: function(data) {
+                                return data ?
+                                    '<span class="badge bg-success">Active</span>' :
+                                    '<span class="badge bg-secondary">Inactive</span>';
+                            }
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            render: function(data, type, row) {
+                                return `
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-action="edit" data-id="${row.id}">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-info" data-action="usage" data-id="${row.id}" data-type="vendor">
+                                            <i class="fa fa-info-circle"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-warning" data-action="toggle" data-id="${row.id}" data-type="vendor">
+                                            <i class="fa fa-toggle-on"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${row.id}" data-type="vendor" data-name="${row.name}">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                        }
+                    ],
+                    pageLength: 25,
+                    order: [[0, 'asc']],
+                    columnDefs: [
+                        { orderable: false, targets: [4] }
+                    ],
+                    language: {
+                        search: "Search vendors:",
+                        lengthMenu: "Show _MENU_ vendors per page",
+                        info: "Showing _START_ to _END_ of _TOTAL_ vendors",
+                        infoEmpty: "No vendors found",
+                        emptyTable: "No vendors available"
+                    }
+                });
+            } catch (error) {
+                console.error('DataTable initialization error:', error);
+                vendorsTable = $('#vendorsTable').DataTable({
+                    pageLength: 25,
+                    order: [[0, 'asc']],
+                    columnDefs: [
+                        { orderable: false, targets: [4] }
+                    ]
+                });
+            }
+        }
+
+        function setupFormValidation() {
+            $('#vendorForm').on('submit', function(e) {
+                e.preventDefault();
+
+                if (validateForm()) {
+                    saveVendor();
+                }
+            });
+
+            $('#vendorName').on('blur', function() {
+                validateField('vendorName', 'name');
+            });
+        }
+
+        function setupEventHandlers() {
+            $('#vendorModal').on('hidden.bs.modal', function() {
+                resetForm();
+            });
+
+            $('#vendorsTable').on('click', 'button[data-action]', function() {
+                const action = $(this).data('action');
+                const id = $(this).data('id');
+                const type = $(this).data('type');
+                const name = $(this).data('name');
+
+                switch(action) {
+                    case 'edit':
+                        showEditModal(id);
+                        break;
+                    case 'usage':
+                        showUsageDetails(type, id);
+                        break;
+                    case 'toggle':
+                        toggleStatus(type, id);
+                        break;
+                    case 'delete':
+                        deleteEntity(type, id, name);
+                        break;
+                }
+            });
+        }
+
+        function showCreateModal() {
+            resetForm();
+            $('#vendorModalTitle').text('Add Vendor');
+            $('#saveVendorBtn').html('<i class="fa fa-save"></i> Save Vendor');
+            $('#vendorModal').modal('show');
+            setTimeout(() => $('#vendorName').focus(), 500);
+        }
+
+        function showEditModal(id) {
+            resetForm();
+            $('#vendorModalTitle').text('Edit Vendor');
+            $('#saveVendorBtn').html('<i class="fa fa-save"></i> Update Vendor');
+
+            $.get(`/Lookups/GetVendor/${id}`)
+                .done(function(response) {
+                    if (response.success) {
+                        const vendor = response.data;
+                        $('#vendorId').val(vendor.id);
+                        $('#vendorName').val(vendor.name);
+                        $('#vendorCompanyName').val(vendor.companyName || '');
+                        $('#vendorIsApproved').prop('checked', vendor.isApproved);
+                        $('#vendorModal').modal('show');
+                        setTimeout(() => $('#vendorName').focus(), 500);
+                    } else {
+                        alert.error('Failed to load vendor');
+                    }
+                })
+                .fail(function() {
+                    alert.error('Failed to load vendor data');
+                });
+        }
+
+        function saveVendor() {
+            const vendorData = {
+                id: parseInt($('#vendorId').val()),
+                name: $('#vendorName').val().trim(),
+                companyName: $('#vendorCompanyName').val().trim(),
+                isApproved: $('#vendorIsApproved').is(':checked')
+            };
+
+            const isEdit = vendorData.id > 0;
+            const url = isEdit ? '/Lookups/UpdateVendor' : '/Lookups/CreateVendor';
+
+            $('#saveVendorBtn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(vendorData),
+                headers: {
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                }
+            })
+            .done(function(response) {
+                if (response.success) {
+                    alert.success('Vendor saved successfully');
+                    $('#vendorModal').modal('hide');
+                    vendorsTable.ajax.reload(null, false);
+                } else {
+                    alert.error('Failed to save vendor');
+                }
+            })
+            .fail(function() {
+                alert.error('Failed to save vendor');
+            })
+            .always(function() {
+                $('#saveVendorBtn').prop('disabled', false).html('<i class="fa fa-save"></i> Save Vendor');
+            });
+        }
+
+        function deleteEntity(entityType, id, name) {
+            swal({
+                title: 'Delete Vendor?',
+                text: `Are you sure you want to delete "${name}"? This action cannot be undone.`,
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+                closeOnEsc: true
+            }).then((result) => {
+                if (result.value) {
+                    $.post('/Lookups/DeleteVendor', {
+                        id: id,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    })
+                        .done(function(response) {
+                            if (response.success) {
+                                alert.success('Vendor deleted successfully');
+                                vendorsTable.ajax.reload(null, false);
+                            } else {
+                                alert.error('Cannot delete vendor - it is being used');
+                            }
+                        })
+                        .fail(function() {
+                            alert.error('Failed to delete vendor');
+                        });
+                }
+            });
+        }
+
+        function toggleStatus(entityType, id) {
+            $.post('/Lookups/ToggleStatus', {
+                entityType: entityType,
+                id: id,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            })
+                .done(function(response) {
+                    if (response.success) {
+                        alert.success('Status updated successfully');
+                        vendorsTable.ajax.reload(null, false);
+                    } else {
+                        alert.error('Failed to update status');
+                    }
+                })
+                .fail(function() {
+                    alert.error('Failed to update status');
+                });
+        }
+
+        function showUsageDetails(entityType, id) {
+            $('#usageModal').modal('show');
+
+            $.get(`/Lookups/GetUsageDetails?entityType=${entityType}&id=${id}`)
+                .done(function(response) {
+                    if (response.success) {
+                        const usage = response.data;
+                        let html = `
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><strong>${usage.lookupName}</strong></h6>
+                                    <p class="text-muted">${entityType.charAt(0).toUpperCase() + entityType.slice(1)}</p>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <span class="badge ${usage.isInUse ? 'bg-warning' : 'bg-success'} fs-6">
+                                        ${usage.isInUse ? 'In Use' : 'Not Used'}
+                                    </span>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="text-center">
+                                        <h4 class="text-primary">${usage.totalUsageCount}</h4>
+                                        <small class="text-muted">Total Usage</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="text-center">
+                                        <h4 class="${usage.canBeDeleted ? 'text-success' : 'text-danger'}">
+                                            ${usage.canBeDeleted ? 'Yes' : 'No'}
+                                        </h4>
+                                        <small class="text-muted">Can Delete</small>
+                                    </div>
+                                </div>
+                            </div>`;
+
+                        if (usage.dependencies.length > 0) {
+                            html += `
+                                <hr />
+                                <h6>Dependencies:</h6>
+                                <ul class="list-unstyled">`;
+                            usage.dependencies.forEach(dep => {
+                                html += `<li><i class="fa fa-arrow-right text-muted me-2"></i>${dep}</li>`;
+                            });
+                            html += `</ul>`;
+                        }
+
+                        $('#usageModalBody').html(html);
+                    } else {
+                        $('#usageModalBody').html('<div class="alert alert-danger">Failed to load usage details</div>');
+                    }
+                })
+                .fail(function() {
+                    $('#usageModalBody').html('<div class="alert alert-danger">Error loading usage details</div>');
+                });
+        }
+
+        function validateForm() {
+            let isValid = true;
+
+            $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').text('');
+
+            if (!$('#vendorName').val().trim()) {
+                markFieldInvalid('vendorName', 'Vendor name is required');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function validateField(fieldId, fieldType) {
+            const value = $(`#${fieldId}`).val().trim();
+            const entityId = $('#vendorId').val();
+
+            if (value) {
+                $.get(`/Lookups/Validate${fieldType.charAt(0).toUpperCase() + fieldType.slice(1)}?entityType=vendor&${fieldType}=${encodeURIComponent(value)}&excludeId=${entityId}`)
+                    .done(function(isUnique) {
+                        if (!isUnique) {
+                            markFieldInvalid(fieldId, `This ${fieldType} is already in use`);
+                        } else {
+                            markFieldValid(fieldId);
+                        }
+                    })
+                    .fail(function() {
+                        markFieldValid(fieldId);
+                    });
+            }
+        }
+
+        function markFieldInvalid(fieldId, message) {
+            $(`#${fieldId}`).addClass('is-invalid');
+            $(`#${fieldId}`).siblings('.invalid-feedback').text(message);
+        }
+
+        function markFieldValid(fieldId) {
+            $(`#${fieldId}`).removeClass('is-invalid').addClass('is-valid');
+            $(`#${fieldId}`).siblings('.invalid-feedback').text('');
+        }
+
+        function resetForm() {
+            $('#vendorForm')[0].reset();
+            $('#vendorId').val('0');
+            $('.is-invalid, .is-valid').removeClass('is-invalid is-valid');
+            $('.invalid-feedback').text('');
+            $('#vendorIsApproved').prop('checked', false);
+        }
+    </script>
+}
+
+@section ValidationScripts {
+    @Html.AntiForgeryToken()
+}

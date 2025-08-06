@@ -1,0 +1,300 @@
+@model DT_PODSystem.Models.ViewModels.TemplateListViewModel
+@{
+    ViewData["Title"] = "Template Management";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    
+}
+
+<div id="content" >
+    <div class="d-flex align-items-center mb-3">
+        <div>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active">Templates</li>
+            </ol>
+            <h1 class="page-header mb-0">Template Management</h1>
+        </div>
+        <div class="ms-auto">
+            @if (Model.CanCreate)
+            {
+                <a href="@Url.Action("Wizard", "Template")" class="btn btn-green btn-lg">
+                    <i class="fa fa-plus fa-fw me-1"></i> Create Template
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="panel panel-inverse">
+                <div class="panel-heading">
+                    <h4 class="panel-title">Templates <span class="badge bg-primary ms-2">@Model.Templates.Count</span></h4>
+                    <div class="panel-heading-btn">
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                        <a href="javascript:;" class="btn btn-xs btn-icon btn-green" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    </div>
+                </div>
+
+                <div class="panel-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="bulk-activate" disabled>
+                                    <i class="fa fa-play me-1"></i> Activate
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="bulk-deactivate" disabled>
+                                    <i class="fa fa-pause me-1"></i> Deactivate
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm" id="bulk-delete" disabled>
+                                    <i class="fa fa-trash me-1"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="global-search" placeholder="Search templates...">
+                                <button class="btn btn-outline-secondary" type="button" id="clear-search">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="templates-table" class="table table-striped table-bordered align-middle text-nowrap w-100">
+                            <thead>
+                                <tr>
+                                    <th width="30"><input type="checkbox" id="select-all"></th>
+                                    <th>Template Name</th>
+                                    <th>Category</th>
+                                    <th>Department</th>
+                                    <th>Status</th>
+                                    <th>Fields</th>
+                                    <th>Created</th>
+                                    <th>Modified</th>
+                                    <th width="120">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var template in Model.Templates)
+                                {
+                                    <tr>
+                                        <td><input type="checkbox" class="row-select" data-id="@template.Id"></td>
+                                        <td>
+                                            <div class="fw-bold">@template.Name</div>
+                                            @if (!string.IsNullOrEmpty(template.Description))
+                                            {
+                                                <small class="text-muted">@template.Description</small>
+                                            }
+                                        </td>
+                                        <td class="text-nowrap">@template.CategoryName</td>
+                                        <td class="text-nowrap">@template.DepartmentName</td>
+                                        <td><span class="badge @template.StatusBadgeClass">@template.StatusDisplayName</span></td>
+                                        <td class="text-center"><span class="badge bg-info">@template.FieldMappingCount</span></td>
+                                        <td>@template.CreatedDate.ToString("dd/MM/yyyy")</td>
+                                        <td>@template.ModifiedDate.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="@Url.Action("Details", "Template", new { id = template.Id })" class="btn btn-outline-primary btn-xs" title="View">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                                @if (Model.CanEdit)
+                                                {
+                                                    <a href="@Url.Action("Wizard", "Template", new { Id = template.Id })" class="btn btn-outline-success btn-xs" title="Edit">
+                                                        <i class="fa fa-edit"></i>
+                                                    </a>
+                                                }
+                                                @if (Model.CanDelete)
+                                                {
+                                                    <button onclick="deleteTemplate(@template.Id)" class="btn btn-outline-danger btn-xs" title="Delete">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net/js/dataTables.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var table = $('#templates-table').DataTable({
+                responsive: true,
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                order: [[1, 'asc']],
+                columnDefs: [
+                    { targets: 0, orderable: false, searchable: false },
+                    { targets: -1, orderable: false, searchable: false }
+                ],
+                language: {
+                    emptyTable: 'No templates found',
+                    info: 'Showing _START_ to _END_ of _TOTAL_ templates',
+                    infoEmpty: 'No templates available',
+                    infoFiltered: '(filtered from _MAX_ total templates)',
+                    lengthMenu: 'Show _MENU_ templates per page',
+                    search: 'Search:',
+                    paginate: { first: 'First', last: 'Last', next: 'Next', previous: 'Previous' }
+                },
+                drawCallback: function() {
+                    updateBulkActions();
+                }
+            });
+
+            $('#global-search').on('keyup', function() {
+                table.search(this.value).draw();
+            });
+
+            $('#clear-search').on('click', function() {
+                $('#global-search').val('');
+                table.search('').draw();
+            });
+
+            $('#select-all').on('click', function() {
+                var checked = this.checked;
+                $('.row-select').prop('checked', checked);
+                updateBulkActions();
+            });
+
+            $(document).on('change', '.row-select', function() {
+                updateBulkActions();
+                var total = $('.row-select').length;
+                var checked = $('.row-select:checked').length;
+                $('#select-all').prop('checked', checked === total);
+            });
+
+            $('#bulk-activate').on('click', function() {
+                bulkAction('activate');
+            });
+
+            $('#bulk-deactivate').on('click', function() {
+                bulkAction('deactivate');
+            });
+
+            $('#bulk-delete').on('click', function() {
+                bulkAction('delete');
+            });
+
+            function updateBulkActions() {
+                var selectedCount = $('.row-select:checked').length;
+                $('#bulk-activate, #bulk-deactivate, #bulk-delete').prop('disabled', selectedCount === 0);
+            }
+
+            function bulkAction(action) {
+                var selectedIds = [];
+                $('.row-select:checked').each(function() {
+                    selectedIds.push($(this).data('id'));
+                });
+
+                if (selectedIds.length === 0) return;
+
+                var actionText = action === 'delete' ? 'delete' : 'update';
+                var message = 'Are you sure you want to ' + actionText + ' ' + selectedIds.length + ' template(s)?';
+
+                if (typeof swal !== 'undefined') {
+                    swal({
+                        title: 'Confirm ' + action.charAt(0).toUpperCase() + action.slice(1),
+                        text: message,
+                        icon: 'warning',
+                        buttons: {
+                            cancel: { text: 'Cancel', className: 'btn btn-default' },
+                            confirm: {
+                                text: action.charAt(0).toUpperCase() + action.slice(1),
+                                className: 'btn btn-' + (action === 'delete' ? 'danger' : 'primary')
+                            }
+                        }
+                    }).then(function(confirm) {
+                        if (confirm) {
+                            performBulkAction(action, selectedIds);
+                        }
+                    });
+                } else {
+                    if (confirm(message)) {
+                        performBulkAction(action, selectedIds);
+                    }
+                }
+            }
+
+            function performBulkAction(action, templateIds) {
+                $.post('@Url.Action("BulkAction", "Template")', { action: action, templateIds: templateIds }, function(result) {
+                    if (result.success) {
+                        showSuccess(result.message || action.charAt(0).toUpperCase() + action.slice(1) + ' completed successfully');
+                        location.reload();
+                    } else {
+                        showError(result.message || 'Action failed');
+                    }
+                }).fail(function() {
+                    showError('An error occurred');
+                });
+            }
+
+            window.deleteTemplate = function(id) {
+                if (typeof swal !== 'undefined') {
+                    swal({
+                        title: 'Delete Template?',
+                        text: 'This action cannot be undone!',
+                        icon: 'warning',
+                        buttons: {
+                            cancel: { text: 'Cancel', className: 'btn btn-default' },
+                            confirm: { text: 'Delete', className: 'btn btn-danger' }
+                        }
+                    }).then(function(confirm) {
+                        if (confirm) {
+                            performDelete(id);
+                        }
+                    });
+                } else {
+                    if (confirm('Delete this template? This action cannot be undone!')) {
+                        performDelete(id);
+                    }
+                }
+            };
+
+            function performDelete(id) {
+                $.post('@Url.Action("Delete", "Template")', { id: id }, function(result) {
+                    if (result.success) {
+                        showSuccess('Template deleted successfully');
+                        location.reload();
+                    } else {
+                        showError(result.message || 'Delete failed');
+                    }
+                }).fail(function() {
+                    showError('An error occurred');
+                });
+            }
+
+            function showSuccess(message) {
+                if (typeof gritter !== 'undefined') {
+                    gritter.add({ title: 'Success', text: message, class_name: 'my-sticky-class' });
+                } else if (typeof alert !== 'undefined' && alert.success) {
+                    alert.success(message);
+                } else {
+                    console.log('Success: ' + message);
+                }
+            }
+
+            function showError(message) {
+                if (typeof gritter !== 'undefined') {
+                    gritter.add({ title: 'Error', text: message, class_name: 'gritter-error' });
+                } else if (typeof alert !== 'undefined' && alert.error) {
+                    alert.error(message);
+                } else {
+                    console.error('Error: ' + message);
+                }
+            }
+        });
+    </script>
+}
