@@ -14,6 +14,10 @@ namespace DT_PODSystemWorker.Services
         Task<List<FileProcessInfo>> DiscoverMatchingFilesAsync();
     }
 
+    /// <summary>
+    /// FileDiscoveryService - Updated for POD Architecture
+    /// Templates now belong to PODs, so organizational info comes from POD parent
+    /// </summary>
     public class FileDiscoveryService : IFileDiscoveryService
     {
         private readonly ILogger<FileDiscoveryService> _logger;
@@ -29,7 +33,6 @@ namespace DT_PODSystemWorker.Services
             _context = context;
             _settings = settings.Value;
         }
-
 
         private TemplateMatchResult ValidateAndReturnResult(string fileName, string prefix, List<(string date, string format)> foundDates)
         {
@@ -138,18 +141,30 @@ namespace DT_PODSystemWorker.Services
                 _logger.LogInformation($"   - Exists: {dirInfo.Exists}");
                 _logger.LogInformation($"   - Attributes: {dirInfo.Attributes}");
 
-                // Get active templates with detailed logging
+                // ✅ UPDATED: Get active templates with POD information
                 var activeTemplates = await _context.PdfTemplates
                     .Where(t => t.IsActive && t.Status == TemplateStatus.Active)
-                    .Include(t => t.Category)
-                    .Include(t => t.Vendor)
+                    .Include(t => t.POD)                    // ✅ NEW: Include POD parent
+                        .ThenInclude(p => p.Category)       // ✅ UPDATED: Category via POD
+                    .Include(t => t.POD)
+                        .ThenInclude(p => p.Vendor)         // ✅ UPDATED: Vendor via POD  
+                    .Include(t => t.POD)
+                        .ThenInclude(p => p.Department)     // ✅ UPDATED: Department via POD
+                            .ThenInclude(d => d.GeneralDirectorate)
                     .ToListAsync();
 
                 _logger.LogInformation($"📋 Found {activeTemplates.Count} active templates");
 
                 foreach (var template in activeTemplates)
                 {
-                    _logger.LogInformation($"📝 Template '{template.Name}' with prefix: '{template.NamingConvention}'");
+                    // ✅ UPDATED: Log POD information instead of direct template properties
+                    _logger.LogInformation($"📝 Template ID {template.Id} for POD '{template.POD.Name}' with prefix: '{template.NamingConvention}'");
+                    _logger.LogDebug($"   - POD Code: {template.POD.PODCode}");
+                    _logger.LogDebug($"   - Category: {template.POD.Category?.Name ?? "None"}");
+                    _logger.LogDebug($"   - Vendor: {template.POD.Vendor?.Name ?? "None"}");
+                    _logger.LogDebug($"   - Department: {template.POD.Department?.Name ?? "None"}");
+                    _logger.LogDebug($"   - Automation: {template.POD.AutomationStatus}");
+                    _logger.LogDebug($"   - Frequency: {template.POD.Frequency}");
                 }
 
                 if (!activeTemplates.Any())
@@ -231,13 +246,15 @@ namespace DT_PODSystemWorker.Services
 
                         foreach (var template in activeTemplates)
                         {
-                            _logger.LogDebug($"🔍 Testing against template '{template.Name}' with prefix '{template.NamingConvention}'");
+                            // ✅ UPDATED: Log POD name instead of template name
+                            _logger.LogDebug($"🔍 Testing against POD '{template.POD.Name}' (Template ID: {template.Id}) with prefix '{template.NamingConvention}'");
 
                             var matchResult = TryMatchTemplate(fileName, template);
 
                             if (matchResult.IsMatch)
                             {
-                                _logger.LogInformation($"✅ MATCH FOUND: '{fileName}' matches template '{template.Name}'");
+                                // ✅ UPDATED: Log POD information in match success
+                                _logger.LogInformation($"✅ MATCH FOUND: '{fileName}' matches POD '{template.POD.Name}' (Template ID: {template.Id})");
 
                                 // Check if already processed
                                 var alreadyProcessed = await _context.ProcessedFiles
@@ -247,17 +264,40 @@ namespace DT_PODSystemWorker.Services
 
                                 if (!alreadyProcessed)
                                 {
+                                    // ✅ UPDATED: Get organizational info from POD
                                     discoveredFiles.Add(new FileProcessInfo
                                     {
                                         FileName = fullFileName,
                                         FilePath = filePath,
                                         TemplateId = template.Id,
                                         PeriodId = matchResult.PeriodId,
-                                        Category = template.Category?.Name ?? "Unknown",
-                                        Vendor = template.Vendor?.Name ?? "Unknown"
+
+                                        // ✅ UPDATED: Get from POD instead of template directly
+                                        Category = template.POD.Category?.Name ?? "Unknown",
+                                        Vendor = template.POD.Vendor?.Name ?? "Unknown",
+
+                                        // ✅ NEW: Additional POD information for processing context
+                                        PODName = template.POD.Name,
+                                        PODCode = template.POD.PODCode,
+                                        Department = template.POD.Department?.Name ?? "Unknown",
+                                        AutomationStatus = template.POD.AutomationStatus.ToString(),
+                                        ProcessingFrequency = template.POD.Frequency.ToString(),
+                                        IsFinancialData = template.POD.IsFinancialData,
+                                        RequiresApproval = template.POD.RequiresApproval
                                     });
 
-                                    _logger.LogInformation($"🎯 ADDED TO PROCESSING QUEUE: '{fileName}' -> Template: '{template.Name}', Period: {matchResult.PeriodId}");
+                                    // ✅ UPDATED: Log POD details in processing queue message
+                                    _logger.LogInformation($"🎯 ADDED TO PROCESSING QUEUE:");
+                                    _logger.LogInformation($"   - File: '{fileName}'");
+                                    _logger.LogInformation($"   - POD: '{template.POD.Name}' (Code: {template.POD.PODCode})");
+                                    _logger.LogInformation($"   - Template ID: {template.Id}");
+                                    _logger.LogInformation($"   - Period: {matchResult.PeriodId}");
+                                    _logger.LogInformation($"   - Category: {template.POD.Category?.Name ?? "Unknown"}");
+                                    _logger.LogInformation($"   - Vendor: {template.POD.Vendor?.Name ?? "Unknown"}");
+                                    _logger.LogInformation($"   - Automation: {template.POD.AutomationStatus}");
+                                    _logger.LogInformation($"   - Financial Data: {template.POD.IsFinancialData}");
+                                    _logger.LogInformation($"   - Requires Approval: {template.POD.RequiresApproval}");
+
                                     fileMatched = true;
                                     break; // One template per file
                                 }
@@ -278,11 +318,11 @@ namespace DT_PODSystemWorker.Services
                         {
                             _logger.LogWarning($"❌ NO TEMPLATE MATCH: File '{fileName}' doesn't match any active template prefixes");
 
-                            // Show what prefixes were tested
+                            // ✅ UPDATED: Show POD context in available prefixes
                             _logger.LogInformation($"📋 Available template prefixes:");
                             foreach (var template in activeTemplates)
                             {
-                                _logger.LogInformation($"   - '{template.NamingConvention}' (Template: {template.Name})");
+                                _logger.LogInformation($"   - '{template.NamingConvention}' (POD: {template.POD.Name}, Template ID: {template.Id})");
                             }
                         }
                     }
@@ -308,6 +348,18 @@ namespace DT_PODSystemWorker.Services
                 _logger.LogInformation($"   - Files ready for processing: {discoveredFiles.Count}");
                 _logger.LogInformation($"   - Active templates available: {activeTemplates.Count}");
 
+                // ✅ NEW: Log POD statistics
+                var podStats = activeTemplates
+                    .GroupBy(t => t.POD)
+                    .Select(g => new { POD = g.Key, TemplateCount = g.Count() })
+                    .ToList();
+
+                _logger.LogInformation($"📋 POD STATISTICS:");
+                foreach (var stat in podStats)
+                {
+                    _logger.LogInformation($"   - POD '{stat.POD.Name}' ({stat.POD.PODCode}): {stat.TemplateCount} template(s)");
+                }
+
                 return discoveredFiles;
             }
             catch (Exception ex)
@@ -325,29 +377,30 @@ namespace DT_PODSystemWorker.Services
                 // Example: "EAJ5017198_INVENTORY_MANAGEMENT_SLA"
                 var prefix = template.NamingConvention.Trim();
 
-                _logger.LogDebug($"🔍 Matching file '{fileName}' against prefix '{prefix}'");
+                // ✅ UPDATED: Include POD context in debug logging
+                _logger.LogDebug($"🔍 Matching file '{fileName}' against prefix '{prefix}' (POD: {template.POD.Name})");
 
                 // Check if filename starts with the prefix
                 if (!fileName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 {
-                    _logger.LogDebug($"❌ File '{fileName}' doesn't start with prefix '{prefix}'");
+                    _logger.LogDebug($"❌ File '{fileName}' doesn't start with prefix '{prefix}' (POD: {template.POD.Name})");
                     return new TemplateMatchResult { IsMatch = false };
                 }
 
                 // Extract the suffix (everything after the prefix)
                 var suffix = fileName.Substring(prefix.Length);
-                _logger.LogDebug($"📄 Extracted suffix: '{suffix}'");
+                _logger.LogDebug($"📄 Extracted suffix: '{suffix}' (POD: {template.POD.Name})");
 
                 // Define comprehensive date patterns to search for in suffix
                 var datePatterns = new[]
                 {
-            // Various separators and formats
-            new { Pattern = @"[-_\s](\d{4}[-_\.]\d{2})(?:[-_\s]|$)", Name = "yyyy-MM or yyyy_MM or yyyy.MM" },
-            new { Pattern = @"[-_\s](\d{6})(?:[-_\s]|$)", Name = "yyyyMM" },
-            new { Pattern = @"[-_\s](\d{4})[-_\s](\d{2})(?:[-_\s]|$)", Name = "yyyy MM separate" },
-            new { Pattern = @"[-_\s](\d{2}[-_\.]\d{4})(?:[-_\s]|$)", Name = "MM-yyyy or MM_yyyy" },
-            new { Pattern = @"[-_\s](\d{2})[-_\s](\d{4})(?:[-_\s]|$)", Name = "MM yyyy separate" }
-        };
+                    // Various separators and formats
+                    new { Pattern = @"[-_\s](\d{4}[-_\.]\d{2})(?:[-_\s]|$)", Name = "yyyy-MM or yyyy_MM or yyyy.MM" },
+                    new { Pattern = @"[-_\s](\d{6})(?:[-_\s]|$)", Name = "yyyyMM" },
+                    new { Pattern = @"[-_\s](\d{4})[-_\s](\d{2})(?:[-_\s]|$)", Name = "yyyy MM separate" },
+                    new { Pattern = @"[-_\s](\d{2}[-_\.]\d{4})(?:[-_\s]|$)", Name = "MM-yyyy or MM_yyyy" },
+                    new { Pattern = @"[-_\s](\d{2})[-_\s](\d{4})(?:[-_\s]|$)", Name = "MM yyyy separate" }
+                };
 
                 var foundDates = new List<(string date, string format)>();
 
@@ -388,11 +441,11 @@ namespace DT_PODSystemWorker.Services
                         if (IsValidPeriod(normalizedDate))
                         {
                             foundDates.Add((normalizedDate, datePattern.Name));
-                            _logger.LogDebug($"✅ Found valid date '{extractedDate}' -> '{normalizedDate}' using pattern '{datePattern.Name}'");
+                            _logger.LogDebug($"✅ Found valid date '{extractedDate}' -> '{normalizedDate}' using pattern '{datePattern.Name}' (POD: {template.POD.Name})");
                         }
                         else
                         {
-                            _logger.LogDebug($"⚠️ Found date '{extractedDate}' but it's invalid (normalized: '{normalizedDate}')");
+                            _logger.LogDebug($"⚠️ Found date '{extractedDate}' but it's invalid (normalized: '{normalizedDate}') (POD: {template.POD.Name})");
                         }
                     }
                 }
@@ -402,10 +455,10 @@ namespace DT_PODSystemWorker.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"💥 Error matching template '{template.Name}' against file '{fileName}'");
+                // ✅ UPDATED: Include POD context in error logging
+                _logger.LogError(ex, $"💥 Error matching POD '{template.POD.Name}' (Template ID: {template.Id}) against file '{fileName}'");
                 return new TemplateMatchResult { IsMatch = false };
             }
         }
-
     }
 }

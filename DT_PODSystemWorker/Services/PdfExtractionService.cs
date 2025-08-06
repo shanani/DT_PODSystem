@@ -1229,7 +1229,7 @@ namespace DT_PODSystemWorker.Services
                     return result;
                 }
 
-                _logger.LogInformation($"✅ [TEMPLATE] {template.Name} - {template.FieldMappings.Count} fields, {template.TemplateAnchors.Count} anchors");
+                //_logger.LogInformation($"✅ [TEMPLATE] {template.Name} - {template.FieldMappings.Count} fields, {template.TemplateAnchors.Count} anchors");
 
                 // Extract PDF text with coordinates
                 var pdfTextData = ExtractPdfTextWithCoordinates(fileInfo.FilePath);

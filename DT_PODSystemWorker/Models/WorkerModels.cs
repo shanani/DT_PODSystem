@@ -98,6 +98,12 @@ namespace DT_PODSystemWorker.Models
         public string? TemplateName { get; set; }
         public string Category { get; internal set; }
         public string Vendor { get; internal set; }
+        public string PODName { get; internal set; }
+        public string PODCode { get; internal set; }
+        public string AutomationStatus { get; internal set; }
+        public string ProcessingFrequency { get; internal set; }
+        public bool IsFinancialData { get; internal set; }
+        public bool RequiresApproval { get; internal set; }
     }
 
 

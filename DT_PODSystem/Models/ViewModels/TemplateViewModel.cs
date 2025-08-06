@@ -134,6 +134,22 @@ namespace DT_PODSystem.Models.ViewModels
         public bool HasPrimaryFile => !string.IsNullOrEmpty(PrimaryFileName);
         public string? ErrorMessage { get; set; }
         public List<string> ValidationErrors { get; set; } = new();
+
+        public string UploadUrl { get; set; } = "/Upload/UploadPdf";
+        public string DeleteUrl { get; set; } = "/Upload/DeleteFile";
+        public string ValidateUrl { get; set; } = "/Upload/ValidatePdf";
+
+        public List<string> AcceptedTypes { get; set; } = new List<string> { ".pdf" };
+        public int MaxFiles { get; set; } = 5;
+        public long MaxFileSize { get; set; } = 10485760;
+        public bool AllowMultiple { get; set; } = true; 
+        public bool HasValidFiles => UploadedFiles.Any(f => f.ContentType == "application/pdf");
+        public int TotalFiles => UploadedFiles.Count;
+        public long TotalSize => UploadedFiles.Sum(f => f.FileSize);
+
+       
+
+
     }
 
     // ✅ UNCHANGED: Step3MappingViewModel remains the same
