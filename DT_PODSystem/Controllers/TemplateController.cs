@@ -50,7 +50,7 @@ namespace DT_PODSystem.Controllers
                     // Create empty wizard model for new POD creation
                     var emptyModel = await _templateService.GetWizardStateAsync(step, null);
                     emptyModel.CurrentStep = step;
-                    emptyModel.TotalSteps = 2;
+                    emptyModel.TotalSteps = 3;
                     emptyModel.PODId = 0; // New POD
                     emptyModel.TemplateId = 0; // New Template
 

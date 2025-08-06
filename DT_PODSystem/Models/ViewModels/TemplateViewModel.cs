@@ -17,8 +17,8 @@ namespace DT_PODSystem.Models.ViewModels
         public bool IsEditMode { get; set; } = false;
 
         // Only 3 steps      
-        public Step2TemplateDetailsViewModel Step1 { get; set; } = new();
-        public Step1UploadViewModel Step2 { get; set; } = new();
+        public Step1TemplateDetailsViewModel Step1 { get; set; } = new();
+        public Step2UploadViewModel Step2 { get; set; } = new();
         public Step3MappingViewModel Step3 { get; set; } = new();
 
         // Navigation properties
@@ -39,6 +39,8 @@ namespace DT_PODSystem.Models.ViewModels
         public bool IsLastStep => CurrentStep == TotalSteps; // This is now step 3
         public bool HasCompletedSteps => CurrentStep > 1;
         public bool IsComplete => Status == TemplateStatus.Active || Status == TemplateStatus.Testing;
+
+        public int PODId { get; internal set; }
 
         // Helper methods
         public string GetStepTitle(int stepNumber)
@@ -75,8 +77,8 @@ namespace DT_PODSystem.Models.ViewModels
         }
     }
 
-    // ✅ UPDATED: Step2PODDefinitionViewModel - Was Step2TemplateDefinitionViewModel
-    public class Step2PODDefinitionViewModel
+    // ✅ UPDATED: Step1PODDefinitionViewModel - Was Step1TemplateDefinitionViewModel
+    public class Step1PODDefinitionViewModel
     {
         // ✅ POD BUSINESS FIELDS:
         public string Name { get; set; } = string.Empty;
@@ -121,8 +123,8 @@ namespace DT_PODSystem.Models.ViewModels
         public List<string> ValidationErrors { get; set; } = new();
     }
 
-    // ✅ UNCHANGED: Step1UploadViewModel remains the same
-    public class Step1UploadViewModel
+    // ✅ UNCHANGED: Step2UploadViewModel remains the same
+    public class Step2UploadViewModel
     {
         public List<FileUploadDto> UploadedFiles { get; set; } = new();
         public string? PrimaryFileName { get; set; }
@@ -280,6 +282,7 @@ namespace DT_PODSystem.Models.ViewModels
         };
 
         public List<string> Actions { get; set; } = new List<string>();
+        public string Name { get; internal set; }
     }
 
     // ✅ UPDATED: TemplateFiltersViewModel - Now includes POD filters
@@ -429,7 +432,7 @@ namespace DT_PODSystem.Models.ViewModels
    
 
     // Step 2 - Template Details & Configuration
-    public class Step2TemplateDetailsViewModel
+    public class Step1TemplateDetailsViewModel
     {
         [Required(ErrorMessage = "Template name is required")]
         [StringLength(200, ErrorMessage = "Name cannot exceed 200 characters")]
@@ -468,6 +471,11 @@ namespace DT_PODSystem.Models.ViewModels
         public string NamePreview { get; set; } = string.Empty;
         public bool IsNameValid { get; set; } = true;
         public string? ValidationErrors { get; set; }
+        public int PODId { get; internal set; }
+        public string TechnicalNotes { get;  set; }
+        public bool HasFormFields { get;  set; }
+        public string ExpectedPdfVersion { get;  set; }
+        public int? ExpectedPageCount { get;  set; }
     }
 
     

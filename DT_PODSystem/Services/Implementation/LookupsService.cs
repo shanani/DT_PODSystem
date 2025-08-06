@@ -13,6 +13,10 @@ using Microsoft.Extensions.Logging;
 
 namespace DT_PODSystem.Services.Implementation
 {
+    /// <summary>
+    /// LookupsService - Updated for POD Architecture
+    /// Now checks POD usage instead of direct template relationships
+    /// </summary>
     public class LookupsService : ILookupsService
     {
         private readonly ApplicationDbContext _context;
@@ -60,13 +64,6 @@ namespace DT_PODSystem.Services.Implementation
             try
             {
                 // Validate uniqueness
-                var existingByCode = await _context.Categories
-                    .AnyAsync(c => c.Name == category.Name && c.IsActive);
-                if (existingByCode)
-                {
-                    return ServiceResult<Category>.ErrorResult("Category code already exists");
-                }
-
                 var existingByName = await _context.Categories
                     .AnyAsync(c => c.Name == category.Name && c.IsActive);
                 if (existingByName)
@@ -79,8 +76,9 @@ namespace DT_PODSystem.Services.Implementation
 
                 // Clear cache
                 _cache.Remove(CACHE_KEY_CATEGORIES);
+                _cache.Remove(CACHE_KEY_ORGANIZATIONAL_HIERARCHY);
 
-
+                _logger.LogInformation("Category created: {CategoryId} - {CategoryName}", category.Id, category.Name);
                 return ServiceResult<Category>.SuccessResult(category, "Category created successfully");
             }
             catch (Exception ex)
@@ -101,13 +99,6 @@ namespace DT_PODSystem.Services.Implementation
                 }
 
                 // Validate uniqueness (excluding current record)
-                var existingByCode = await _context.Categories
-                    .AnyAsync(c => c.Name == categoryDto.Name && c.Id != id && c.IsActive);
-                if (existingByCode)
-                {
-                    return ServiceResult<Category>.ErrorResult("Category code already exists");
-                }
-
                 var existingByName = await _context.Categories
                     .AnyAsync(c => c.Name == categoryDto.Name && c.Id != id && c.IsActive);
                 if (existingByName)
@@ -126,6 +117,7 @@ namespace DT_PODSystem.Services.Implementation
 
                 // Clear cache
                 _cache.Remove(CACHE_KEY_CATEGORIES);
+                _cache.Remove(CACHE_KEY_ORGANIZATIONAL_HIERARCHY);
 
                 _logger.LogInformation("Category updated: {CategoryId} - {CategoryName}", id, category.Name);
                 return ServiceResult<Category>.SuccessResult(category, "Category updated successfully");
@@ -147,13 +139,13 @@ namespace DT_PODSystem.Services.Implementation
                     return ServiceResult<bool>.ErrorResult("Category not found");
                 }
 
-                // Check if category is in use
-                var templatesCount = await _context.PdfTemplates
-                    .CountAsync(t => t.CategoryId == id && t.IsActive);
+                // ✅ UPDATED: Check if category is used in PODs (not templates directly)
+                var podsCount = await _context.PODs
+                    .CountAsync(p => p.CategoryId == id && p.IsActive);
 
-                if (templatesCount > 0)
+                if (podsCount > 0)
                 {
-                    return ServiceResult<bool>.ErrorResult($"Cannot delete category. It is used in {templatesCount} template(s)");
+                    return ServiceResult<bool>.ErrorResult($"Cannot delete category. It is used in {podsCount} POD(s)");
                 }
 
                 // Soft delete
@@ -165,6 +157,7 @@ namespace DT_PODSystem.Services.Implementation
 
                 // Clear cache
                 _cache.Remove(CACHE_KEY_CATEGORIES);
+                _cache.Remove(CACHE_KEY_ORGANIZATIONAL_HIERARCHY);
 
                 _logger.LogInformation("Category deleted: {CategoryId} - {CategoryName}", id, category.Name);
                 return ServiceResult<bool>.SuccessResult(true, "Category deleted successfully");
@@ -203,13 +196,6 @@ namespace DT_PODSystem.Services.Implementation
             try
             {
                 // Validate uniqueness
-                var existingByCode = await _context.Vendors
-                    .AnyAsync(v => v.Name == vendor.Name && v.IsActive);
-                if (existingByCode)
-                {
-                    return ServiceResult<Vendor>.ErrorResult("Vendor code already exists");
-                }
-
                 var existingByName = await _context.Vendors
                     .AnyAsync(v => v.Name == vendor.Name && v.IsActive);
                 if (existingByName)
@@ -222,8 +208,9 @@ namespace DT_PODSystem.Services.Implementation
 
                 // Clear cache
                 _cache.Remove(CACHE_KEY_VENDORS);
+                _cache.Remove(CACHE_KEY_ORGANIZATIONAL_HIERARCHY);
 
-
+                _logger.LogInformation("Vendor created: {VendorId} - {VendorName}", vendor.Id, vendor.Name);
                 return ServiceResult<Vendor>.SuccessResult(vendor, "Vendor created successfully");
             }
             catch (Exception ex)
@@ -252,7 +239,6 @@ namespace DT_PODSystem.Services.Implementation
 
                 // Update properties
                 vendor.Name = vendorDto.Name;
-
                 vendor.CompanyName = vendorDto.CompanyName;
                 vendor.ContactPerson = vendorDto.ContactPerson;
                 vendor.ContactEmail = vendorDto.ContactEmail;
@@ -267,6 +253,7 @@ namespace DT_PODSystem.Services.Implementation
 
                 // Clear cache
                 _cache.Remove(CACHE_KEY_VENDORS);
+                _cache.Remove(CACHE_KEY_ORGANIZATIONAL_HIERARCHY);
 
                 _logger.LogInformation("Vendor updated: {VendorId} - {VendorName}", id, vendor.Name);
                 return ServiceResult<Vendor>.SuccessResult(vendor, "Vendor updated successfully");
@@ -288,13 +275,13 @@ namespace DT_PODSystem.Services.Implementation
                     return ServiceResult<bool>.ErrorResult("Vendor not found");
                 }
 
-                // Check if vendor is in use
-                var templatesCount = await _context.PdfTemplates
-                    .CountAsync(t => t.VendorId == id && t.IsActive);
+                // ✅ UPDATED: Check if vendor is used in PODs (not templates directly)
+                var podsCount = await _context.PODs
+                    .CountAsync(p => p.VendorId == id && p.IsActive);
 
-                if (templatesCount > 0)
+                if (podsCount > 0)
                 {
-                    return ServiceResult<bool>.ErrorResult($"Cannot delete vendor. It is used in {templatesCount} template(s)");
+                    return ServiceResult<bool>.ErrorResult($"Cannot delete vendor. It is used in {podsCount} POD(s)");
                 }
 
                 // Soft delete
@@ -306,6 +293,7 @@ namespace DT_PODSystem.Services.Implementation
 
                 // Clear cache
                 _cache.Remove(CACHE_KEY_VENDORS);
+                _cache.Remove(CACHE_KEY_ORGANIZATIONAL_HIERARCHY);
 
                 _logger.LogInformation("Vendor deleted: {VendorId} - {VendorName}", id, vendor.Name);
                 return ServiceResult<bool>.SuccessResult(true, "Vendor deleted successfully");
@@ -377,7 +365,7 @@ namespace DT_PODSystem.Services.Implementation
                     .Include(d => d.GeneralDirectorate)
                     .FirstAsync(d => d.Id == department.Id);
 
-
+                _logger.LogInformation("Department created: {DepartmentId} - {DepartmentName}", department.Id, department.Name);
                 return ServiceResult<Department>.SuccessResult(createdDepartment, "Department created successfully");
             }
             catch (Exception ex)
@@ -407,8 +395,6 @@ namespace DT_PODSystem.Services.Implementation
                     return ServiceResult<Department>.ErrorResult("General Directorate not found");
                 }
 
-
-
                 var existingByName = await _context.Departments
                     .AnyAsync(d => d.Name == departmentDto.Name &&
                                   d.GeneralDirectorateId == departmentDto.GeneralDirectorateId &&
@@ -420,7 +406,6 @@ namespace DT_PODSystem.Services.Implementation
 
                 // Update properties
                 department.Name = departmentDto.Name;
-
                 department.Description = departmentDto.Description;
                 department.GeneralDirectorateId = departmentDto.GeneralDirectorateId;
                 department.ManagerName = departmentDto.ManagerName;
@@ -459,13 +444,13 @@ namespace DT_PODSystem.Services.Implementation
                     return ServiceResult<bool>.ErrorResult("Department not found");
                 }
 
-                // Check if department is in use
-                var templatesCount = await _context.PdfTemplates
-                    .CountAsync(t => t.DepartmentId == id && t.IsActive);
+                // ✅ UPDATED: Check if department is used in PODs (not templates directly)
+                var podsCount = await _context.PODs
+                    .CountAsync(p => p.DepartmentId == id && p.IsActive);
 
-                if (templatesCount > 0)
+                if (podsCount > 0)
                 {
-                    return ServiceResult<bool>.ErrorResult($"Cannot delete department. It is used in {templatesCount} template(s)");
+                    return ServiceResult<bool>.ErrorResult($"Cannot delete department. It is used in {podsCount} POD(s)");
                 }
 
                 // Soft delete
@@ -516,7 +501,6 @@ namespace DT_PODSystem.Services.Implementation
         {
             try
             {
-
                 var existingByName = await _context.GeneralDirectorates
                     .AnyAsync(g => g.Name == gd.Name && g.IsActive);
                 if (existingByName)
@@ -531,7 +515,7 @@ namespace DT_PODSystem.Services.Implementation
                 _cache.Remove(CACHE_KEY_GENERAL_DIRECTORATES);
                 _cache.Remove(CACHE_KEY_ORGANIZATIONAL_HIERARCHY);
 
-
+                _logger.LogInformation("General Directorate created: {GDId} - {GDName}", gd.Id, gd.Name);
                 return ServiceResult<GeneralDirectorate>.SuccessResult(gd, "General Directorate created successfully");
             }
             catch (Exception ex)
@@ -560,7 +544,6 @@ namespace DT_PODSystem.Services.Implementation
 
                 // Update properties
                 gd.Name = gdDto.Name;
-
                 gd.Description = gdDto.Description;
                 gd.ManagerName = gdDto.ManagerName;
                 gd.ContactEmail = gdDto.ContactEmail;
@@ -675,7 +658,6 @@ namespace DT_PODSystem.Services.Implementation
                     {
                         Id = g.Id,
                         Name = g.Name,
-
                         Description = g.Description,
                         ManagerName = g.ManagerName,
                         ContactEmail = g.ContactEmail,
@@ -687,7 +669,6 @@ namespace DT_PODSystem.Services.Implementation
                     {
                         Id = d.Id,
                         Name = d.Name,
-
                         Description = d.Description,
                         GeneralDirectorateId = d.GeneralDirectorateId,
                         GeneralDirectorateName = d.GeneralDirectorate.Name,
@@ -701,7 +682,6 @@ namespace DT_PODSystem.Services.Implementation
                     {
                         Id = v.Id,
                         Name = v.Name,
-
                         CompanyName = v.CompanyName,
                         ContactPerson = v.ContactPerson,
                         ContactEmail = v.ContactEmail,
@@ -751,6 +731,8 @@ namespace DT_PODSystem.Services.Implementation
                 return false;
             }
         }
+
+        // ✅ UPDATED: GetUsageDetailsAsync now checks POD usage instead of direct template usage
         public async Task<LookupUsageDetailsDto> GetUsageDetailsAsync(string entityType, int id)
         {
             try
@@ -775,14 +757,23 @@ namespace DT_PODSystem.Services.Implementation
                         if (category != null)
                         {
                             usageDetails.LookupName = category.Name;
-                            var templateCount = await _context.PdfTemplates.CountAsync(t => t.CategoryId == id && t.IsActive);
-                            usageDetails.TotalUsageCount = templateCount;
-                            usageDetails.UsageBreakdown["Templates"] = templateCount;
-                            if (templateCount > 0)
+
+                            // ✅ UPDATED: Check PODs instead of templates directly
+                            var podsCount = await _context.PODs.CountAsync(p => p.CategoryId == id && p.IsActive);
+                            var templatesCount = await _context.PODs
+                                .Where(p => p.CategoryId == id && p.IsActive)
+                                .SelectMany(p => p.Templates)
+                                .CountAsync(t => t.IsActive);
+
+                            usageDetails.TotalUsageCount = podsCount;
+                            usageDetails.UsageBreakdown["PODs"] = podsCount;
+                            usageDetails.UsageBreakdown["Templates"] = templatesCount;
+
+                            if (podsCount > 0)
                             {
                                 usageDetails.IsInUse = true;
                                 usageDetails.CanBeDeleted = false;
-                                usageDetails.Dependencies.Add($"{templateCount} template(s)");
+                                usageDetails.Dependencies.Add($"{podsCount} POD(s) with {templatesCount} template(s)");
                             }
                         }
                         break;
@@ -792,14 +783,23 @@ namespace DT_PODSystem.Services.Implementation
                         if (vendor != null)
                         {
                             usageDetails.LookupName = vendor.Name;
-                            var templateCount = await _context.PdfTemplates.CountAsync(t => t.VendorId == id && t.IsActive);
-                            usageDetails.TotalUsageCount = templateCount;
-                            usageDetails.UsageBreakdown["Templates"] = templateCount;
-                            if (templateCount > 0)
+
+                            // ✅ UPDATED: Check PODs instead of templates directly
+                            var podsCount = await _context.PODs.CountAsync(p => p.VendorId == id && p.IsActive);
+                            var templatesCount = await _context.PODs
+                                .Where(p => p.VendorId == id && p.IsActive)
+                                .SelectMany(p => p.Templates)
+                                .CountAsync(t => t.IsActive);
+
+                            usageDetails.TotalUsageCount = podsCount;
+                            usageDetails.UsageBreakdown["PODs"] = podsCount;
+                            usageDetails.UsageBreakdown["Templates"] = templatesCount;
+
+                            if (podsCount > 0)
                             {
                                 usageDetails.IsInUse = true;
                                 usageDetails.CanBeDeleted = false;
-                                usageDetails.Dependencies.Add($"{templateCount} template(s)");
+                                usageDetails.Dependencies.Add($"{podsCount} POD(s) with {templatesCount} template(s)");
                             }
                         }
                         break;
@@ -809,14 +809,23 @@ namespace DT_PODSystem.Services.Implementation
                         if (department != null)
                         {
                             usageDetails.LookupName = department.Name;
-                            var templateCount = await _context.PdfTemplates.CountAsync(t => t.DepartmentId == id && t.IsActive);
-                            usageDetails.TotalUsageCount = templateCount;
-                            usageDetails.UsageBreakdown["Templates"] = templateCount;
-                            if (templateCount > 0)
+
+                            // ✅ UPDATED: Check PODs instead of templates directly
+                            var podsCount = await _context.PODs.CountAsync(p => p.DepartmentId == id && p.IsActive);
+                            var templatesCount = await _context.PODs
+                                .Where(p => p.DepartmentId == id && p.IsActive)
+                                .SelectMany(p => p.Templates)
+                                .CountAsync(t => t.IsActive);
+
+                            usageDetails.TotalUsageCount = podsCount;
+                            usageDetails.UsageBreakdown["PODs"] = podsCount;
+                            usageDetails.UsageBreakdown["Templates"] = templatesCount;
+
+                            if (podsCount > 0)
                             {
                                 usageDetails.IsInUse = true;
                                 usageDetails.CanBeDeleted = false;
-                                usageDetails.Dependencies.Add($"{templateCount} template(s)");
+                                usageDetails.Dependencies.Add($"{podsCount} POD(s) with {templatesCount} template(s)");
                             }
                         }
                         break;
@@ -826,14 +835,27 @@ namespace DT_PODSystem.Services.Implementation
                         if (gd != null)
                         {
                             usageDetails.LookupName = gd.Name;
+
+                            // Check departments first (direct relationship)
                             var departmentCount = await _context.Departments.CountAsync(d => d.GeneralDirectorateId == id && d.IsActive);
-                            usageDetails.TotalUsageCount = departmentCount;
+
+                            // ✅ UPDATED: Also check PODs through departments
+                            var podsCount = await _context.PODs
+                                .Include(p => p.Department)
+                                .CountAsync(p => p.Department.GeneralDirectorateId == id && p.IsActive);
+
+                            usageDetails.TotalUsageCount = departmentCount + podsCount;
                             usageDetails.UsageBreakdown["Departments"] = departmentCount;
-                            if (departmentCount > 0)
+                            usageDetails.UsageBreakdown["PODs"] = podsCount;
+
+                            if (departmentCount > 0 || podsCount > 0)
                             {
                                 usageDetails.IsInUse = true;
                                 usageDetails.CanBeDeleted = false;
-                                usageDetails.Dependencies.Add($"{departmentCount} department(s)");
+                                var dependencies = new List<string>();
+                                if (departmentCount > 0) dependencies.Add($"{departmentCount} department(s)");
+                                if (podsCount > 0) dependencies.Add($"{podsCount} POD(s)");
+                                usageDetails.Dependencies.AddRange(dependencies);
                             }
                         }
                         break;
@@ -870,6 +892,7 @@ namespace DT_PODSystem.Services.Implementation
                         category.ModifiedDate = DateTime.UtcNow;
                         category.ModifiedBy = "System";
                         _cache.Remove(CACHE_KEY_CATEGORIES);
+                        _cache.Remove(CACHE_KEY_ORGANIZATIONAL_HIERARCHY);
                         break;
 
                     case "vendor":
@@ -879,6 +902,7 @@ namespace DT_PODSystem.Services.Implementation
                         vendor.ModifiedDate = DateTime.UtcNow;
                         vendor.ModifiedBy = "System";
                         _cache.Remove(CACHE_KEY_VENDORS);
+                        _cache.Remove(CACHE_KEY_ORGANIZATIONAL_HIERARCHY);
                         break;
 
                     case "department":
@@ -915,10 +939,6 @@ namespace DT_PODSystem.Services.Implementation
                 return ServiceResult<bool>.ErrorResult("Failed to update status");
             }
         }
-
-
-
-
 
         #endregion
     }
