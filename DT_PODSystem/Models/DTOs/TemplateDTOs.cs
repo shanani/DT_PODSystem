@@ -7,6 +7,302 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace DT_PODSystem.Models.DTOs
 {
+
+    // ✅ UPDATED: Step1DataDto - Now for POD creation, not Template
+    public class Step1DataDto
+    {
+        // ✅ MOVED TO POD: Business fields
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int CategoryId { get; set; }
+        public int DepartmentId { get; set; }
+        public int? VendorId { get; set; }
+
+        // ✅ NEW POD FIELDS:
+        public string? PONumber { get; set; }
+        public string? ContractNumber { get; set; }
+        public AutomationStatus AutomationStatus { get; set; } = AutomationStatus.PDF;
+        public ProcessingFrequency Frequency { get; set; } = ProcessingFrequency.Monthly;
+        public string? VendorSPOCUsername { get; set; }
+        public string? GovernorSPOCUsername { get; set; }
+        public string? FinanceSPOCUsername { get; set; }
+
+        // ✅ MOVED TO POD: Business configuration
+        public bool RequiresApproval { get; set; }
+        public bool IsFinancialData { get; set; }
+        public int ProcessingPriority { get; set; } = 5;
+
+        // ✅ UPDATED: Now for Template technical settings only
+        public string NamingConvention { get; set; } = "DOC_POD";
+        public string? TechnicalNotes { get; set; }
+        public bool HasFormFields { get; set; } = false;
+        public string? ExpectedPdfVersion { get; set; }
+        public int? ExpectedPageCount { get; set; }
+
+        public bool IsActive { get; set; } = true;
+        public TemplateStatus Status { get; set; } = TemplateStatus.Draft;
+
+        // UI Support
+        public List<SelectListItem> Categories { get; internal set; } = new();
+        public List<SelectListItem> Departments { get; internal set; } = new();
+        public List<SelectListItem> Vendors { get; internal set; } = new();
+    }
+
+    // ✅ UPDATED: TemplateDefinitionDto - Now minimal for templates
+    public class TemplateDefinitionDto
+    {
+        public int Id { get; set; }
+        public int PODId { get; set; } // ✅ NEW: Parent POD reference
+
+        // ✅ REMOVED: Name, Description, CategoryId, DepartmentId, VendorId (now in POD)
+
+        // ✅ TECHNICAL ONLY:
+        public string NamingConvention { get; set; } = "DOC_POD";
+        public TemplateStatus Status { get; set; }
+        public string? Version { get; set; }
+        public int ProcessingPriority { get; set; } = 5;
+        public string? TechnicalNotes { get; set; }
+        public bool HasFormFields { get; set; }
+        public string? ExpectedPdfVersion { get; set; }
+        public int? ExpectedPageCount { get; set; }
+    }
+
+    // ✅ NEW: POD DTOs
+    public class PODDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string PODCode { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? PONumber { get; set; }
+        public string? ContractNumber { get; set; }
+
+        // Organizational relationships
+        public int CategoryId { get; set; }
+        public int DepartmentId { get; set; }
+        public int? VendorId { get; set; }
+
+        // Configuration
+        public AutomationStatus AutomationStatus { get; set; }
+        public ProcessingFrequency Frequency { get; set; }
+        public string? VendorSPOCUsername { get; set; }
+        public string? GovernorSPOCUsername { get; set; }
+        public string? FinanceSPOCUsername { get; set; }
+
+        // Status and workflow
+        public PODStatus Status { get; set; }
+        public string? Version { get; set; }
+        public bool RequiresApproval { get; set; }
+        public bool IsFinancialData { get; set; }
+        public int ProcessingPriority { get; set; }
+
+        // Navigation data
+        public string CategoryName { get; set; } = string.Empty;
+        public string DepartmentName { get; set; } = string.Empty;
+        public string GeneralDirectorateName { get; set; } = string.Empty;
+        public string VendorName { get; set; } = string.Empty;
+
+        // Statistics
+        public int TemplateCount { get; set; }
+        public int ProcessedCount { get; set; }
+        public DateTime? LastProcessedDate { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+        public DateTime? ModifiedDate { get; set; }
+        public string CreatedBy { get; set; } = string.Empty;
+    }
+
+    // ✅ UPDATED: TemplateFilterOption - Now includes POD info
+    public class TemplateFilterOption
+    {
+        public int Id { get; set; }
+        public int PODId { get; set; } // ✅ NEW: Parent POD
+        public string PODName { get; set; } = string.Empty; // ✅ NEW: Display POD name instead of template name
+        public string NamingConvention { get; set; } = string.Empty; // ✅ UPDATED: Technical naming only
+
+        // ✅ POD BUSINESS INFO:
+        public string CategoryName { get; set; } = string.Empty;
+        public string VendorName { get; set; } = string.Empty;
+        public string DepartmentName { get; set; } = string.Empty;
+        public string GeneralDirectorateName { get; set; } = string.Empty;
+        public int FieldCount { get; set; }
+
+        // ✅ TECHNICAL INFO:
+        public TemplateStatus Status { get; set; }
+        public string Version { get; set; } = string.Empty;
+    }
+
+    // ✅ UPDATED: MappedFieldSearchResult - Now includes POD info
+    public class MappedFieldSearchResult
+    {
+        public int FieldId { get; set; }
+        public string FieldName { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string DataType { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+
+        // ✅ UPDATED: Template and POD Information
+        public int TemplateId { get; set; }
+        public int PODId { get; set; } // ✅ NEW
+        public string PODName { get; set; } = string.Empty; // ✅ NEW: Primary display name
+        public string PODCode { get; set; } = string.Empty; // ✅ NEW
+        public string TemplateNamingConvention { get; set; } = string.Empty; // ✅ UPDATED: Technical name only
+
+        // ✅ POD BUSINESS INFO:
+        public string CategoryName { get; set; } = string.Empty;
+        public string VendorName { get; set; } = string.Empty;
+        public string DepartmentName { get; set; } = string.Empty;
+        public string GeneralDirectorateName { get; set; } = string.Empty;
+    }
+
+    // ✅ UPDATED: SaveProgressRequest - Now saves POD + Template data
+    public class SaveProgressRequest
+    {
+        // ✅ POD DATA:
+        public int? PODId { get; set; } // ✅ NEW: POD ID if editing
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string? PONumber { get; set; }
+        public string? ContractNumber { get; set; }
+        public int? CategoryId { get; set; }
+        public int? DepartmentId { get; set; }
+        public int? VendorId { get; set; }
+        public AutomationStatus AutomationStatus { get; set; } = AutomationStatus.PDF;
+        public ProcessingFrequency Frequency { get; set; } = ProcessingFrequency.Monthly;
+        public string? VendorSPOCUsername { get; set; }
+        public string? GovernorSPOCUsername { get; set; }
+        public string? FinanceSPOCUsername { get; set; }
+        public bool RequiresApproval { get; set; }
+        public bool IsFinancialData { get; set; }
+        public int ProcessingPriority { get; set; } = 5;
+
+        // ✅ TEMPLATE DATA:
+        public int TemplateId { get; set; }
+        public string NamingConvention { get; set; } = "DOC_POD";
+        public string? TechnicalNotes { get; set; }
+        public bool HasFormFields { get; set; } = false;
+        public string? ExpectedPdfVersion { get; set; }
+        public int? ExpectedPageCount { get; set; }
+
+        // Step data matching JavaScript
+        public List<UploadedFileData> UploadedFiles { get; set; } = new List<UploadedFileData>();
+        public List<FieldMappingData> FieldMappings { get; set; } = new List<FieldMappingData>();
+    }
+
+    // ✅ UNCHANGED: Step2DataDto, Step3DataDto, FieldMappingDto, etc. remain the same
+    public class Step2DataDto
+    {
+        public List<UploadedFileDto> UploadedFiles { get; set; } = new();
+        public string PrimaryFileName { get; set; } = string.Empty;
+    }
+
+    public class Step3DataDto
+    {
+        public List<FieldMappingDto> FieldMappings { get; set; } = new();
+        public List<TemplateAnchorDto> TemplateAnchors { get; set; } = new();
+    }
+
+    // ✅ UNCHANGED: File and field mapping DTOs
+    public class UploadedFileDto
+    {
+        public string OriginalFileName { get; set; } = string.Empty;
+        public string SavedFileName { get; set; } = string.Empty;
+        public string FilePath { get; set; } = string.Empty;
+        public long FileSize { get; set; }
+        public string ContentType { get; set; } = string.Empty;
+        public bool IsPrimary { get; set; }
+        public bool Success { get; set; }
+        public DateTime UploadedAt { get; set; }
+        public int PageCount { get; set; }
+        public string? PdfVersion { get; set; }
+        public bool HasFormFields { get; set; }
+    }
+
+    public class FieldMappingDto
+    {
+        public int Id { get; set; }
+        [Required] public string FieldName { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public bool IsRequired { get; set; }
+        public int PageNumber { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public string ValidationPattern { get; set; } = string.Empty;
+        public string ValidationMessage { get; set; } = string.Empty;
+        public decimal? MinValue { get; set; }
+        public decimal? MaxValue { get; set; }
+        public string DefaultValue { get; set; } = string.Empty;
+        public bool UseOCR { get; set; }
+        public string OCRLanguage { get; set; } = "en";
+        public decimal OCRConfidenceThreshold { get; set; } = 0.8m;
+        public int DisplayOrder { get; set; }
+        public string BorderColor { get; set; } = "#A54EE1";
+        public bool IsVisible { get; set; } = true;
+    }
+
+    public class TemplateAnchorDto
+    {
+        public int Id { get; set; }
+        public int TemplateId { get; set; }
+        public int PageNumber { get; set; } = 1;
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public string ReferenceText { get; set; } = string.Empty;
+        public string? ReferencePattern { get; set; }
+        public bool IsRequired { get; set; } = true;
+        public decimal ConfidenceThreshold { get; set; } = 0.8m;
+        public int DisplayOrder { get; set; }
+        public string? Color { get; set; } = "#00C48C";
+        public bool IsVisible { get; set; } = true;
+        public string? BorderColor { get; set; } = "#00C48C";
+    }
+
+    // ✅ UNCHANGED: Validation and finalization DTOs
+    public class FinalizeTemplateRequest
+    {
+        public int TemplateId { get; set; }
+        public SaveProgressRequest? ProgressData { get; set; }
+        public bool RunPreValidation { get; set; } = true;
+        public bool CreateBackup { get; set; } = true;
+        public string? ActivationNotes { get; set; }
+    }
+
+    public class TemplateValidationResult
+    {
+        public bool IsValid { get; set; }
+        public List<string> Errors { get; set; } = new List<string>();
+        public List<string> Warnings { get; set; } = new List<string>();
+        public string? GeneratedFormula { get; set; }
+    }
+
+    // Supporting data classes
+    public class UploadedFileData
+    {
+        public bool Success { get; set; }
+        public object Data { get; set; } = new object();
+        public string SavedFileName { get; set; } = string.Empty;
+        public string OriginalFileName { get; set; } = string.Empty;
+    }
+
+    public class FieldMappingData
+    {
+        public object Id { get; set; } = 0;
+        public string FieldName { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public Dictionary<string, object>? Coordinates { get; set; }
+        public object TemplateAnchor { get; set; } = new object();
+    }
+
+
+
     // ✅ Add this DTO class (can be in DTOs folder or same file)
     public class MappedFieldInfo
     {
@@ -18,67 +314,7 @@ namespace DT_PODSystem.Models.DTOs
         public string Description { get; set; } = string.Empty;
         public string DataType { get; set; } = string.Empty;
     }
-
-    public class TemplateAnchorDto
-    {
-        public int Id { get; set; }
-
-        [Required]
-        public int TemplateId { get; set; }
-
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Page number must be greater than 0")]
-        public int PageNumber { get; set; } = 1;
-
-        [Required]
-        [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2-100 characters")]
-        public string Name { get; set; } = string.Empty;
-
-        [StringLength(300, ErrorMessage = "Description cannot exceed 300 characters")]
-        public string? Description { get; set; }
-
-        // Rectangle coordinates
-        [Required]
-        [Range(0, double.MaxValue, ErrorMessage = "X coordinate must be non-negative")]
-        public double X { get; set; }
-
-        [Required]
-        [Range(0, double.MaxValue, ErrorMessage = "Y coordinate must be non-negative")]
-        public double Y { get; set; }
-
-        [Required]
-        [Range(1, double.MaxValue, ErrorMessage = "Width must be greater than 0")]
-        public double Width { get; set; }
-
-        [Required]
-        [Range(1, double.MaxValue, ErrorMessage = "Height must be greater than 0")]
-        public double Height { get; set; }
-
-        // Reference text for anchor detection
-        [Required]
-        [StringLength(200, MinimumLength = 3, ErrorMessage = "Reference text must be between 3-200 characters")]
-        public string ReferenceText { get; set; } = string.Empty;
-
-        [StringLength(300, ErrorMessage = "Reference pattern cannot exceed 300 characters")]
-        public string? ReferencePattern { get; set; }
-
-        // Validation settings
-        public bool IsRequired { get; set; } = true;
-
-        [Range(0.1, 1.0, ErrorMessage = "Confidence threshold must be between 0.1 and 1.0")]
-        public decimal ConfidenceThreshold { get; set; } = 0.8m;
-
-        // Display properties
-        public int DisplayOrder { get; set; }
-
-        [StringLength(50)]
-        public string? Color { get; set; } = "#00C48C";
-
-        [StringLength(50)]
-        public string? BorderColor { get; set; } = "#00C48C";
-
-        public bool IsVisible { get; set; } = true;
-    }
+     
 
     public class FileUploadDto
     {
@@ -254,176 +490,7 @@ namespace DT_PODSystem.Models.DTOs
         public string? DepartmentName { get; set; }
 
     }
-    public class TemplateFilterOption
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string CategoryName { get; set; } = string.Empty;
-        public string VendorName { get; set; } = string.Empty;
-        public string DepartmentName { get; set; } = string.Empty;
-        public string GeneralDirectorateName { get; set; } = string.Empty;
-        public int FieldCount { get; set; }
-    }
-
-
-    /// <summary>
-    /// Result model for mapped field search results
-    /// </summary>
-    public class MappedFieldSearchResult
-    {
-        public int FieldId { get; set; }
-        public string FieldName { get; set; } = string.Empty;
-        public string DisplayName { get; set; } = string.Empty;
-        public string DataType { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-
-        // Template Information
-        public int TemplateId { get; set; }
-        public string TemplateName { get; set; } = string.Empty;
-        public string CategoryName { get; set; } = string.Empty;
-        public string VendorName { get; set; } = string.Empty;
-        public string DepartmentName { get; set; } = string.Empty;
-        public string GeneralDirectorateName { get; set; } = string.Empty;
-    }
-
-
-
-
-
-    // ✅ Template Step DTOs (Steps 1-3) - NO CHANGES
-    public class Step1DataDto
-    {
-        public List<UploadedFileDto> UploadedFiles { get; set; } = new();
-        public string PrimaryFileName { get; set; } = string.Empty;
-    }
-
-    public class Step2DataDto
-    {
-        public string Name { get; set; } = string.Empty;
-        public string NamingConvention { get; set; } = string.Empty;
-        public int CategoryId { get; set; }
-        public int DepartmentId { get; set; }
-        public int? VendorId { get; set; }
-        public string Description { get; set; } = string.Empty;
-        public bool IsActive { get; set; } = true;
-        public TemplateStatus Status { get; set; }
-        public bool RequiresApproval { get; set; }
-        public bool IsFinancialData { get; set; }
-        public int ProcessingPriority { get; set; }
-        public List<SelectListItem> Categories { get; internal set; }
-        public List<SelectListItem> Departments { get; internal set; }
-        public List<SelectListItem> Vendors { get; internal set; }
-    }
-
-    public class Step3DataDto
-    {
-        public List<FieldMappingDto> FieldMappings { get; set; } = new();
-        public List<TemplateAnchor> TemplateAnchors { get; set; } = new();
-    }
-
-    public class UploadedFileDto
-    {
-        public string OriginalFileName { get; set; } = string.Empty;
-        public string SavedFileName { get; set; } = string.Empty;
-        public string FilePath { get; set; } = string.Empty;
-        public long FileSize { get; set; }
-        public string ContentType { get; set; } = string.Empty;
-    }
-
-    // ✅ Template Finalization (happens in Step 3) - NO CHANGES
-    public class FinalizeTemplateRequest
-    {
-        public int TemplateId { get; set; }
-        public SaveProgressRequest? ProgressData { get; set; }
-        public bool RunPreValidation { get; set; } = true;
-        public bool CreateBackup { get; set; } = true;
-        public string? ActivationNotes { get; set; }
-    }
-
-    public class SaveProgressRequest
-    {
-        public int TemplateId { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string NamingConvention { get; set; } = string.Empty;
-        public int? CategoryId { get; set; }
-        public int? DepartmentId { get; set; }
-        public int? VendorId { get; set; }
-        public bool RequiresApproval { get; set; }
-        public bool IsFinancialData { get; set; }
-        public int ProcessingPriority { get; set; } = 5;
-
-        // Step data matching JavaScript
-        public List<UploadedFileData> UploadedFiles { get; set; } = new List<UploadedFileData>();
-        public List<FieldMappingData> FieldMappings { get; set; } = new List<FieldMappingData>();
-    }
-
-    // Matching JS data structures exactly
-    public class UploadedFileData
-    {
-        public bool Success { get; set; }
-        public object Data { get; set; } = new object();
-        public string SavedFileName { get; set; } = string.Empty;
-        public string OriginalFileName { get; set; } = string.Empty;
-    }
-
-    public class FieldMappingData
-    {
-        public object Id { get; set; } = 0;
-        public string FieldName { get; set; } = string.Empty;
-        public string DisplayName { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public Dictionary<string, object>? Coordinates { get; set; }
-        public object TemplateAnchor { get; set; } = new object();
-    }
-
-    // ✅ Template Validation Results - NO CHANGES
-    public class TemplateValidationResult
-    {
-        public bool IsValid { get; set; }
-        public List<string> Errors { get; set; } = new List<string>();
-        public List<string> Warnings { get; set; } = new List<string>();
-        public string? GeneratedFormula { get; set; }
-    }
-
-    public class TemplateDefinitionDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public string? NamingConvention { get; set; }
-        public int CategoryId { get; set; }
-        public int DepartmentId { get; set; }
-        public int? VendorId { get; set; }
-        public TemplateStatus Status { get; set; }
-    }
-
-    // ✅ Field Mapping DTOs (Step 3) - NO CHANGES
-    public class FieldMappingDto
-    {
-        public int Id { get; set; }
-        [Required] public string FieldName { get; set; } = string.Empty;
-        public string DisplayName { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public bool IsRequired { get; set; }
-        public int PageNumber { get; set; }
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Width { get; set; }
-        public double Height { get; set; }
-        public string ValidationPattern { get; set; } = string.Empty;
-        public string ValidationMessage { get; set; } = string.Empty;
-        public decimal? MinValue { get; set; }
-        public decimal? MaxValue { get; set; }
-        public string DefaultValue { get; set; } = string.Empty;
-        public bool UseOCR { get; set; }
-        public string OCRLanguage { get; set; } = "en";
-        public decimal OCRConfidenceThreshold { get; set; } = 0.8m;
-        public int DisplayOrder { get; set; }
-        public string BorderColor { get; set; } = "#A54EE1";
-        public bool IsVisible { get; set; } = true;
-        public List<TemplateAnchorDto> TemplateAnchors { get; set; } = new List<TemplateAnchorDto>();
-    }
+     
 
     public class SaveFieldMappingsRequest
     {

@@ -7,20 +7,20 @@ using DT_PODSystem.Models.Enums;
 namespace DT_PODSystem.Models.Entities
 {
     /// <summary>
-    /// Main template definitions with organizational relationships
+    /// PdfTemplate - Simplified technical entity for PDF processing configuration
+    /// Now a child of POD. Contains only technical PDF processing settings.
+    /// Business logic (Name, Category, Department, Vendor, Description) moved to POD parent.
     /// </summary>
     public class PdfTemplate : BaseEntity
     {
+        // Parent POD relationship
         [Required]
-        [StringLength(200)]
-        public string Name { get; set; } = string.Empty;
+        public int PODId { get; set; }
 
+        // Technical PDF processing configuration
         [Required]
         [StringLength(100)]
         public string NamingConvention { get; set; } = "DOC_POD";
-
-        [StringLength(1000)]
-        public string? Description { get; set; }
 
         [Required]
         public TemplateStatus Status { get; set; } = TemplateStatus.Draft;
@@ -28,21 +28,8 @@ namespace DT_PODSystem.Models.Entities
         [StringLength(50)]
         public string? Version { get; set; } = "1.0";
 
-        // Organizational relationships
-        [Required]
-        public int CategoryId { get; set; }
-
-        [Required]
-        public int DepartmentId { get; set; }
-
-        public int? VendorId { get; set; }
-
-        // Template configuration
-        public bool RequiresApproval { get; set; } = false;
-
-        public bool IsFinancialData { get; set; } = false;
-
-        public int ProcessingPriority { get; set; } = 5; // 1-10 scale
+        // Technical processing settings
+        public int ProcessingPriority { get; set; } = 5; // 1-10 scale (can override POD priority)
 
         [StringLength(100)]
         public string? ApprovedBy { get; set; }
@@ -53,21 +40,28 @@ namespace DT_PODSystem.Models.Entities
 
         public int ProcessedCount { get; set; } = 0;
 
+        // Technical notes for this specific template configuration
+        [StringLength(500)]
+        public string? TechnicalNotes { get; set; }
+
+        // PDF-specific settings
+        public bool HasFormFields { get; set; } = false;
+
+        [StringLength(50)]
+        public string? ExpectedPdfVersion { get; set; }
+
+        public int? ExpectedPageCount { get; set; }
+
         // Navigation properties
-        [ForeignKey("CategoryId")]
-        public virtual Category Category { get; set; } = null!;
+        [ForeignKey("PODId")]
+        public virtual POD POD { get; set; } = null!;
 
-        [ForeignKey("DepartmentId")]
-        public virtual Department Department { get; set; } = null!;
-
-        [ForeignKey("VendorId")]
-        public virtual Vendor? Vendor { get; set; }
-
+        // Technical child entities - PDF processing specific
         public virtual ICollection<TemplateAttachment> Attachments { get; set; } = new List<TemplateAttachment>();
         public virtual ICollection<FieldMapping> FieldMappings { get; set; } = new List<FieldMapping>();
-
-        public virtual ICollection<ProcessedFile> ProcessedFiles { get; set; } = new List<ProcessedFile>();
-
         public virtual ICollection<TemplateAnchor> TemplateAnchors { get; set; } = new List<TemplateAnchor>();
+
+        // Processing results still linked to template for technical tracking
+        public virtual ICollection<ProcessedFile> ProcessedFiles { get; set; } = new List<ProcessedFile>();
     }
 }

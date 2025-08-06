@@ -21,8 +21,8 @@ namespace DT_PODSystem.Services.Interfaces
         Task<SearchMappedFieldsResponse> SearchMappedFieldsAsync(SearchMappedFieldsRequest request);
 
         // Step-specific save methods
-        Task<bool> SaveStep1DataAsync(int templateId, Step1DataDto stepData);
         Task<bool> SaveStep2DataAsync(int templateId, Step2DataDto stepData);
+        Task<bool> SaveStep1DataAsync(int templateId, Step1DataDto stepData);
 
         // Template lifecycle methods
         Task<bool> FinalizeTemplateAsync(int templateId);

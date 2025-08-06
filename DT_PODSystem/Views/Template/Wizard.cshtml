@@ -35,10 +35,11 @@
                 switch (Model.CurrentStep)
                 {
                     case 1:
-                        <partial name="Step1-Upload" model="Model.Step1" />
+                        <partial name="Step1-TemplateDetails" model="Model.Step1" />
+                       
                         break;
                     case 2:
-                        <partial name="Step2-TemplateDetails" model="Model.Step2" />
+                        <partial name="Step2-Upload" model="Model.Step2" />
                         break;
                     case 3:
                         <partial name="Step3-Mapping" model="Model.Step3" />
@@ -119,9 +120,9 @@
             window.serverWizardData.templateId = @Model.TemplateId;
             window.serverWizardData.totalSteps = 3;
 
-            // ✅ KEEP THIS FIX: Ensure step1Data structure exists with files
-            window.serverWizardData.step1Data = window.serverWizardData.step1Data || {};
-            window.serverWizardData.step1Data.uploadedFiles = window.serverWizardData.step1?.uploadedFiles || [];
+            // ✅ KEEP THIS FIX: Ensure step2Data structure exists with files
+            window.serverWizardData.step2Data = window.serverWizardData.step2Data || {};
+            window.serverWizardData.step2Data.uploadedFiles = window.serverWizardData.step2?.uploadedFiles || [];
         }
 
         @if (Model.CurrentStep == 3)

@@ -1,3 +1,4 @@
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using DT_PODSystem.Models.Enums;
@@ -5,7 +6,8 @@ using DT_PODSystem.Models.Enums;
 namespace DT_PODSystem.Models.Entities
 {
     /// <summary>
-    /// Multiple files per template (1:M relationship)
+    /// TemplateAttachment - PDF processing files linked to templates
+    /// Clean design: File information accessed only through UploadedFile navigation
     /// </summary>
     public class TemplateAttachment : BaseEntity
     {
@@ -16,7 +18,7 @@ namespace DT_PODSystem.Models.Entities
         public int UploadedFileId { get; set; }
 
         [Required]
-        public AttachmentType Type { get; set; }
+        public AttachmentType Type { get; set; } = AttachmentType.Reference;
 
         [StringLength(200)]
         public string? DisplayName { get; set; }
@@ -24,17 +26,23 @@ namespace DT_PODSystem.Models.Entities
         [StringLength(500)]
         public string? Description { get; set; }
 
-        public int DisplayOrder { get; set; }
+        public int DisplayOrder { get; set; } = 0;
 
         public bool IsPrimary { get; set; } = false;
 
-        // PDF specific properties
+        // PDF-specific technical properties (attachment-level metadata)
         public int? PageCount { get; set; }
 
         [StringLength(50)]
         public string? PdfVersion { get; set; }
 
         public bool HasFormFields { get; set; } = false;
+
+        // Processing metadata
+        public DateTime? LastProcessed { get; set; }
+
+        [StringLength(100)]
+        public string? ProcessingStatus { get; set; }
 
         // Navigation properties
         [ForeignKey("TemplateId")]
@@ -43,16 +51,6 @@ namespace DT_PODSystem.Models.Entities
         [ForeignKey("UploadedFileId")]
         public virtual UploadedFile UploadedFile { get; set; } = null!;
 
-        [StringLength(255)]
-        public string OriginalFileName { get; set; } = string.Empty;
-
-        [StringLength(255)]
-        public string SavedFileName { get; set; } = string.Empty;
-
-        [StringLength(500)]
-        public string FilePath { get; set; } = string.Empty;
-
-
-
+        // ✅ File information accessed via: UploadedFile.OriginalFileName, UploadedFile.SavedFileName, UploadedFile.FilePath
     }
 }

@@ -1,509 +1,371 @@
-﻿// wizard-step1.js - Step 1 Upload PDF (AJAX Only - No Save on Next)
-// ===================================================================
+﻿// wizard-step1.js - Template Details Step (Updated with File Name Prefix)
+// ========================================================================
 
-let dropzoneInstance = null;
-
+// Initialize Step 1
 function initializeStep1() {
-    console.log('🟢 [STEP1] Initializing Step 1 with AJAX-only approach...');
+    console.log('🟢 Initializing Step 1: Template Details');
 
-    // Clear existing data first
-    $('#uploaded-files-table tbody').empty();
-    wizardData.step1Data = wizardData.step1Data || { uploadedFiles: [] };
+    // Load existing data from server
+    loadServerData();
 
-    // Load existing files from server data
-    loadExistingFiles();
-
-    // Initialize Dropzone with immediate upload
-    initDropzoneForStep1();
-
-    // Setup event handlers
+    // Setup event handlers (NO auto-saving)
     setupStep1EventHandlers();
+
+    // Update preview displays
+    updateAllPreviews();
 }
 
-function loadExistingFiles() {
-    console.log('🟢 [STEP1] Loading existing files from server...');
-    console.log('🟢 [STEP1] Full server data:', window.serverWizardData);
+// Save Step 1 data to database (ONLY called on Next button)
+async function saveStep1Data() {
+    try {
+        const step1Data = getStep1FormData();
 
-    if (window.serverWizardData) {
-        // Try multiple possible locations for the files
-        let serverFiles = null;
-        let primaryFileName = null;
+        console.log('💾 [STEP1] Saving step 1 data:', step1Data);
 
-        // Check different possible locations
-        if (window.serverWizardData.uploadedFiles && window.serverWizardData.uploadedFiles.length > 0) {
-            serverFiles = window.serverWizardData.uploadedFiles;
-            primaryFileName = window.serverWizardData.primaryFileName;
-            console.log('🟢 [STEP1] Found files in root uploadedFiles:', serverFiles);
-        } else if (window.serverWizardData.step1Data && window.serverWizardData.step1Data.uploadedFiles && window.serverWizardData.step1Data.uploadedFiles.length > 0) {
-            serverFiles = window.serverWizardData.step1Data.uploadedFiles;
-            primaryFileName = window.serverWizardData.step1Data.primaryFileName;
-            console.log('🟢 [STEP1] Found files in step1Data.uploadedFiles:', serverFiles);
-        } else if (window.serverWizardData.Step1 && window.serverWizardData.Step1.UploadedFiles && window.serverWizardData.Step1.UploadedFiles.length > 0) {
-            serverFiles = window.serverWizardData.Step1.UploadedFiles;
-            primaryFileName = window.serverWizardData.Step1.PrimaryFileName;
-            console.log('🟢 [STEP1] Found files in Step1.UploadedFiles:', serverFiles);
-        }
-
-        if (serverFiles && serverFiles.length > 0) {
-            console.log('🟢 [STEP1] Loading', serverFiles.length, 'files');
-            console.log('🟢 [STEP1] Primary file should be:', primaryFileName);
-
-            // Clear and repopulate wizard data
-            wizardData.step1Data.uploadedFiles = [];
-
-            // Display each file in table
-            serverFiles.forEach((fileData, index) => {
-                console.log('🟢 [STEP1] Adding file to table:', fileData);
-
-                // Normalize file data format and ensure uploadedAt is included
-                const normalizedFile = {
-                    originalFileName: fileData.originalFileName || fileData.OriginalFileName || 'Unknown',
-                    savedFileName: fileData.savedFileName || fileData.SavedFileName || 'unknown',
-                    filePath: fileData.filePath || fileData.FilePath || '',
-                    contentType: fileData.contentType || fileData.ContentType || 'application/pdf',
-                    fileSize: fileData.fileSize || fileData.FileSize || 0,
-                    pageCount: fileData.pageCount || fileData.PageCount || 0,
-                    uploadedAt: fileData.uploadedAt || fileData.UploadedAt || new Date().toISOString(),
-                    success: true
-                };
-
-                wizardData.step1Data.uploadedFiles.push(normalizedFile);
-
-                // Check if this file should be primary
-                const shouldBePrimary = primaryFileName ?
-                    (normalizedFile.savedFileName === primaryFileName) :
-                    (index === 0);
-
-                addFileToTable(normalizedFile, shouldBePrimary);
-            });
-
-            // Set correct primary selection if specified
-            if (primaryFileName) {
-                setTimeout(() => {
-                    const radioBtn = $(`input[name="primaryFile"][value="${primaryFileName}"]`);
-                    if (radioBtn.length > 0) {
-                        radioBtn.prop('checked', true);
-                        console.log('🟢 [STEP1] Primary file restored:', primaryFileName);
-                    } else {
-                        console.warn('🟢 [STEP1] Primary file not found in table:', primaryFileName);
-                        // If specified primary not found, select first file
-                        $('#uploaded-files-table tbody tr:first input[type="radio"]').prop('checked', true);
-                    }
-                }, 100);
-            } else {
-                console.log('🟢 [STEP1] No primary file specified, using first file');
-            }
-
-            updateFilesCount();
-            $('#no-files-message').hide();
-        } else {
-            console.log('🟢 [STEP1] No files found in any location');
-            $('#no-files-message').show();
-        }
-    } else {
-        console.log('🟢 [STEP1] No server wizard data found');
-        $('#no-files-message').show();
-    }
-}
-
-function initDropzoneForStep1() {
-    if (typeof Dropzone !== 'undefined') {
-        Dropzone.autoDiscover = false;
-        const dropzoneElement = document.getElementById('template-dropzone');
-
-        if (!dropzoneElement) {
-            console.error('🟢 [STEP1] Dropzone element #template-dropzone not found');
-            return;
-        }
-
-        // Clean up existing instance
-        if (dropzoneInstance) {
-            dropzoneInstance.destroy();
-            dropzoneInstance = null;
-        }
-        if (dropzoneElement.dropzone) {
-            dropzoneElement.dropzone.destroy();
-            delete dropzoneElement.dropzone;
-        }
-
-        // Create new Dropzone instance with immediate upload
-        dropzoneInstance = new Dropzone('#template-dropzone', {
-            url: '/Upload/Upload',
-            maxFilesize: 10,
-            acceptedFiles: '.pdf',
-            maxFiles: 5,
-            addRemoveLinks: false,
-            autoProcessQueue: true, // Upload immediately
-            uploadMultiple: false,
-            parallelUploads: 1,
-
+        const response = await fetch('/Template/SaveStep1', {
+            method: 'POST',
             headers: {
+                'Content-Type': 'application/json',
                 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
             },
-
-            init: function () {
-                this.on('success', function (file, response) {
-                    console.log('🟢 [STEP1] Upload success:', response);
-
-                    if (response.success) {
-                        // IMMEDIATE: Process uploaded file
-                        onFileUploadedAjax(response.data);
-                    } else {
-                        alert.error('Upload failed: ' + response.message);
-                    }
-
-                    // Remove from Dropzone UI
-                    this.removeFile(file);
-                });
-
-                this.on('error', function (file, errorMessage) {
-                    console.error('🟢 [STEP1] Upload error:', errorMessage);
-                    alert.error('Upload error: ' + (typeof errorMessage === 'string' ? errorMessage : 'Upload failed'));
-                    this.removeFile(file);
-                });
-
-                this.on('addedfile', function (file) {
-                    console.log('🟢 [STEP1] File added to upload queue:', file.name);
-                });
-            }
+            body: JSON.stringify({
+                TemplateId: wizardData.templateId,
+                Data: step1Data
+            })
         });
 
-        console.log('🟢 [STEP1] Dropzone initialized successfully');
-    } else {
-        console.error('🟢 [STEP1] Dropzone library not available');
-    }
-}
+        const result = await response.json();
 
-function addFileToTable(fileData, isDefaultPrimary = false) {
-    const tbody = $('#uploaded-files-table tbody');
-    const isFirst = tbody.find('tr').length === 0 || isDefaultPrimary;
-
-    const originalFileName = fileData.originalFileName || 'Unknown';
-    const savedFileName = fileData.savedFileName || 'unknown';
-    const fileSize = fileData.fileSize || 0;
-    const pageCount = fileData.pageCount || 0;
-
-    // Format upload date
-    let uploadDateText = '';
-    if (fileData.uploadedAt) {
-        const uploadDate = new Date(fileData.uploadedAt);
-        uploadDateText = uploadDate.toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
-
-    const row = `
-        <tr data-file="${savedFileName}">
-            <td class="text-center">
-                <input type="radio" name="primaryFile" value="${savedFileName}" ${isFirst ? 'checked' : ''} 
-                       class="primary-file-radio" onchange="updatePrimaryFileAjax('${savedFileName}')">
-            </td>
-            <td>
-                <div class="d-flex align-items-center">
-                    <i class="fa fa-file-pdf text-danger me-2"></i>
-                    <div>
-                        <div class="fw-bold" title="${originalFileName}">
-                            ${originalFileName.length > 25 ? originalFileName.substring(0, 25) + '...' : originalFileName}
-                        </div>
-                        <small class="text-muted">
-                            ${(fileSize / 1024 / 1024).toFixed(2)} MB
-                            ${pageCount ? ` • ${pageCount} pages` : ''}
-                            ${uploadDateText ? ` • ${uploadDateText}` : ''}
-                        </small>
-                    </div>
-                </div>
-            </td>
-            <td><span class="badge bg-success">Uploaded</span></td>
-            <td class="file-actions">
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-sm btn-outline-primary"
-                            onclick="previewFile('${savedFileName}')" title="Preview">
-                        <i class="fa fa-eye"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger"
-                            onclick="removeFileAjax('${savedFileName}')" title="Remove">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `;
-
-    tbody.append(row);
-}
-
-// AJAX: Handle file upload success immediately
-function onFileUploadedAjax(fileData) {
-    console.log('🟢 [STEP1] File uploaded via AJAX:', fileData);
-
-    // Normalize file data
-    const normalizedFile = {
-        originalFileName: fileData.originalFileName,
-        savedFileName: fileData.savedFileName,
-        filePath: fileData.filePath,
-        contentType: fileData.contentType,
-        fileSize: fileData.fileSize,
-        pageCount: fileData.pageCount || 0,
-        success: true
-    };
-
-    // IMMEDIATE: Add to wizard data
-    wizardData.step1Data.uploadedFiles.push(normalizedFile);
-
-    // IMMEDIATE: Add to table UI
-    const isFirstFile = wizardData.step1Data.uploadedFiles.length === 1;
-    addFileToTable(normalizedFile, isFirstFile);
-
-    // IMMEDIATE: Update UI
-    updateFilesCount();
-    $('#no-files-message').hide();
-
-    // IMMEDIATE: Set as primary if first file and update via AJAX
-    if (isFirstFile && wizardData.templateId) {
-        setTimeout(() => {
-            updatePrimaryFileAjax(fileData.savedFileName);
-        }, 100);
-    }
-
-    alert.success('File uploaded successfully!', { popup: false });
-}
-
-// AJAX: Update primary file selection immediately
-let isPrimaryUpdateInProgress = false;
-
-function updatePrimaryFileAjax(fileName) {
-    console.log('🔄 [STEP1] Updating primary file via AJAX:', fileName);
-    console.log('🔄 [STEP1] Template ID:', wizardData.templateId);
-
-    if (!wizardData.templateId) {
-        console.warn('🔄 [STEP1] No template ID available for primary file update');
-        return;
-    }
-
-    // Prevent concurrent calls
-    if (isPrimaryUpdateInProgress) {
-        console.log('🔄 [STEP1] Primary update already in progress, skipping...');
-        return;
-    }
-
-    isPrimaryUpdateInProgress = true;
-
-    $.ajax({
-        url: '/Template/UpdatePrimaryFile',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-        },
-        data: JSON.stringify({
-            templateId: wizardData.templateId,
-            primaryFileName: fileName
-        }),
-        success: function (response) {
-            console.log('✅ [STEP1] UpdatePrimaryFile response:', response);
-            if (response.success) {
-                console.log('✅ [STEP1] Primary file updated successfully');
-                console.log('✅ [STEP1] Attachments created:', response.data?.attachmentsCreated);
-                console.log('✅ [STEP1] Attachments updated:', response.data?.attachmentsUpdated);
-                // Update local wizard data
-                wizardData.step1Data.primaryFile = fileName;
-            } else {
-                console.error('❌ [STEP1] Failed to update primary file:', response.message);
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error('❌ [STEP1] AJAX error updating primary file:', error);
-            console.error('❌ [STEP1] Response text:', xhr.responseText);
-        },
-        complete: function () {
-            // Reset flag when request completes (success or error)
-            isPrimaryUpdateInProgress = false;
+        if (result.success) {
+            console.log('💾 [STEP1] ✅ Step 1 saved successfully');
+            return true;
+        } else {
+            console.error('💾 [STEP1] ❌ Save failed:', result.message);
+            alert.error(result.message || 'Failed to save step 1 data');
+            return false;
         }
-    });
-}
-
-// AJAX: Remove file immediately
-function removeFileAjax(fileName) {
-    swal({
-        title: 'Remove File?',
-        text: 'This will permanently remove the file from the template.',
-        icon: 'warning',
-        buttons: {
-            cancel: { text: 'Cancel', className: 'btn btn-default' },
-            confirm: { text: 'Remove', className: 'btn btn-danger' }
-        }
-    }).then((willDelete) => {
-        if (willDelete) {
-            console.log('🗑️ [STEP1] Removing file via AJAX:', fileName);
-
-            // IMMEDIATE: Remove from server (try both endpoints for compatibility)
-            $.ajax({
-                url: '/Upload/DeleteFile', // New endpoint
-                method: 'POST',
-                headers: {
-                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                },
-                data: { fileName: fileName },
-                success: function (response) {
-                    handleFileDeleteSuccess(fileName, response);
-                },
-                error: function (xhr, status, error) {
-                    console.warn('❌ [STEP1] New endpoint failed, trying legacy endpoint...');
-                    // Fallback to old endpoint
-                    $.ajax({
-                        url: '/Upload/DeleteTempFile', // Legacy endpoint
-                        method: 'POST',
-                        headers: {
-                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                        },
-                        data: { fileName: fileName },
-                        success: function (response) {
-                            handleFileDeleteSuccess(fileName, response);
-                        },
-                        error: function (xhr, status, error) {
-                            console.error('❌ [STEP1] Both delete endpoints failed:', error);
-                            alert.error('Failed to delete file from server');
-                        }
-                    });
-                }
-            });
-        }
-    });
-}
-
-function handleFileDeleteSuccess(fileName, response) {
-    if (response.success) {
-        console.log('✅ [STEP1] File deleted from server successfully');
-
-        // IMMEDIATE: Remove from UI
-        $(`tr[data-file="${fileName}"]`).remove();
-
-        // IMMEDIATE: Remove from wizard data
-        wizardData.step1Data.uploadedFiles = wizardData.step1Data.uploadedFiles.filter(f => {
-            return f.savedFileName !== fileName;
-        });
-
-        // IMMEDIATE: Update primary selection if needed
-        if ($('input[name="primaryFile"]:checked').length === 0 && wizardData.step1Data.uploadedFiles.length > 0) {
-            const firstFile = wizardData.step1Data.uploadedFiles[0];
-            const firstFileName = firstFile.savedFileName;
-            $(`input[name="primaryFile"][value="${firstFileName}"]`).prop('checked', true);
-            updatePrimaryFileAjax(firstFileName);
-        }
-
-        updateFilesCount();
-        alert.success('File removed successfully!', { popup: false });
-    } else {
-        console.error('❌ [STEP1] Delete failed:', response.message);
-        alert.error(response.message || 'Failed to delete file');
+    } catch (error) {
+        console.error('💾 [STEP1] ❌ Save error:', error);
+        alert.error('Error saving step 1 data');
+        return false;
     }
 }
 
-// Legacy remove function for backward compatibility
-function removeFile(fileName) {
-    removeFileAjax(fileName);
-}
+ 
 
-function previewFile(fileName) {
-    window.open(`/Upload/Preview/${fileName}`, '_blank');
-}
-
-function downloadFile(fileName) {
-    window.location.href = `/Upload/Download/${fileName}`;
-}
-
-function updateFilesCount() {
-    const fileCount = wizardData.step1Data.uploadedFiles.length;
-    $('#files-count').text(fileCount);
-
-    if (fileCount > 0) {
-        $('.upload-validation-error').hide();
-        $('.upload-success-message').show();
-        $('#no-files-message').hide();
-    } else {
-        $('.upload-validation-error').show();
-        $('.upload-success-message').hide();
-        $('#no-files-message').show();
-    }
-}
-
+// Setup event handlers for Step 1 (ONLY for UI updates, NO saving)
 function setupStep1EventHandlers() {
-    console.log('🎛️ [STEP1] Setting up event handlers');
+    // Template name input with preview update ONLY
+    $('#template-name').on('input', function () {
+        const name = $(this).val();
+        const preview = name;
+        $('#preview-name').text(preview || 'TEMPLATE_NAME');
 
-    // Handle primary file selection change
-    $(document).off('change', 'input[name="primaryFile"]').on('change', 'input[name="primaryFile"]', function () {
-        const selectedFile = $(this).val();
-        console.log('🟢 [STEP1] Primary file changed to:', selectedFile);
+        // Auto-update file prefix based on template name
+        updateFilePrefixFromName(name);
+        updateNamingConvention();
+    });
 
-        // Update immediately via AJAX
-        updatePrimaryFileAjax(selectedFile);
+    // File name prefix input
+    $('#file-name-prefix').on('input', function () {
+        updateNamingConvention();
+    });
 
-        // Update wizard data
-        wizardData.step1Data.primaryFile = selectedFile;
+    // Description input (UI only)
+    $('#template-description').on('input', function () {
+        // NO triggerAutoSave() - removed
+    });
+
+    // Category selection (UI only)
+    $('#category-id').on('change', function () {
+        updatePreviewCategory();
+    });
+
+    // Department selection (UI only)
+    $('#department-id').on('change', function () {
+        updatePreviewDepartment();
+    });
+
+    // Vendor selection (UI only)
+    $('#vendor-id').on('change', function () {
+        updatePreviewVendor();
+    });
+
+    // Priority range (UI only)
+    $('#processing-priority').on('input', function () {
+        const priority = parseInt($(this).val());
+        const priorityText = getPriorityText(priority);
+        $('#preview-priority').text(priorityText);
+        $('#priority-label').text(priority);
+    });
+
+    // Checkboxes (UI only)
+    $('#requires-approval, #is-financial').on('change', function () {  // ✅ FIX: Changed to is-financial
+        updatePreviewFlags();
     });
 }
 
-// Step 1 validation function
-function validateStep1Custom() {
-    const hasFiles = wizardData.step1Data.uploadedFiles && wizardData.step1Data.uploadedFiles.length > 0;
-    const hasPrimary = $('input[name="primaryFile"]:checked').length > 0;
-
-    if (!hasFiles) {
-        alert.error('Please upload at least one PDF file.');
-        return false;
+// Auto-update file prefix based on template name
+function updateFilePrefixFromName(templateName) {
+    if (templateName && templateName.trim()) {
+        const prefix = templateName.trim();
+             
+        $('#file-name-prefix').val(prefix);
     }
-
-    if (!hasPrimary) {
-        alert.error('Please select a primary file.');
-        return false;
-    }
-
-    return true;
 }
 
-// Step 1 data collection function - For navigation only (not saving)
+// Update naming convention based on file prefix
+function updateNamingConvention() {
+    const prefix = $('#file-name-prefix').val().trim();
+    if (prefix) {
+        const convention = `${prefix}_yyyyMM`;
+        $('#preview-convention').text(convention);
+    } else {
+        $('#preview-convention').text('DOC_POD_yyyyMM');
+    }
+}
+
+// Update all preview displays
+function updateAllPreviews() {
+    updatePreviewCategory();
+    updatePreviewDepartment();
+    updatePreviewVendor();
+    updatePreviewPriority();
+    updatePreviewFlags();
+    updateNamingConvention();
+
+    // Update template name preview
+    const name = $('#template-name').val();
+    if (name) {
+        const preview = name;
+        $('#preview-name').text(preview);
+    }
+
+    // Initialize priority display
+    initializePriorityDisplay();
+}
+
+// Initialize priority display on page load
+function initializePriorityDisplay() {
+    const priority = parseInt($('#processing-priority').val()) || 5;
+    const priorityText = getPriorityText(priority);
+
+    $('#priority-label').text(priority);
+    $('#priority-text').text(priorityText);
+    $('#preview-priority').removeClass('bg-secondary bg-primary bg-danger bg-warning')
+        .addClass(getPriorityBadgeClass(priority))
+        .text(priorityText);
+}
+
+// Helper functions for preview updates
+function updatePreviewCategory() {
+    const categoryText = $('#category-id option:selected').text();
+    $('#preview-category').text(categoryText !== 'Select Domain (NOC, Finance, etc.)' ? categoryText : 'Not selected');
+}
+
+function updatePreviewDepartment() {
+    const deptText = $('#department-id option:selected').text();
+    $('#preview-department').text(deptText !== 'Select Department' ? deptText : 'Not selected');
+}
+
+function updatePreviewVendor() {
+    const vendorText = $('#vendor-id option:selected').text();
+    $('#preview-vendor').text(vendorText !== 'Select Template Owner' ? vendorText : 'Not selected');
+}
+
+function updatePreviewPriority() {
+    const priority = parseInt($('#processing-priority').val()) || 5;
+    const priorityText = getPriorityText(priority);
+
+    $('#priority-label').text(priority);
+    $('#priority-text').text(priorityText);
+    $('#preview-priority').removeClass('bg-secondary bg-primary bg-danger bg-warning')
+        .addClass(getPriorityBadgeClass(priority))
+        .text(priorityText);
+}
+
+// Get priority badge class
+function getPriorityBadgeClass(priority) {
+    if (priority <= 2) return 'bg-danger';   // Highest - Red
+    if (priority <= 4) return 'bg-warning';  // High - Orange  
+    if (priority <= 6) return 'bg-primary';  // Normal - Blue
+    if (priority <= 8) return 'bg-secondary'; // Low - Gray
+    return 'bg-secondary';                    // Lowest - Gray
+}
+
+function updatePreviewFlags() {
+    const requiresApproval = $('#requires-approval').is(':checked');
+    const isFinancialData = $('#is-financial').is(':checked');  // ✅ FIX: Changed to is-financial
+
+    let flags = [];
+    if (requiresApproval) flags.push('Requires Approval');
+    if (isFinancialData) flags.push('Financial Data');
+
+    $('#preview-flags').text(flags.length > 0 ? flags.join(', ') : 'None');
+}
+
+// Get priority text from number
+function getPriorityText(priority) {
+    if (priority <= 2) return 'Highest';
+    if (priority <= 4) return 'High';
+    if (priority <= 6) return 'Normal';
+    if (priority <= 8) return 'Low';
+    return 'Lowest';
+}
+
+
+
+// Load existing data from server (FIXED - No need to strip suffix)
+function loadServerData() {
+    const serverData = window.serverWizardData?.Step1;
+
+    if (serverData) {
+        // Populate form fields with server data
+        if (serverData.Name) $('#template-name').val(serverData.Name);
+        if (serverData.Description) $('#template-description').val(serverData.Description);
+        if (serverData.NamingConvention) {
+            // ✅ FIXED: NamingConvention now contains only prefix, use as-is
+            $('#file-name-prefix').val(serverData.NamingConvention);
+        }
+        if (serverData.CategoryId) $('#category-id').val(serverData.CategoryId);
+        if (serverData.DepartmentId) $('#department-id').val(serverData.DepartmentId);
+        if (serverData.VendorId) $('#vendor-id').val(serverData.VendorId);
+        if (serverData.ProcessingPriority) {
+            $('#processing-priority').val(serverData.ProcessingPriority);
+        }
+
+        // Handle checkboxes
+        if (serverData.RequiresApproval !== undefined) {
+            $('#requires-approval').prop('checked', serverData.RequiresApproval);
+        }
+        if (serverData.IsFinancialData !== undefined) {
+            $('#is-financial').prop('checked', serverData.IsFinancialData);
+        }
+
+        console.log('📥 Loaded Step 1 data from server (fixed)');
+    }
+}
+
+// Get Step 1 form data for saving (FIXED - Save only prefix)
 function getStep1FormData() {
-    const primaryFile = $('input[name="primaryFile"]:checked').val();
-
-    // Transform data to match Step1DataDto structure
-    const uploadedFiles = (wizardData.step1Data.uploadedFiles || []).map(fileData => {
-        return {
-            OriginalFileName: fileData.originalFileName,
-            SavedFileName: fileData.savedFileName,
-            FilePath: fileData.filePath,
-            FileSize: fileData.fileSize,
-            ContentType: fileData.contentType
-        };
-    });
-
-    return {
-        UploadedFiles: uploadedFiles,
-        PrimaryFileName: primaryFile || ''
+    // Helper function to safely get form field values
+    const safeGetValue = (selector) => {
+        const element = $(selector);
+        return element.length > 0 ? (element.val() || '') : '';
     };
+
+    const safeGetChecked = (selector) => {
+        const element = $(selector);
+        return element.length > 0 ? element.is(':checked') : false;
+    };
+
+    const safeGetInt = (selector, defaultValue = null) => {
+        const value = safeGetValue(selector);
+        const parsed = parseInt(value);
+        return !isNaN(parsed) ? parsed : defaultValue;
+    };
+
+    console.log('🔍 [DEBUG] Collecting Step 1 form data...');
+
+    const filePrefix = safeGetValue('#file-name-prefix').trim() || 'DOC_POD';
+
+    const formData = {
+        name: safeGetValue('#template-name').trim(),
+        description: safeGetValue('#template-description').trim(),
+        namingConvention: filePrefix,  // ✅ FIXED: Save only prefix, not full pattern
+        categoryId: safeGetInt('#category-id'),
+        departmentId: safeGetInt('#department-id'),
+        vendorId: safeGetInt('#vendor-id'),
+        requiresApproval: safeGetChecked('#requires-approval'),
+        isFinancialData: safeGetChecked('#is-financial'),
+        processingPriority: safeGetInt('#processing-priority', 5)
+    };
+
+    console.log('🔍 [DEBUG] Collected form data (FIXED):', formData);
+    return formData;
 }
 
-// *** REMOVED SAVE STEP 1 DATA FUNCTION ***
-// Files are already saved via AJAX upload immediately
-// Primary selection is already saved via AJAX immediately
-// No need to save anything on "Next" button click
+// Custom validation for Step 1 (called on Next button)
+function validateStep1Custom() {
+    const templateName = $('#template-name').val().trim();
+    const filePrefix = $('#file-name-prefix').val().trim();
+    const categoryId = $('#category-id').val();
+    const departmentId = $('#department-id').val();
 
-// Legacy save function for backward compatibility (does nothing now)
-async function saveStep1Data() {
-    console.log('💾 [STEP1] saveStep1Data called but doing nothing - files already saved via AJAX');
-    return true; // Always return success since files are already saved
+    // Clear previous validation styles
+    $('#template-name, #file-name-prefix, #category-id, #department-id').removeClass('is-invalid');
+
+    let isValid = true;
+    const errors = [];
+
+    if (!templateName || templateName.length < 3) {
+        errors.push('Template name must be at least 3 characters');
+        $('#template-name').addClass('is-invalid');
+        isValid = false;
+    }
+
+    if (!filePrefix || filePrefix.length < 3) {
+        errors.push('File name prefix must be at least 3 characters');
+        $('#file-name-prefix').addClass('is-invalid');
+        isValid = false;
+    } else if (!/^[^<>:"/\\|?*\x00-\x1f]+$/.test(filePrefix)) {
+        errors.push('File name prefix contains invalid characters. Cannot contain: < > : " / \\ | ? *');
+        $('#file-name-prefix').addClass('is-invalid');
+        isValid = false;
+    }
+
+    if (!categoryId) {
+        errors.push('Please select a category');
+        $('#category-id').addClass('is-invalid');
+        isValid = false;
+    }
+
+    if (!departmentId) {
+        errors.push('Please select a department');
+        $('#department-id').addClass('is-invalid');
+        isValid = false;
+    }
+
+    if (!isValid) {
+        const errorMessage = errors.length === 1 ? errors[0] :
+            `Please fix the following issues:\n• ${errors.join('\n• ')}`;
+        alert.warning(errorMessage);
+
+        // Focus on first invalid field
+        if (!templateName || templateName.length < 3) {
+            $('#template-name').focus();
+        } else if (!filePrefix || filePrefix.length < 3 || !/^[A-Z][A-Z0-9_]*$/.test(filePrefix)) {
+            $('#file-name-prefix').focus();
+        } else if (!categoryId) {
+            $('#category-id').focus();
+        } else if (!departmentId) {
+            $('#department-id').focus();
+        }
+    }
+
+    return isValid;
 }
 
-// Global exports
-window.initializeStep1 = initializeStep1;
+// Export functions for global access
 window.getStep1FormData = getStep1FormData;
 window.validateStep1Custom = validateStep1Custom;
-window.saveStep1Data = saveStep1Data; // Legacy compatibility
-window.removeFile = removeFile; // Legacy compatibility
-window.removeFileAjax = removeFileAjax;
-window.updatePrimaryFileAjax = updatePrimaryFileAjax;
-window.previewFile = previewFile;
-window.downloadFile = downloadFile;
+window.saveStep1Data = saveStep1Data;
+window.initializeStep1 = initializeStep1;
+
+// Debug function to check current form values
+window.debugStep1Values = function () {
+    console.log('🔍 [DEBUG] Current form values:', {
+        templateName: $('#template-name').val(),
+        description: $('#template-description').val(),
+        filePrefix: $('#file-name-prefix').val(),
+        processingPriority: $('#processing-priority').val(),
+        priorityType: typeof $('#processing-priority').val(),
+        priorityExists: $('#processing-priority').length > 0,
+        priorityParsed: parseInt($('#processing-priority').val()),
+        categoryId: $('#category-id').val(),
+        departmentId: $('#department-id').val(),
+        vendorId: $('#vendor-id').val(),
+        requiresApproval: $('#requires-approval').is(':checked'),
+        isFinancialData: $('#is-financial').is(':checked')  // ✅ FIX: Changed to is-financial
+    });
+};

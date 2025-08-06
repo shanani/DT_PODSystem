@@ -492,10 +492,10 @@ namespace DT_PODSystem.Services.Implementation
             var departments = await _context.Departments.Include(d => d.GeneralDirectorate).Where(d => d.IsActive).ToListAsync();
             var vendors = await _context.Vendors.Where(v => v.IsActive).ToListAsync();
 
-            // Initialize Step2 ViewModel with lookup data
-            model.Step2.Categories = categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
-            model.Step2.Departments = departments.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = $"{d.GeneralDirectorate.Name} - {d.Name}" }).ToList();
-            model.Step2.Vendors = vendors.Select(v => new SelectListItem { Value = v.Id.ToString(), Text = v.Name }).ToList();
+            // Initialize Step1 ViewModel with lookup data
+            model.Step1.Categories = categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
+            model.Step1.Departments = departments.Select(d => new SelectListItem { Value = d.Id.ToString(), Text = $"{d.GeneralDirectorate.Name} - {d.Name}" }).ToList();
+            model.Step1.Vendors = vendors.Select(v => new SelectListItem { Value = v.Id.ToString(), Text = v.Name }).ToList();
 
             if (templateId.HasValue && templateId.Value > 0)
             {
@@ -511,8 +511,8 @@ namespace DT_PODSystem.Services.Implementation
                     var primaryAttachment = template.Attachments.FirstOrDefault(a => a.IsPrimary);
                     var primaryFileName = primaryAttachment?.SavedFileName;
 
-                    // Map to Step1 ViewModel
-                    model.Step1.UploadedFiles = template.Attachments.Select(a => new FileUploadDto
+                    // Map to Step2 ViewModel
+                    model.Step2.UploadedFiles = template.Attachments.Select(a => new FileUploadDto
                     {
                         OriginalFileName = a.UploadedFile.OriginalFileName,
                         SavedFileName = a.UploadedFile.SavedFileName,
@@ -530,20 +530,20 @@ namespace DT_PODSystem.Services.Implementation
                       .ToList();
 
                     // Set primary file information
-                    model.Step1.PrimaryFileId = primaryAttachment?.Id ?? 0;
-                    model.Step1.PrimaryFileName = primaryFileName; // Add this property
+                    model.Step2.PrimaryFileId = primaryAttachment?.Id ?? 0;
+                    model.Step2.PrimaryFileName = primaryFileName; // Add this property
 
-                    // Map to Step2 ViewModel
-                    model.Step2.Name = template.Name;
-                    model.Step2.NamingConvention = template.NamingConvention;
-                    model.Step2.Description = template.Description;
-                    model.Step2.CategoryId = template.CategoryId;
-                    model.Step2.DepartmentId = template.DepartmentId;
-                    model.Step2.VendorId = template.VendorId;
-                    model.Step2.Status = template.Status;
-                    model.Step2.RequiresApproval = template.RequiresApproval;
-                    model.Step2.IsFinancialData = template.IsFinancialData;
-                    model.Step2.ProcessingPriority = template.ProcessingPriority;
+                    // Map to Step1 ViewModel
+                    model.Step1.Name = template.Name;
+                    model.Step1.NamingConvention = template.NamingConvention;
+                    model.Step1.Description = template.Description;
+                    model.Step1.CategoryId = template.CategoryId;
+                    model.Step1.DepartmentId = template.DepartmentId;
+                    model.Step1.VendorId = template.VendorId;
+                    model.Step1.Status = template.Status;
+                    model.Step1.RequiresApproval = template.RequiresApproval;
+                    model.Step1.IsFinancialData = template.IsFinancialData;
+                    model.Step1.ProcessingPriority = template.ProcessingPriority;
 
                     // Map to Step3 ViewModel
                     model.Step3.FieldMappings = template.FieldMappings.Select(fm => new FieldMappingDto
@@ -579,7 +579,7 @@ namespace DT_PODSystem.Services.Implementation
 
 
         // Save Step 2 data - Template details and metadata (FIXED)
-        public async Task<bool> SaveStep2DataAsync(int templateId, Step2DataDto stepData)
+        public async Task<bool> SaveStep1DataAsync(int templateId, Step1DataDto stepData)
         {
             try
             {
@@ -617,7 +617,7 @@ namespace DT_PODSystem.Services.Implementation
         }
 
         // Save Step 1 data - File uploads and attachments
-        public async Task<bool> SaveStep1DataAsync(int templateId, Step1DataDto stepData)
+        public async Task<bool> SaveStep2DataAsync(int templateId, Step2DataDto stepData)
         {
             try
             {

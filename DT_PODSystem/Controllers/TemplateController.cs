@@ -35,7 +35,57 @@ namespace DT_PODSystem.Controllers
             _logger = logger;
         }
 
+        
+        // Wizard method - Updated to open with empty model, no auto template creation
+        public async Task<IActionResult> Wizard(int step = 1, int? id = null)
+        {
+            try
+            {
+                // ✅ REMOVED: Auto-creation of draft template
+                // ✅ NEW: If no ID provided, open with empty wizard model
+                if (id == null)
+                {
+                    _logger.LogInformation("Opening wizard with empty model for new POD creation, step {Step}", step);
 
+                    // Create empty wizard model for new POD creation
+                    var emptyModel = await _templateService.GetWizardStateAsync(step, null);
+                    emptyModel.CurrentStep = step;
+                    emptyModel.TotalSteps = 2;
+                    emptyModel.PODId = 0; // New POD
+                    emptyModel.TemplateId = 0; // New Template
+
+                    return View(emptyModel);
+                }
+
+                // Validate step range - 3 steps only
+                if (step < 1 || step > 3)
+                {
+                    _logger.LogWarning("Invalid wizard step {Step} for ID {Id}", step, id);
+                    return Redirect($"/Template/Wizard?step=1&id={id}");
+                }
+
+                // Load existing wizard state (could be POD or Template)
+                var model = await _templateService.GetWizardStateAsync(step, id);
+                if (model == null)
+                {
+                    _logger.LogError("Failed to load wizard state for ID {Id}, step {Step}", id.Value, step);
+                    TempData.Error("Failed to load wizard. Please try again.", popup: false);
+                    return RedirectToAction("Index");
+                }
+
+                // ✅ ENSURE these are set correctly for 3-step wizard
+                model.CurrentStep = step;
+                model.TotalSteps = 3;
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in wizard for ID {Id}, step {Step}", id, step);
+                TempData.Error("An error occurred. Please try again.", popup: false);
+                return RedirectToAction("Index");
+            }
+        }
 
         // <summary>
         /// Get mapped fields information by field IDs for canvas synchronization
@@ -622,21 +672,6 @@ namespace DT_PODSystem.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveStep1([FromBody] SaveStep1Request request)
-        {
-            try
-            {
-                var success = await _templateService.SaveStep1DataAsync(request.TemplateId, request.Data);
-                return Json(new { success, message = success ? "Step 1 saved" : "Failed to save" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving step 1");
-                return Json(new { success = false, message = "Error occurred" });
-            }
-        }
-
-        [HttpPost]
         public async Task<IActionResult> SaveStep2([FromBody] SaveStep2Request request)
         {
             try
@@ -646,7 +681,22 @@ namespace DT_PODSystem.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving step 2");
+                _logger.LogError(ex, "Error saving Step 2");
+                return Json(new { success = false, message = "Error occurred" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveStep1([FromBody] SaveStep1Request request)
+        {
+            try
+            {
+                var success = await _templateService.SaveStep1DataAsync(request.TemplateId, request.Data);
+                return Json(new { success, message = success ? "Step 1 saved" : "Failed to save" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving Step 1");
                 return Json(new { success = false, message = "Error occurred" });
             }
         }
@@ -745,58 +795,7 @@ namespace DT_PODSystem.Controllers
             }
         }
 
-        // Wizard method - Updated to 3 steps only
-        public async Task<IActionResult> Wizard(int step = 1, int? id = null)
-        {
-            try
-            {
-                // ✅ FIX: If no ID provided, create new template and REDIRECT with proper query params
-                if (id == null)
-                {
-                    var draftTemplate = await _templateService.CreateDraftTemplateAsync();
-                    // Redirect to proper query string format
-                    return Redirect($"/Template/Wizard?step=1&id={draftTemplate.Id}");
-                }
-
-                // Validate step range - Updated to 3 steps only
-                if (step < 1 || step > 3)
-                {
-                    _logger.LogWarning("Invalid wizard step {Step} for template {TemplateId}", step, id);
-                    return Redirect($"/Template/Wizard?step=1&id={id}");
-                }
-
-                var templateExists = await _templateService.GetTemplateAsync(id.Value);
-                if (templateExists == null)
-                {
-                    _logger.LogWarning("Attempted to access wizard for non-existent template with ID: {TemplateId}", id.Value);
-                    TempData.Error("Template not found or has been deleted. Redirecting to template list.", popup: false);
-                    return RedirectToAction("Index");
-                }
-
-                // Load wizard state and set current step properly
-                var model = await _templateService.GetWizardStateAsync(step, id);
-                if (model == null)
-                {
-                    _logger.LogError("Failed to load wizard state for template {TemplateId}, step {Step}", id.Value, step);
-                    TempData.Error("Failed to load template wizard. Please try again.", popup: false);
-                    return RedirectToAction("Index");
-                }
-
-                // ✅ ENSURE these are set correctly for 3-step wizard
-                model.CurrentStep = step;
-                model.TemplateId = id.Value;
-                model.TotalSteps = 3;
-                model.IsEditMode = true;
-
-                return View(model);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in wizard for template {TemplateId}, step {Step}", id, step);
-                TempData.Error("An error occurred. Please try again.", popup: false);
-                return RedirectToAction("Index");
-            }
-        }
+      
 
         // GET: Template details view
         public async Task<IActionResult> Details(int id)
@@ -844,16 +843,16 @@ namespace DT_PODSystem.Controllers
     }
 
     // Request classes using your existing DTOs
-    public class SaveStep1Request
-    {
-        public int TemplateId { get; set; }
-        public Step1DataDto Data { get; set; } = new();
-    }
-
     public class SaveStep2Request
     {
         public int TemplateId { get; set; }
         public Step2DataDto Data { get; set; } = new();
+    }
+
+    public class SaveStep1Request
+    {
+        public int TemplateId { get; set; }
+        public Step1DataDto Data { get; set; } = new();
     }
 
     public class SaveStep3Request
