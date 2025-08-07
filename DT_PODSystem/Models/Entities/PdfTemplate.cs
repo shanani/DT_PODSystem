@@ -18,7 +18,8 @@ namespace DT_PODSystem.Models.Entities
         public int PODId { get; set; }
 
 
-        [StringLength(200)]
+        [StringLength(100)]
+        [Required]
         public string? Title { get; set; } = "Untitled Template";
          
 
