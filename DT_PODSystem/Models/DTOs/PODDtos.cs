@@ -7,54 +7,68 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace DT_PODSystem.Models.DTOs
 {
+
     /// <summary>
-    /// DTO for creating new POD
+    /// Updated PODCreationDto for form binding
     /// </summary>
-    public class PODCreationDto
+    public partial class PODCreationDto
     {
         [Required(ErrorMessage = "POD name is required")]
-        [StringLength(200, ErrorMessage = "Name cannot exceed 200 characters")]
+        [StringLength(200, MinimumLength = 3, ErrorMessage = "POD name must be between 3 and 200 characters")]
+        [Display(Name = "POD Name")]
         public string Name { get; set; } = string.Empty;
 
         [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
+        [Display(Name = "Description")]
         public string? Description { get; set; }
 
         [StringLength(100, ErrorMessage = "PO Number cannot exceed 100 characters")]
+        [Display(Name = "Purchase Order Number")]
         public string? PONumber { get; set; }
 
         [StringLength(100, ErrorMessage = "Contract Number cannot exceed 100 characters")]
+        [Display(Name = "Contract Number")]
         public string? ContractNumber { get; set; }
 
-        [Required(ErrorMessage = "Category is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a valid category")]
+        [Required(ErrorMessage = "Please select a category")]
+        [Display(Name = "Category")]
         public int CategoryId { get; set; }
 
-        [Required(ErrorMessage = "Department is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a valid department")]
+        [Required(ErrorMessage = "Please select a department")]
+        [Display(Name = "Department")]
         public int DepartmentId { get; set; }
 
+        [Display(Name = "Vendor")]
         public int? VendorId { get; set; }
 
         [Required]
+        [Display(Name = "Automation Status")]
         public AutomationStatus AutomationStatus { get; set; } = AutomationStatus.PDF;
 
         [Required]
+        [Display(Name = "Processing Frequency")]
         public ProcessingFrequency Frequency { get; set; } = ProcessingFrequency.Monthly;
 
         [StringLength(100, ErrorMessage = "Username cannot exceed 100 characters")]
+        [Display(Name = "Vendor SPOC")]
         public string? VendorSPOCUsername { get; set; }
 
         [StringLength(100, ErrorMessage = "Username cannot exceed 100 characters")]
+        [Display(Name = "Governor SPOC")]
         public string? GovernorSPOCUsername { get; set; }
 
         [StringLength(100, ErrorMessage = "Username cannot exceed 100 characters")]
+        [Display(Name = "Finance SPOC")]
         public string? FinanceSPOCUsername { get; set; }
 
+        [Display(Name = "Requires Approval")]
         public bool RequiresApproval { get; set; } = false;
 
+        [Display(Name = "Contains Financial Data")]
         public bool IsFinancialData { get; set; } = false;
 
-        [Range(1, 10, ErrorMessage = "Processing priority must be between 1 and 10")]
+        [Range(1, 10, ErrorMessage = "Processing priority must be between 1 (highest) and 10 (lowest)")]
+        [Display(Name = "Processing Priority")]
         public int ProcessingPriority { get; set; } = 5;
     }
 
@@ -64,7 +78,7 @@ namespace DT_PODSystem.Models.DTOs
     public class PODUpdateDto
     {
         [Required(ErrorMessage = "POD name is required")]
-        [StringLength(200, ErrorMessage = "Name cannot exceed 200 characters")]
+        [StringLength(200, MinimumLength = 3, ErrorMessage = "POD name must be between 3 and 200 characters")]
         public string Name { get; set; } = string.Empty;
 
         [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
@@ -76,12 +90,10 @@ namespace DT_PODSystem.Models.DTOs
         [StringLength(100, ErrorMessage = "Contract Number cannot exceed 100 characters")]
         public string? ContractNumber { get; set; }
 
-        [Required(ErrorMessage = "Category is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a valid category")]
+        [Required(ErrorMessage = "Please select a category")]
         public int CategoryId { get; set; }
 
-        [Required(ErrorMessage = "Department is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a valid department")]
+        [Required(ErrorMessage = "Please select a department")]
         public int DepartmentId { get; set; }
 
         public int? VendorId { get; set; }
@@ -105,9 +117,13 @@ namespace DT_PODSystem.Models.DTOs
 
         public bool IsFinancialData { get; set; } = false;
 
-        [Range(1, 10, ErrorMessage = "Processing priority must be between 1 and 10")]
+        [Range(1, 10, ErrorMessage = "Processing priority must be between 1 (highest) and 10 (lowest)")]
         public int ProcessingPriority { get; set; } = 5;
     }
+
+   
+
+    
 
     /// <summary>
     /// DTO for POD selection in dropdowns

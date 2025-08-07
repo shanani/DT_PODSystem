@@ -1,11 +1,63 @@
 ﻿using DT_PODSystem.Models.DTOs;
+using DT_PODSystem.Models.Entities;
 using DT_PODSystem.Models.Enums;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace DT_PODSystem.Models.ViewModels
 {
+    /// <summary>
+    /// ViewModel for POD Create/Edit pages
+    /// </summary>
+    public class PODCreateEditViewModel
+    {
+        public PODCreationDto POD { get; set; } = new();
+        public bool IsEditing { get; set; } = false;
+        public int EditingPODId { get; set; } = 0;
+
+        // Lookup data for dropdowns
+        public List<SelectListItem> Categories { get; set; } = new();
+        public List<SelectListItem> Departments { get; set; } = new();
+        public List<SelectListItem> Vendors { get; set; } = new();
+
+        public string PageTitle => IsEditing ? "Edit POD" : "Create New POD";
+        public string SubmitButtonText => IsEditing ? "Update POD" : "Create POD";
+    }
+
+    /// <summary>
+    /// ViewModel for POD Details page
+    /// </summary>
+    public class PODDetailsViewModel
+    {
+        public POD POD { get; set; } = new();
+
+        public string StatusBadgeClass => POD.Status switch
+        {
+            PODStatus.Draft => "bg-secondary",
+            PODStatus.Active => "bg-success",
+            PODStatus.Suspended => "bg-warning",
+            PODStatus.Archived => "bg-dark",
+            _ => "bg-secondary"
+        };
+
+        public string AutomationStatusBadgeClass => POD.AutomationStatus switch
+        {
+            AutomationStatus.PDF => "bg-info",
+            AutomationStatus.ManualEntryWorkflow => "bg-warning",
+            AutomationStatus.FullyAutomated => "bg-success",
+            _ => "bg-secondary"
+        };
+
+        public bool CanEdit => POD.Status == PODStatus.Draft || POD.Status == PODStatus.Active;
+        public bool CanDelete => POD.Templates.All(t => !t.IsActive);
+    }
+
+    
+
+
     /// <summary>
     /// POD filters for list view
     /// </summary>

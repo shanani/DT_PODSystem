@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using DT_PODSystem.Models.DTOs;
+using DT_PODSystem.Models.Entities;
 using DT_PODSystem.Models.Enums;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -444,55 +445,102 @@ namespace DT_PODSystem.Models.ViewModels
         public List<string> ValidationErrors { get; set; } = new List<string>();
     }
 
-    // Step 1 - Upload PDF Files
-   
+     
 
-    // Step 2 - Template Details & Configuration
+
+    // Step 1 - Template Details & Configuration (POD Architecture)
     public class Step1TemplateDetailsViewModel
     {
+        // POD Relationship - Templates belong to ONE POD
+        [Required(ErrorMessage = "POD is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a POD")]
+        public int PODId { get; set; }
+
+        // Available PODs for selection
+        public List<SelectListItem> PODs { get; set; } = new List<SelectListItem>();
+
+        // Selected POD object (populated when POD is selected)
+        public POD? SelectedPOD { get; set; }
+
+        // Template Technical Configuration
         [Required(ErrorMessage = "Template name is required")]
         [StringLength(200, ErrorMessage = "Name cannot exceed 200 characters")]
         public string Name { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "File prefix is required.")]
-        [StringLength(200, ErrorMessage = "File prefix cannot exceed 200 characters")]
-        public string NamingConvention { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Naming convention is required")]
+        [StringLength(100, ErrorMessage = "Naming convention cannot exceed 100 characters")]
+        public string NamingConvention { get; set; } = "DOC_POD";
 
         [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
         public string? Description { get; set; }
 
+        [StringLength(500, ErrorMessage = "Technical notes cannot exceed 500 characters")]
+        public string? TechnicalNotes { get; set; }
+
+        // Template Status and Version
         public TemplateStatus Status { get; set; } = TemplateStatus.Draft;
         public string? Version { get; set; } = "1.0";
 
-        [Required(ErrorMessage = "Domain is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a domain")]
-        public int CategoryId { get; set; }
+        // PDF Processing Configuration
+        public bool HasFormFields { get; set; } = false;
+        public string? ExpectedPdfVersion { get; set; }
+        public int? ExpectedPageCount { get; set; }
 
-        [Required(ErrorMessage = "Department is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a department")]
-        public int DepartmentId { get; set; }
-
-        [Required(ErrorMessage = "Vendor is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a vendor")]
-        public int? VendorId { get; set; }
-
-        public List<SelectListItem> Categories { get; set; } = new List<SelectListItem>();
-        public List<SelectListItem> Departments { get; set; } = new List<SelectListItem>();
-        public List<SelectListItem> Vendors { get; set; } = new List<SelectListItem>();
-
-        public bool RequiresApproval { get; set; }
-        public bool IsFinancialData { get; set; }
+        // Processing Priority (can override POD priority)
+        [Range(1, 10, ErrorMessage = "Processing priority must be between 1 and 10")]
         public int ProcessingPriority { get; set; } = 5;
 
+        // Legacy properties - These should come from the selected POD
+        // Kept for backward compatibility but will be populated from SelectedPOD
+        public int CategoryId => SelectedPOD?.CategoryId ?? 0;
+        public int DepartmentId => SelectedPOD?.DepartmentId ?? 0;
+        public int? VendorId => SelectedPOD?.VendorId;
+        public bool RequiresApproval => SelectedPOD?.RequiresApproval ?? false;
+        public bool IsFinancialData => SelectedPOD?.IsFinancialData ?? false;
+
+        // Legacy dropdown lists - These should come from POD
+        public List<SelectListItem> Categories => SelectedPOD != null ?
+            new List<SelectListItem> { new SelectListItem { Value = SelectedPOD.CategoryId.ToString(), Text = SelectedPOD.Category?.Name ?? "Unknown" } } :
+            new List<SelectListItem>();
+
+        public List<SelectListItem> Departments => SelectedPOD != null ?
+            new List<SelectListItem> { new SelectListItem { Value = SelectedPOD.DepartmentId.ToString(), Text = SelectedPOD.Department?.Name ?? "Unknown" } } :
+            new List<SelectListItem>();
+
+        public List<SelectListItem> Vendors => SelectedPOD?.Vendor != null ?
+            new List<SelectListItem> { new SelectListItem { Value = SelectedPOD.VendorId.ToString(), Text = SelectedPOD.Vendor.Name } } :
+            new List<SelectListItem>();
+
+        // Validation and Preview Properties
         public string NamePreview { get; set; } = string.Empty;
         public bool IsNameValid { get; set; } = true;
         public string? ValidationErrors { get; set; }
-        public int PODId { get; internal set; }
-        public string TechnicalNotes { get;  set; }
-        public bool HasFormFields { get;  set; }
-        public string ExpectedPdfVersion { get;  set; }
-        public int? ExpectedPageCount { get;  set; }
+
+        // Helper Methods
+        public string GetPODDisplayName()
+        {
+            return SelectedPOD != null ? $"{SelectedPOD.Name} ({SelectedPOD.PODCode})" : "No POD Selected";
+        }
+
+        public string GetOrganizationalSummary()
+        {
+            if (SelectedPOD == null) return "No organizational information";
+
+            var parts = new List<string>();
+            if (SelectedPOD.Category != null) parts.Add($"Category: {SelectedPOD.Category.Name}");
+            if (SelectedPOD.Department != null) parts.Add($"Department: {SelectedPOD.Department.Name}");
+            if (SelectedPOD.Vendor != null) parts.Add($"Vendor: {SelectedPOD.Vendor.Name}");
+
+            return string.Join(" | ", parts);
+        }
+
+        public string GetInheritedPriority()
+        {
+            return SelectedPOD != null ?
+                $"POD Priority: {SelectedPOD.ProcessingPriority}, Template Priority: {ProcessingPriority}" :
+                $"Template Priority: {ProcessingPriority}";
+        }
     }
 
-    
+
 }

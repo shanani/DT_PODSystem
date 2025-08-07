@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace DT_PODSystem.Migrations
+namespace DT_PODSystem.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -248,7 +248,7 @@ namespace DT_PODSystem.Migrations
                             Id = 1,
                             ColorCode = "#A54EE1",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8372),
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9786),
                             Description = "Financial and accounting related documents",
                             DisplayOrder = 1,
                             IconClass = "fa fa-dollar-sign",
@@ -260,7 +260,7 @@ namespace DT_PODSystem.Migrations
                             Id = 2,
                             ColorCode = "#4F008C",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8375),
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9789),
                             Description = "Legal contracts and agreements",
                             DisplayOrder = 2,
                             IconClass = "fa fa-balance-scale",
@@ -272,7 +272,7 @@ namespace DT_PODSystem.Migrations
                             Id = 3,
                             ColorCode = "#00C48C",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8377),
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9791),
                             Description = "Human resources and personnel documents",
                             DisplayOrder = 3,
                             IconClass = "fa fa-users",
@@ -282,14 +282,26 @@ namespace DT_PODSystem.Migrations
                         new
                         {
                             Id = 4,
-                            ColorCode = "#1BCED8",
+                            ColorCode = "#FF6B6B",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8380),
-                            Description = "Technical specifications and documentation",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9792),
+                            Description = "Legal contracts, agreements, and compliance documents",
                             DisplayOrder = 4,
-                            IconClass = "fa fa-cogs",
+                            IconClass = "fa fa-gavel",
                             IsActive = true,
-                            Name = "Technical Documents"
+                            Name = "Legal Documents"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            ColorCode = "#4ECDC4",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9794),
+                            Description = "Purchase orders, contracts, and procurement related documents",
+                            DisplayOrder = 5,
+                            IconClass = "fa fa-shopping-cart",
+                            IsActive = true,
+                            Name = "Procurement Documents"
                         });
                 });
 
@@ -300,11 +312,6 @@ namespace DT_PODSystem.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("ContactEmail")
                         .HasMaxLength(100)
@@ -362,9 +369,6 @@ namespace DT_PODSystem.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
-                        .IsUnique();
-
                     b.HasIndex("CreatedDate")
                         .HasDatabaseName("IX_Department_CreatedDate");
 
@@ -381,74 +385,170 @@ namespace DT_PODSystem.Migrations
                         new
                         {
                             Id = 1,
-                            Code = "ACC",
+                            ContactEmail = "ahmed.rashid@company.sa",
+                            ContactPhone = "+966-11-1234567",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8612),
-                            Description = "Financial accounting and reporting",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(130),
+                            Description = "Application development and maintenance",
                             DisplayOrder = 1,
                             GeneralDirectorateId = 1,
                             IsActive = true,
-                            Name = "TB"
+                            ManagerName = "Ahmed Al-Rashid",
+                            Name = "Software Development"
                         },
                         new
                         {
                             Id = 2,
-                            Code = "PROC",
+                            ContactEmail = "sara.mahmoud@company.sa",
+                            ContactPhone = "+966-11-1234568",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8615),
-                            Description = "Procurement and vendor management",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(132),
+                            Description = "IT infrastructure, networking, and security",
                             DisplayOrder = 2,
                             GeneralDirectorateId = 1,
                             IsActive = true,
-                            Name = "SOC"
+                            ManagerName = "Sara Al-Mahmoud",
+                            Name = "Infrastructure and Networks"
                         },
                         new
                         {
                             Id = 3,
-                            Code = "DEV",
+                            ContactEmail = "omar.fahad@company.sa",
+                            ContactPhone = "+966-11-1234569",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8617),
-                            Description = "Software development and maintenance",
-                            DisplayOrder = 1,
-                            GeneralDirectorateId = 2,
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(134),
+                            Description = "Business intelligence and data analysis",
+                            DisplayOrder = 3,
+                            GeneralDirectorateId = 1,
                             IsActive = true,
-                            Name = "NOC"
+                            ManagerName = "Omar Al-Fahad",
+                            Name = "Data Analytics"
                         },
                         new
                         {
                             Id = 4,
-                            Code = "INFRA",
+                            ContactEmail = "fatima.zahra@company.sa",
+                            ContactPhone = "+966-11-1234570",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8620),
-                            Description = "IT infrastructure and security",
-                            DisplayOrder = 2,
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(136),
+                            Description = "Budget planning and financial forecasting",
+                            DisplayOrder = 1,
                             GeneralDirectorateId = 2,
                             IsActive = true,
-                            Name = "Infrastructure"
+                            ManagerName = "Fatima Al-Zahra",
+                            Name = "Financial Planning"
                         },
                         new
                         {
                             Id = 5,
-                            Code = "TM",
+                            ContactEmail = "khalid.otaibi@company.sa",
+                            ContactPhone = "+966-11-1234571",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8622),
-                            Description = "Talent acquisition and development",
-                            DisplayOrder = 1,
-                            GeneralDirectorateId = 3,
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(137),
+                            Description = "Vendor payments and expense management",
+                            DisplayOrder = 2,
+                            GeneralDirectorateId = 2,
                             IsActive = true,
-                            Name = "Fixed"
+                            ManagerName = "Khalid Al-Otaibi",
+                            Name = "Accounts Payable"
                         },
                         new
                         {
                             Id = 6,
-                            Code = "ER",
+                            ContactEmail = "noura.saud@company.sa",
+                            ContactPhone = "+966-11-1234572",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8624),
-                            Description = "Employee relations and compliance",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(139),
+                            Description = "Cash management and financial investments",
+                            DisplayOrder = 3,
+                            GeneralDirectorateId = 2,
+                            IsActive = true,
+                            ManagerName = "Noura Al-Saud",
+                            Name = "Treasury"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            ContactEmail = "maha.ghamdi@company.sa",
+                            ContactPhone = "+966-11-1234573",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(141),
+                            Description = "Recruitment and onboarding",
+                            DisplayOrder = 1,
+                            GeneralDirectorateId = 3,
+                            IsActive = true,
+                            ManagerName = "Maha Al-Ghamdi",
+                            Name = "Talent Acquisition"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            ContactEmail = "ibrahim.harbi@company.sa",
+                            ContactPhone = "+966-11-1234574",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(142),
+                            Description = "Training and professional development",
                             DisplayOrder = 2,
                             GeneralDirectorateId = 3,
                             IsActive = true,
-                            Name = "Transport"
+                            ManagerName = "Ibrahim Al-Harbi",
+                            Name = "Employee Development"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            ContactEmail = "abdullah.mutairi@company.sa",
+                            ContactPhone = "+966-11-1234575",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(144),
+                            Description = "Building maintenance and facility operations",
+                            DisplayOrder = 1,
+                            GeneralDirectorateId = 4,
+                            IsActive = true,
+                            ManagerName = "Abdullah Al-Mutairi",
+                            Name = "Facility Management"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            ContactEmail = "reem.johani@company.sa",
+                            ContactPhone = "+966-11-1234576",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(146),
+                            Description = "Physical and information security",
+                            DisplayOrder = 2,
+                            GeneralDirectorateId = 4,
+                            IsActive = true,
+                            ManagerName = "Reem Al-Johani",
+                            Name = "Security Operations"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            ContactEmail = "yousef.dosari@company.sa",
+                            ContactPhone = "+966-11-1234577",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(149),
+                            Description = "Contract negotiation and management",
+                            DisplayOrder = 1,
+                            GeneralDirectorateId = 5,
+                            IsActive = true,
+                            ManagerName = "Yousef Al-Dosari",
+                            Name = "Contract Management"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            ContactEmail = "layla.shammari@company.sa",
+                            ContactPhone = "+966-11-1234578",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(151),
+                            Description = "Regulatory compliance and auditing",
+                            DisplayOrder = 2,
+                            GeneralDirectorateId = 5,
+                            IsActive = true,
+                            ManagerName = "Layla Al-Shammari",
+                            Name = "Regulatory Compliance"
                         });
                 });
 
@@ -712,11 +812,6 @@ namespace DT_PODSystem.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.Property<string>("ContactEmail")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -770,9 +865,6 @@ namespace DT_PODSystem.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
-                        .IsUnique();
-
                     b.HasIndex("CreatedDate")
                         .HasDatabaseName("IX_GeneralDirectorate_CreatedDate");
 
@@ -789,32 +881,29 @@ namespace DT_PODSystem.Migrations
                         new
                         {
                             Id = 1,
-                            Code = "FA",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8575),
-                            Description = "Financial management and administrative services",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(94),
+                            Description = "IT systems, software, and technology services",
                             DisplayOrder = 1,
-                            IsActive = true,
-                            Name = "Finance and Administration"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Code = "IT",
-                            CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8578),
-                            Description = "Information technology services and infrastructure",
-                            DisplayOrder = 2,
                             IsActive = true,
                             Name = "Information Technology"
                         },
                         new
                         {
-                            Id = 3,
-                            Code = "HR",
+                            Id = 2,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8580),
-                            Description = "Human resources and organizational development",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(96),
+                            Description = "Financial operations, budgeting, and administrative services",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            Name = "Finance and Administration"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(97),
+                            Description = "Personnel management, training, and development",
                             DisplayOrder = 3,
                             IsActive = true,
                             Name = "Human Resources"
@@ -822,17 +911,26 @@ namespace DT_PODSystem.Migrations
                         new
                         {
                             Id = 4,
-                            Code = "OPS",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8582),
-                            Description = "Operational activities and service delivery",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(99),
+                            Description = "Operational activities and facility maintenance",
                             DisplayOrder = 4,
                             IsActive = true,
-                            Name = "Operations"
+                            Name = "Operations and Maintenance"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(100),
+                            Description = "Legal affairs, regulatory compliance, and risk management",
+                            DisplayOrder = 5,
+                            IsActive = true,
+                            Name = "Legal and Compliance"
                         });
                 });
 
-            modelBuilder.Entity("DT_PODSystem.Models.Entities.PdfTemplate", b =>
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.POD", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -847,8 +945,17 @@ namespace DT_PODSystem.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int>("AutomationStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ContractNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
@@ -866,6 +973,19 @@ namespace DT_PODSystem.Migrations
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("FinanceSPOCUsername")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Frequency")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("GovernorSPOCUsername")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
@@ -892,8 +1012,14 @@ namespace DT_PODSystem.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("NamingConvention")
+                    b.Property<string>("PODCode")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<string>("PONumber")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -920,7 +1046,455 @@ namespace DT_PODSystem.Migrations
                     b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int?>("VendorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VendorSPOCUsername")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Version")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AutomationStatus");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("ContractNumber");
+
+                    b.HasIndex("CreatedDate")
+                        .HasDatabaseName("IX_POD_CreatedDate");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.HasIndex("Frequency");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("IX_POD_IsActive");
+
+                    b.HasIndex("IsFinancialData");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("PODCode")
+                        .IsUnique();
+
+                    b.HasIndex("PONumber");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("VendorId");
+
+                    b.ToTable("PODs");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ApprovalDate = new DateTime(2025, 7, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(497),
+                            ApprovedBy = "IT Director",
+                            AutomationStatus = 3,
+                            CategoryId = 1,
+                            ContractNumber = "CTR-ERP-2025",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 6, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(506),
+                            DepartmentId = 1,
+                            Description = "Complete ERP system implementation for financial and operational modules",
+                            FinanceSPOCUsername = "fatima.finance",
+                            Frequency = 1,
+                            GovernorSPOCUsername = "sara.governor",
+                            IsActive = true,
+                            IsFinancialData = true,
+                            LastProcessedDate = new DateTime(2025, 8, 1, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(505),
+                            Name = "ERP System Implementation",
+                            PODCode = "POD-ERP-2025-001",
+                            PONumber = "PO-2025-IT-001",
+                            ProcessedCount = 15,
+                            ProcessingPriority = 8,
+                            RequiresApproval = true,
+                            Status = 4,
+                            VendorId = 1,
+                            VendorSPOCUsername = "ahmad.vendor",
+                            Version = "1.0"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ApprovalDate = new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(513),
+                            ApprovedBy = "Finance Director",
+                            AutomationStatus = 1,
+                            CategoryId = 2,
+                            ContractNumber = "CTR-FIN-2025-A",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 5, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(516),
+                            DepartmentId = 4,
+                            Description = "Automated processing of monthly financial reports and compliance documents",
+                            FinanceSPOCUsername = "noura.finance",
+                            Frequency = 1,
+                            GovernorSPOCUsername = "khalid.governor",
+                            IsActive = true,
+                            IsFinancialData = true,
+                            LastProcessedDate = new DateTime(2025, 8, 4, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(515),
+                            Name = "Financial Reporting Automation",
+                            PODCode = "POD-FIN-2025-002",
+                            PONumber = "PO-2025-FIN-002",
+                            ProcessedCount = 8,
+                            ProcessingPriority = 9,
+                            RequiresApproval = true,
+                            Status = 4,
+                            VendorId = 2,
+                            VendorSPOCUsername = "mariam.vendor",
+                            Version = "1.2"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            AutomationStatus = 2,
+                            CategoryId = 3,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(521),
+                            DepartmentId = 7,
+                            Description = "Employee performance reviews and development tracking system",
+                            FinanceSPOCUsername = "fatima.finance",
+                            Frequency = 2,
+                            GovernorSPOCUsername = "maha.governor",
+                            IsActive = true,
+                            IsFinancialData = false,
+                            Name = "HR Performance Management",
+                            PODCode = "POD-HR-2025-003",
+                            ProcessedCount = 0,
+                            ProcessingPriority = 6,
+                            RequiresApproval = true,
+                            Status = 2,
+                            VendorId = 3,
+                            VendorSPOCUsername = "mohammed.vendor",
+                            Version = "1.0"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            AutomationStatus = 1,
+                            CategoryId = 5,
+                            ContractNumber = "CTR-MAINT-2025",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 7, 30, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(530),
+                            DepartmentId = 9,
+                            Description = "Processing of facility maintenance requests and contract compliance",
+                            FinanceSPOCUsername = "khalid.finance",
+                            Frequency = 1,
+                            GovernorSPOCUsername = "abdullah.governor",
+                            IsActive = true,
+                            IsFinancialData = true,
+                            Name = "Facility Maintenance Contracts",
+                            PODCode = "POD-OPS-2025-004",
+                            PONumber = "PO-2025-OPS-004",
+                            ProcessedCount = 0,
+                            ProcessingPriority = 4,
+                            RequiresApproval = false,
+                            Status = 1,
+                            Version = "1.0"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            ApprovalDate = new DateTime(2025, 7, 17, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(540),
+                            ApprovedBy = "Legal Director",
+                            AutomationStatus = 3,
+                            CategoryId = 4,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 7, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(542),
+                            DepartmentId = 12,
+                            Description = "Regulatory compliance reports and legal documentation processing",
+                            FinanceSPOCUsername = "noura.finance",
+                            Frequency = 2,
+                            GovernorSPOCUsername = "layla.governor",
+                            IsActive = true,
+                            IsFinancialData = true,
+                            LastProcessedDate = new DateTime(2025, 7, 27, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(542),
+                            Name = "Legal Compliance Reporting",
+                            PODCode = "POD-LEG-2025-005",
+                            ProcessedCount = 3,
+                            ProcessingPriority = 7,
+                            RequiresApproval = true,
+                            Status = 4,
+                            VendorId = 5,
+                            VendorSPOCUsername = "hassan.vendor",
+                            Version = "1.1"
+                        });
+                });
+
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.PODAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ApprovalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ApprovalNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DisplayName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("DisplayOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
                         .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("DocumentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DocumentNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("DocumentStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Active");
+
+                    b.Property<string>("DocumentVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsPrimary")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("IssuedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PODId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("RequiresApproval")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("Type")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("UploadedFileId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedDate")
+                        .HasDatabaseName("IX_PODAttachment_CreatedDate");
+
+                    b.HasIndex("DisplayOrder");
+
+                    b.HasIndex("DocumentDate");
+
+                    b.HasIndex("DocumentNumber");
+
+                    b.HasIndex("DocumentStatus");
+
+                    b.HasIndex("ExpiryDate");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("IX_PODAttachment_IsActive");
+
+                    b.HasIndex("IsPrimary");
+
+                    b.HasIndex("Type");
+
+                    b.HasIndex("UploadedFileId");
+
+                    b.HasIndex("PODId", "UploadedFileId")
+                        .IsUnique();
+
+                    b.ToTable("PODAttachments");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ApprovalDate = new DateTime(2025, 6, 9, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(623),
+                            ApprovedBy = "Legal Director",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 6, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(624),
+                            Description = "Primary contract document for ERP system implementation",
+                            DisplayName = "Main ERP Implementation Contract",
+                            DisplayOrder = 1,
+                            DocumentDate = new DateTime(2025, 6, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(621),
+                            DocumentNumber = "CTR-ERP-2025-001",
+                            DocumentStatus = "Active",
+                            DocumentVersion = "1.0",
+                            IsActive = true,
+                            IsPrimary = true,
+                            IssuedBy = "Legal Department",
+                            PODId = 1,
+                            RequiresApproval = true,
+                            Type = 1,
+                            UploadedFileId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(628),
+                            Description = "Standard operating procedures for HR performance management",
+                            DisplayName = "HR Policy and Procedures",
+                            DisplayOrder = 1,
+                            DocumentDate = new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(626),
+                            DocumentNumber = "SOP-HR-2025-001",
+                            DocumentStatus = "Active",
+                            DocumentVersion = "2.1",
+                            IsActive = true,
+                            IsPrimary = true,
+                            IssuedBy = "HR Department",
+                            PODId = 3,
+                            RequiresApproval = false,
+                            Type = 3,
+                            UploadedFileId = 3
+                        });
+                });
+
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.PdfTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ApprovalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ApprovedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ExpectedPageCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ExpectedPdfVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("HasFormFields")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime?>("LastProcessedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NamingConvention")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("PODId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProcessedCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("ProcessingPriority")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(5);
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("TechnicalNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int?>("VendorId")
                         .HasColumnType("int");
@@ -941,15 +1515,304 @@ namespace DT_PODSystem.Migrations
                     b.HasIndex("IsActive")
                         .HasDatabaseName("IX_PdfTemplate_IsActive");
 
-                    b.HasIndex("IsFinancialData");
+                    b.HasIndex("NamingConvention");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("PODId");
 
                     b.HasIndex("Status");
 
                     b.HasIndex("VendorId");
 
                     b.ToTable("PdfTemplates");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ApprovalDate = new DateTime(2025, 7, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(661),
+                            ApprovedBy = "IT Director",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 7, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(663),
+                            ExpectedPageCount = 3,
+                            ExpectedPdfVersion = "1.7",
+                            HasFormFields = false,
+                            IsActive = true,
+                            LastProcessedDate = new DateTime(2025, 8, 1, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(662),
+                            NamingConvention = "ERP_INV_{YYYYMM}",
+                            PODId = 1,
+                            ProcessedCount = 15,
+                            ProcessingPriority = 8,
+                            Status = 2,
+                            TechnicalNotes = "Requires OCR preprocessing for invoice amounts",
+                            Version = "1.2"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ApprovalDate = new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(665),
+                            ApprovedBy = "Finance Director",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(667),
+                            ExpectedPageCount = 5,
+                            ExpectedPdfVersion = "1.6",
+                            HasFormFields = true,
+                            IsActive = true,
+                            LastProcessedDate = new DateTime(2025, 8, 4, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(666),
+                            NamingConvention = "FIN_RPT_{YYYYMM}_{DD}",
+                            PODId = 2,
+                            ProcessedCount = 8,
+                            ProcessingPriority = 9,
+                            Status = 2,
+                            TechnicalNotes = "Multi-page template with dynamic table extraction",
+                            Version = "2.0"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 7, 27, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(670),
+                            ExpectedPageCount = 8,
+                            ExpectedPdfVersion = "1.7",
+                            HasFormFields = true,
+                            IsActive = true,
+                            NamingConvention = "LEG_COMP_{YYYY}Q{Q}",
+                            PODId = 5,
+                            ProcessedCount = 0,
+                            ProcessingPriority = 7,
+                            Status = 0,
+                            TechnicalNotes = "Quarterly compliance template with signature verification",
+                            Version = "1.0"
+                        });
+                });
+
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.ProcessedField", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("CalculationConfidence")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("CurrencySymbol")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int?>("DecimalPlaces")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ExtractionConfidence")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<int>("FieldMappingId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsValid")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OutputDataType")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("String");
+
+                    b.Property<string>("OutputValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProcessedFileId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("ValidationErrors")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedDate")
+                        .HasDatabaseName("IX_ProcessedField_CreatedDate");
+
+                    b.HasIndex("FieldMappingId");
+
+                    b.HasIndex("FieldName");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("IX_ProcessedField_IsActive");
+
+                    b.HasIndex("IsValid");
+
+                    b.HasIndex("OutputDataType");
+
+                    b.HasIndex("ProcessedFileId");
+
+                    b.ToTable("ProcessedFields");
+                });
+
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.ProcessedFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AnchorConfidence")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("AnchorDetails")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("AnchorsConfigured")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AnchorsFound")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AnchorsMatched")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<bool>("HasFinancialInfo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("NeedApproval")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("OrganizedFilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("OriginalFilePath")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("PdfTemplateId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PeriodId")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
+
+                    b.Property<DateTime>("ProcessedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("ProcessingMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<int>("TemplateId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedDate")
+                        .HasDatabaseName("IX_ProcessedFile_CreatedDate");
+
+                    b.HasIndex("HasFinancialInfo");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("IX_ProcessedFile_IsActive");
+
+                    b.HasIndex("NeedApproval");
+
+                    b.HasIndex("PdfTemplateId");
+
+                    b.HasIndex("PeriodId");
+
+                    b.HasIndex("ProcessedDate");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TemplateId");
+
+                    b.HasIndex("TemplateId", "PeriodId");
+
+                    b.ToTable("ProcessedFiles");
                 });
 
             modelBuilder.Entity("DT_PODSystem.Models.Entities.Query", b =>
@@ -1022,10 +1885,8 @@ namespace DT_PODSystem.Migrations
                         .HasDefaultValue(0);
 
                     b.Property<string>("Version")
-                        .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("1.0");
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -1152,9 +2013,9 @@ namespace DT_PODSystem.Migrations
                     b.HasIndex("IsActive")
                         .HasDatabaseName("IX_QueryConstant_IsActive");
 
-                    b.HasIndex("IsConstant");
-
                     b.HasIndex("IsGlobal");
+
+                    b.HasIndex("Name");
 
                     b.HasIndex("QueryId", "Name")
                         .IsUnique()
@@ -1589,12 +2450,12 @@ namespace DT_PODSystem.Migrations
                     b.HasIndex("CreatedDate")
                         .HasDatabaseName("IX_TemplateAnchor_CreatedDate");
 
+                    b.HasIndex("DisplayOrder");
+
                     b.HasIndex("IsActive")
                         .HasDatabaseName("IX_TemplateAnchor_IsActive");
 
                     b.HasIndex("TemplateId");
-
-                    b.HasIndex("TemplateId", "DisplayOrder");
 
                     b.HasIndex("TemplateId", "Name")
                         .IsUnique();
@@ -1635,10 +2496,6 @@ namespace DT_PODSystem.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
-                    b.Property<string>("FilePath")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<bool>("HasFormFields")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -1654,16 +2511,15 @@ namespace DT_PODSystem.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<DateTime?>("LastProcessed")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ModifiedBy")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("OriginalFileName")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int?>("PageCount")
                         .HasColumnType("int");
@@ -1672,20 +2528,22 @@ namespace DT_PODSystem.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("ProcessingStatus")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
-                    b.Property<string>("SavedFileName")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
                     b.Property<int>("TemplateId")
                         .HasColumnType("int");
 
                     b.Property<int>("Type")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(2);
 
                     b.Property<int>("UploadedFileId")
                         .HasColumnType("int");
@@ -1702,13 +2560,36 @@ namespace DT_PODSystem.Migrations
 
                     b.HasIndex("IsPrimary");
 
+                    b.HasIndex("ProcessingStatus");
+
                     b.HasIndex("Type");
 
                     b.HasIndex("UploadedFileId");
 
-                    b.HasIndex("TemplateId", "UploadedFileId");
+                    b.HasIndex("TemplateId", "UploadedFileId")
+                        .IsUnique();
 
                     b.ToTable("TemplateAttachments");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(706),
+                            Description = "Primary template for monthly financial report processing",
+                            DisplayName = "Monthly Financial Report Template",
+                            DisplayOrder = 1,
+                            HasFormFields = true,
+                            IsActive = true,
+                            IsPrimary = true,
+                            PageCount = 5,
+                            PdfVersion = "1.6",
+                            ProcessingStatus = "Ready",
+                            TemplateId = 2,
+                            Type = 0,
+                            UploadedFileId = 2
+                        });
                 });
 
             modelBuilder.Entity("DT_PODSystem.Models.Entities.UploadedFile", b =>
@@ -1734,6 +2615,9 @@ namespace DT_PODSystem.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("FileHash")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -1755,6 +2639,10 @@ namespace DT_PODSystem.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
+
+                    b.Property<string>("MimeType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("ModifiedBy")
                         .HasMaxLength(100)
@@ -1785,12 +2673,20 @@ namespace DT_PODSystem.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<string>("UploadSource")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedDate")
                         .HasDatabaseName("IX_UploadedFile_CreatedDate");
 
-                    b.HasIndex("FileHash");
+                    b.HasIndex("ExpiryDate");
+
+                    b.HasIndex("FileHash")
+                        .IsUnique()
+                        .HasFilter("[FileHash] IS NOT NULL");
 
                     b.HasIndex("IsActive")
                         .HasDatabaseName("IX_UploadedFile_IsActive");
@@ -1799,9 +2695,68 @@ namespace DT_PODSystem.Migrations
 
                     b.HasIndex("OriginalFileName");
 
-                    b.HasIndex("SavedFileName");
+                    b.HasIndex("SavedFileName")
+                        .IsUnique();
+
+                    b.HasIndex("UploadSource");
 
                     b.ToTable("UploadedFiles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ContentType = "application/pdf",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 6, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(588),
+                            FileHash = "sha256_erp_contract_hash_001",
+                            FilePath = "/uploads/documents/2025/01/erp_contract_20250101_001.pdf",
+                            FileSize = 2456789L,
+                            IsActive = true,
+                            IsTemporary = false,
+                            MimeType = "application/pdf",
+                            OriginalFileName = "ERP_Contract_Main.pdf",
+                            ProcessedBy = "System",
+                            ProcessedDate = new DateTime(2025, 6, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(586),
+                            SavedFileName = "erp_contract_20250101_001.pdf",
+                            UploadSource = "POD"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ContentType = "application/pdf",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(592),
+                            FileHash = "sha256_fin_template_hash_001",
+                            FilePath = "/uploads/templates/2025/01/fin_report_template_20250102_001.pdf",
+                            FileSize = 1234567L,
+                            IsActive = true,
+                            IsTemporary = false,
+                            MimeType = "application/pdf",
+                            OriginalFileName = "Financial_Report_Template.pdf",
+                            ProcessedBy = "System",
+                            ProcessedDate = new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(591),
+                            SavedFileName = "fin_report_template_20250102_001.pdf",
+                            UploadSource = "Wizard"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            ContentType = "application/pdf",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(595),
+                            FileHash = "sha256_hr_policy_hash_001",
+                            FilePath = "/uploads/documents/2025/01/hr_policy_20250103_001.pdf",
+                            FileSize = 987654L,
+                            IsActive = true,
+                            IsTemporary = false,
+                            MimeType = "application/pdf",
+                            OriginalFileName = "HR_Policy_Document.pdf",
+                            ProcessedBy = "System",
+                            ProcessedDate = new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(594),
+                            SavedFileName = "hr_policy_20250103_001.pdf",
+                            UploadSource = "POD"
+                        });
                 });
 
             modelBuilder.Entity("DT_PODSystem.Models.Entities.Vendor", b =>
@@ -1822,11 +2777,6 @@ namespace DT_PODSystem.Migrations
                     b.Property<string>("ApprovedBy")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("CommercialRegister")
                         .HasMaxLength(50)
@@ -1891,9 +2841,6 @@ namespace DT_PODSystem.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
-                        .IsUnique();
-
                     b.HasIndex("CommercialRegister");
 
                     b.HasIndex("CreatedDate")
@@ -1914,305 +2861,91 @@ namespace DT_PODSystem.Migrations
                         new
                         {
                             Id = 1,
-                            ApprovalDate = new DateTime(2025, 7, 6, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8658),
-                            ApprovedBy = "System",
-                            Code = "TSL001",
+                            Address = "King Fahd Road, Riyadh 12345, Saudi Arabia",
+                            ApprovalDate = new DateTime(2025, 2, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(209),
+                            ApprovedBy = "System Admin",
                             CommercialRegister = "1010123456",
-                            CompanyName = "Nokia",
-                            ContactEmail = "ahmed@nokia.sa",
-                            ContactPerson = "Ahmed Al-Rashid",
-                            ContactPhone = "+96650112367",
+                            CompanyName = "STS Co. Ltd.",
+                            ContactEmail = "ahmad@sts.sa",
+                            ContactPerson = "Ahmad Al-Riyadh",
+                            ContactPhone = "+966-11-2345678",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 6, 21, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8672),
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(222),
                             IsActive = true,
                             IsApproved = true,
-                            Name = "Nokia",
-                            TaxNumber = "300123456789003"
+                            Name = "Saudi Technology Solutions",
+                            TaxNumber = "300012345600003"
                         },
                         new
                         {
                             Id = 2,
-                            ApprovalDate = new DateTime(2025, 7, 21, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8676),
-                            ApprovedBy = "System",
-                            Code = "GSC002",
+                            Address = "Olaya District, Riyadh 11564, Saudi Arabia",
+                            ApprovalDate = new DateTime(2025, 4, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(224),
+                            ApprovedBy = "Procurement Manager",
                             CommercialRegister = "1010234567",
-                            CompanyName = "Ericsson Company",
-                            ContactEmail = "sali@Ericsson.sa",
-                            ContactPerson = "Fatima Al-Zahra",
-                            ContactPhone = "+966542345678",
+                            CompanyName = "GCG International",
+                            ContactEmail = "mariam@gcg.com",
+                            ContactPerson = "Mariam Al-Khalil",
+                            ContactPhone = "+966-11-3456789",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 7, 16, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8677),
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(226),
                             IsActive = true,
                             IsApproved = true,
-                            Name = "Ericsson",
-                            TaxNumber = "300234567890003"
+                            Name = "Gulf Consulting Group",
+                            TaxNumber = "300012345600004"
                         },
                         new
                         {
                             Id = 3,
-                            ApprovalDate = new DateTime(2025, 7, 21, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8680),
-                            ApprovedBy = "System",
-                            Code = "GSC003",
-                            CommercialRegister = "1010234567",
-                            CompanyName = "Huawei Company",
-                            ContactEmail = "fatima@Huawei.sa",
-                            ContactPerson = "Fatima Al-Zahra",
-                            ContactPhone = "+966509945678",
-                            CreatedBy = "",
-                            CreatedDate = new DateTime(2025, 7, 16, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8681),
+                            Address = "King Abdullah Financial District, Riyadh 13519, Saudi Arabia",
+                            ApprovalDate = new DateTime(2025, 6, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(227),
+                            ApprovedBy = "IT Director",
+                            CommercialRegister = "1010345678",
+                            CompanyName = "DTP Solutions LLC",
+                            ContactEmail = "mohammed@dtp.sa",
+                            ContactPerson = "Mohammed Al-Faisal",
+                            ContactPhone = "+966-11-4567890",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(228),
                             IsActive = true,
                             IsApproved = true,
-                            Name = "Huawei",
-                            TaxNumber = "300234567890003"
+                            Name = "Digital Transformation Partners",
+                            TaxNumber = "300012345600005"
                         },
                         new
                         {
                             Id = 4,
-                            ApprovalDate = new DateTime(2025, 7, 21, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8684),
-                            ApprovedBy = "System",
-                            Code = "GSC004",
-                            CommercialRegister = "1010234567",
-                            CompanyName = "Cisco Company",
-                            ContactEmail = "mohammad@cisco.sa",
-                            ContactPerson = "Fatima Al-Zahra",
-                            ContactPhone = "+966502340078",
-                            CreatedBy = "",
-                            CreatedDate = new DateTime(2025, 7, 16, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8684),
+                            Address = "Al-Malaz District, Riyadh 11432, Saudi Arabia",
+                            CommercialRegister = "1010456789",
+                            CompanyName = "ABS Company",
+                            ContactEmail = "aisha@abs.sa",
+                            ContactPerson = "Aisha Al-Mutairi",
+                            ContactPhone = "+966-11-5678901",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(230),
+                            IsActive = true,
+                            IsApproved = false,
+                            Name = "Arabian Business Services",
+                            TaxNumber = "300012345600006"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Address = "Diplomatic Quarter, Riyadh 11693, Saudi Arabia",
+                            ApprovalDate = new DateTime(2025, 7, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(232),
+                            ApprovedBy = "Finance Director",
+                            CommercialRegister = "1010567890",
+                            CompanyName = "AAC Saudi Arabia",
+                            ContactEmail = "hassan@aac.sa",
+                            ContactPerson = "Hassan Al-Zahrani",
+                            ContactPhone = "+966-11-6789012",
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(233),
                             IsActive = true,
                             IsApproved = true,
-                            Name = "Cisco",
-                            TaxNumber = "300234567890003"
+                            Name = "Advanced Analytics Corp",
+                            TaxNumber = "300012345600007"
                         });
-                });
-
-            modelBuilder.Entity("ED.DocManagerWorker.Models.ProcessedField", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("CalculationConfidence")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(18,2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("CurrencySymbol")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int?>("DecimalPlaces")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("ExtractionConfidence")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(18,2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<int>("FieldMappingId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("FieldName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<bool>("IsValid")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("ModifiedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("ModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("OutputDataType")
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("String");
-
-                    b.Property<string>("OutputValue")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ProcessedFileId")
-                        .HasColumnType("int");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<string>("ValidationErrors")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedDate")
-                        .HasDatabaseName("IX_ProcessedField_CreatedDate");
-
-                    b.HasIndex("FieldMappingId");
-
-                    b.HasIndex("FieldName");
-
-                    b.HasIndex("IsActive")
-                        .HasDatabaseName("IX_ProcessedField_IsActive");
-
-                    b.HasIndex("IsValid");
-
-                    b.HasIndex("OutputDataType");
-
-                    b.HasIndex("ProcessedFileId");
-
-                    b.ToTable("ProcessedFields");
-                });
-
-            modelBuilder.Entity("ED.DocManagerWorker.Models.ProcessedFile", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("AnchorConfidence")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("AnchorDetails")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("AnchorsConfigured")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AnchorsFound")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AnchorsMatched")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<bool>("HasFinancialInfo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("ModifiedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("ModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("NeedApproval")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("OrganizedFilePath")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("OriginalFileName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("OriginalFilePath")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int?>("PdfTemplateId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PeriodId")
-                        .IsRequired()
-                        .HasMaxLength(6)
-                        .HasColumnType("nvarchar(6)");
-
-                    b.Property<DateTime>("ProcessedDate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("ProcessingMessage")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("Pending");
-
-                    b.Property<int>("TemplateId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedDate")
-                        .HasDatabaseName("IX_ProcessedFile_CreatedDate");
-
-                    b.HasIndex("HasFinancialInfo");
-
-                    b.HasIndex("IsActive")
-                        .HasDatabaseName("IX_ProcessedFile_IsActive");
-
-                    b.HasIndex("NeedApproval");
-
-                    b.HasIndex("PdfTemplateId");
-
-                    b.HasIndex("PeriodId");
-
-                    b.HasIndex("ProcessedDate");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("TemplateId");
-
-                    b.HasIndex("TemplateId", "PeriodId");
-
-                    b.ToTable("ProcessedFiles");
                 });
 
             modelBuilder.Entity("DT_PODSystem.Models.Entities.Department", b =>
@@ -2248,22 +2981,22 @@ namespace DT_PODSystem.Migrations
                     b.Navigation("Query");
                 });
 
-            modelBuilder.Entity("DT_PODSystem.Models.Entities.PdfTemplate", b =>
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.POD", b =>
                 {
                     b.HasOne("DT_PODSystem.Models.Entities.Category", "Category")
-                        .WithMany("Templates")
+                        .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("DT_PODSystem.Models.Entities.Department", "Department")
-                        .WithMany("Templates")
+                        .WithMany()
                         .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("DT_PODSystem.Models.Entities.Vendor", "Vendor")
-                        .WithMany("Templates")
+                        .WithMany()
                         .HasForeignKey("VendorId")
                         .OnDelete(DeleteBehavior.SetNull);
 
@@ -2272,6 +3005,82 @@ namespace DT_PODSystem.Migrations
                     b.Navigation("Department");
 
                     b.Navigation("Vendor");
+                });
+
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.PODAttachment", b =>
+                {
+                    b.HasOne("DT_PODSystem.Models.Entities.POD", "POD")
+                        .WithMany("Attachments")
+                        .HasForeignKey("PODId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DT_PODSystem.Models.Entities.UploadedFile", "UploadedFile")
+                        .WithMany("PODAttachments")
+                        .HasForeignKey("UploadedFileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("POD");
+
+                    b.Navigation("UploadedFile");
+                });
+
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.PdfTemplate", b =>
+                {
+                    b.HasOne("DT_PODSystem.Models.Entities.Category", null)
+                        .WithMany("Templates")
+                        .HasForeignKey("CategoryId");
+
+                    b.HasOne("DT_PODSystem.Models.Entities.Department", null)
+                        .WithMany("Templates")
+                        .HasForeignKey("DepartmentId");
+
+                    b.HasOne("DT_PODSystem.Models.Entities.POD", "POD")
+                        .WithMany("Templates")
+                        .HasForeignKey("PODId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DT_PODSystem.Models.Entities.Vendor", null)
+                        .WithMany("Templates")
+                        .HasForeignKey("VendorId");
+
+                    b.Navigation("POD");
+                });
+
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.ProcessedField", b =>
+                {
+                    b.HasOne("DT_PODSystem.Models.Entities.FieldMapping", "MappedField")
+                        .WithMany()
+                        .HasForeignKey("FieldMappingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DT_PODSystem.Models.Entities.ProcessedFile", "ProcessedFile")
+                        .WithMany("ProcessedFields")
+                        .HasForeignKey("ProcessedFileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MappedField");
+
+                    b.Navigation("ProcessedFile");
+                });
+
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.ProcessedFile", b =>
+                {
+                    b.HasOne("DT_PODSystem.Models.Entities.PdfTemplate", null)
+                        .WithMany("ProcessedFiles")
+                        .HasForeignKey("PdfTemplateId");
+
+                    b.HasOne("DT_PODSystem.Models.Entities.PdfTemplate", "Template")
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Template");
                 });
 
             modelBuilder.Entity("DT_PODSystem.Models.Entities.QueryConstant", b =>
@@ -2304,7 +3113,7 @@ namespace DT_PODSystem.Migrations
 
             modelBuilder.Entity("DT_PODSystem.Models.Entities.QueryResult", b =>
                 {
-                    b.HasOne("ED.DocManagerWorker.Models.ProcessedFile", "ProcessedFile")
+                    b.HasOne("DT_PODSystem.Models.Entities.ProcessedFile", "ProcessedFile")
                         .WithMany()
                         .HasForeignKey("ProcessedFileId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2359,40 +3168,6 @@ namespace DT_PODSystem.Migrations
                     b.Navigation("UploadedFile");
                 });
 
-            modelBuilder.Entity("ED.DocManagerWorker.Models.ProcessedField", b =>
-                {
-                    b.HasOne("DT_PODSystem.Models.Entities.FieldMapping", "MappedField")
-                        .WithMany()
-                        .HasForeignKey("FieldMappingId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ED.DocManagerWorker.Models.ProcessedFile", "ProcessedFile")
-                        .WithMany("ProcessedFields")
-                        .HasForeignKey("ProcessedFileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MappedField");
-
-                    b.Navigation("ProcessedFile");
-                });
-
-            modelBuilder.Entity("ED.DocManagerWorker.Models.ProcessedFile", b =>
-                {
-                    b.HasOne("DT_PODSystem.Models.Entities.PdfTemplate", null)
-                        .WithMany("ProcessedFiles")
-                        .HasForeignKey("PdfTemplateId");
-
-                    b.HasOne("DT_PODSystem.Models.Entities.PdfTemplate", "Template")
-                        .WithMany()
-                        .HasForeignKey("TemplateId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Template");
-                });
-
             modelBuilder.Entity("DT_PODSystem.Models.Entities.Category", b =>
                 {
                     b.Navigation("Templates");
@@ -2413,6 +3188,13 @@ namespace DT_PODSystem.Migrations
                     b.Navigation("Departments");
                 });
 
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.POD", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("Templates");
+                });
+
             modelBuilder.Entity("DT_PODSystem.Models.Entities.PdfTemplate", b =>
                 {
                     b.Navigation("Attachments");
@@ -2422,6 +3204,11 @@ namespace DT_PODSystem.Migrations
                     b.Navigation("ProcessedFiles");
 
                     b.Navigation("TemplateAnchors");
+                });
+
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.ProcessedFile", b =>
+                {
+                    b.Navigation("ProcessedFields");
                 });
 
             modelBuilder.Entity("DT_PODSystem.Models.Entities.Query", b =>
@@ -2435,17 +3222,14 @@ namespace DT_PODSystem.Migrations
 
             modelBuilder.Entity("DT_PODSystem.Models.Entities.UploadedFile", b =>
                 {
+                    b.Navigation("PODAttachments");
+
                     b.Navigation("TemplateAttachments");
                 });
 
             modelBuilder.Entity("DT_PODSystem.Models.Entities.Vendor", b =>
                 {
                     b.Navigation("Templates");
-                });
-
-            modelBuilder.Entity("ED.DocManagerWorker.Models.ProcessedFile", b =>
-                {
-                    b.Navigation("ProcessedFields");
                 });
 #pragma warning restore 612, 618
         }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace DT_PODSystem.Migrations
+namespace DT_PODSystem.Migrations.ApplicationDb
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -88,7 +88,6 @@ namespace DT_PODSystem.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Code = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ManagerName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     ContactEmail = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -115,7 +114,7 @@ namespace DT_PODSystem.Migrations
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    Version = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, defaultValue: "1.0"),
+                    Version = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     ExecutionPriority = table.Column<int>(type: "int", nullable: false, defaultValue: 5),
                     ApprovedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -148,6 +147,9 @@ namespace DT_PODSystem.Migrations
                     IsTemporary = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     ProcessedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ProcessedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    MimeType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UploadSource = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     CreatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     ModifiedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -167,7 +169,6 @@ namespace DT_PODSystem.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Code = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     CompanyName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ContactPerson = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -197,7 +198,6 @@ namespace DT_PODSystem.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Code = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ManagerName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     ContactEmail = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -298,19 +298,26 @@ namespace DT_PODSystem.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PdfTemplates",
+                name: "PODs",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    NamingConvention = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    PODCode = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false, defaultValueSql: "NEWID()"),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    Version = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    PONumber = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    ContractNumber = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
                     DepartmentId = table.Column<int>(type: "int", nullable: false),
                     VendorId = table.Column<int>(type: "int", nullable: true),
+                    AutomationStatus = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    Frequency = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    VendorSPOCUsername = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    GovernorSPOCUsername = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    FinanceSPOCUsername = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    Version = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     RequiresApproval = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     IsFinancialData = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     ProcessingPriority = table.Column<int>(type: "int", nullable: false, defaultValue: 5),
@@ -327,21 +334,21 @@ namespace DT_PODSystem.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PdfTemplates", x => x.Id);
+                    table.PrimaryKey("PK_PODs", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PdfTemplates_Categories_CategoryId",
+                        name: "FK_PODs_Categories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "Categories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_PdfTemplates_Departments_DepartmentId",
+                        name: "FK_PODs_Departments_DepartmentId",
                         column: x => x.DepartmentId,
                         principalTable: "Departments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_PdfTemplates_Vendors_VendorId",
+                        name: "FK_PODs_Vendors_VendorId",
                         column: x => x.VendorId,
                         principalTable: "Vendors",
                         principalColumn: "Id",
@@ -398,6 +405,108 @@ namespace DT_PODSystem.Migrations
                         principalTable: "Queries",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PdfTemplates",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PODId = table.Column<int>(type: "int", nullable: false),
+                    NamingConvention = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Version = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    ProcessingPriority = table.Column<int>(type: "int", nullable: false, defaultValue: 5),
+                    ApprovedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    ApprovalDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    LastProcessedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ProcessedCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    TechnicalNotes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    HasFormFields = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    ExpectedPdfVersion = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    ExpectedPageCount = table.Column<int>(type: "int", nullable: true),
+                    CategoryId = table.Column<int>(type: "int", nullable: true),
+                    DepartmentId = table.Column<int>(type: "int", nullable: true),
+                    VendorId = table.Column<int>(type: "int", nullable: true),
+                    CreatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    ModifiedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PdfTemplates", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PdfTemplates_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PdfTemplates_Departments_DepartmentId",
+                        column: x => x.DepartmentId,
+                        principalTable: "Departments",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PdfTemplates_PODs_PODId",
+                        column: x => x.PODId,
+                        principalTable: "PODs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PdfTemplates_Vendors_VendorId",
+                        column: x => x.VendorId,
+                        principalTable: "Vendors",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PODAttachments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PODId = table.Column<int>(type: "int", nullable: false),
+                    UploadedFileId = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    DisplayName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    DisplayOrder = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    IsPrimary = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    DocumentNumber = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    DocumentDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IssuedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    DocumentVersion = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    RequiresApproval = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    ApprovedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    ApprovalDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ApprovalNotes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    DocumentStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true, defaultValue: "Active"),
+                    CreatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    ModifiedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    ModifiedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PODAttachments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PODAttachments_PODs_PODId",
+                        column: x => x.PODId,
+                        principalTable: "PODs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PODAttachments_UploadedFiles_UploadedFileId",
+                        column: x => x.UploadedFileId,
+                        principalTable: "UploadedFiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -539,7 +648,7 @@ namespace DT_PODSystem.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TemplateId = table.Column<int>(type: "int", nullable: false),
                     UploadedFileId = table.Column<int>(type: "int", nullable: false),
-                    Type = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false, defaultValue: 2),
                     DisplayName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     DisplayOrder = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
@@ -547,9 +656,8 @@ namespace DT_PODSystem.Migrations
                     PageCount = table.Column<int>(type: "int", nullable: true),
                     PdfVersion = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     HasFormFields = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    OriginalFileName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    SavedFileName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    FilePath = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    LastProcessed = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ProcessingStatus = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     CreatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     ModifiedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -675,46 +783,127 @@ namespace DT_PODSystem.Migrations
                 columns: new[] { "Id", "ColorCode", "CreatedBy", "CreatedDate", "Description", "DisplayOrder", "IconClass", "IsActive", "ModifiedBy", "ModifiedDate", "Name" },
                 values: new object[,]
                 {
-                    { 1, "#A54EE1", "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8372), "Financial and accounting related documents", 1, "fa fa-dollar-sign", true, null, null, "MSP Certificates" },
-                    { 2, "#4F008C", "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8375), "Legal contracts and agreements", 2, "fa fa-balance-scale", true, null, null, "Financial Documents" },
-                    { 3, "#00C48C", "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8377), "Human resources and personnel documents", 3, "fa fa-users", true, null, null, "HR Documents" },
-                    { 4, "#1BCED8", "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8380), "Technical specifications and documentation", 4, "fa fa-cogs", true, null, null, "Technical Documents" }
+                    { 1, "#A54EE1", "System", new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9786), "Financial and accounting related documents", 1, "fa fa-dollar-sign", true, null, null, "MSP Certificates" },
+                    { 2, "#4F008C", "System", new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9789), "Legal contracts and agreements", 2, "fa fa-balance-scale", true, null, null, "Financial Documents" },
+                    { 3, "#00C48C", "System", new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9791), "Human resources and personnel documents", 3, "fa fa-users", true, null, null, "HR Documents" },
+                    { 4, "#FF6B6B", "System", new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9792), "Legal contracts, agreements, and compliance documents", 4, "fa fa-gavel", true, null, null, "Legal Documents" },
+                    { 5, "#4ECDC4", "System", new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9794), "Purchase orders, contracts, and procurement related documents", 5, "fa fa-shopping-cart", true, null, null, "Procurement Documents" }
                 });
 
             migrationBuilder.InsertData(
                 table: "GeneralDirectorates",
-                columns: new[] { "Id", "Code", "ContactEmail", "ContactPhone", "CreatedBy", "CreatedDate", "Description", "DisplayOrder", "IsActive", "ManagerName", "ModifiedBy", "ModifiedDate", "Name" },
+                columns: new[] { "Id", "ContactEmail", "ContactPhone", "CreatedBy", "CreatedDate", "Description", "DisplayOrder", "IsActive", "ManagerName", "ModifiedBy", "ModifiedDate", "Name" },
                 values: new object[,]
                 {
-                    { 1, "FA", null, null, "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8575), "Financial management and administrative services", 1, true, null, null, null, "Finance and Administration" },
-                    { 2, "IT", null, null, "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8578), "Information technology services and infrastructure", 2, true, null, null, null, "Information Technology" },
-                    { 3, "HR", null, null, "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8580), "Human resources and organizational development", 3, true, null, null, null, "Human Resources" },
-                    { 4, "OPS", null, null, "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8582), "Operational activities and service delivery", 4, true, null, null, null, "Operations" }
+                    { 1, null, null, "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(94), "IT systems, software, and technology services", 1, true, null, null, null, "Information Technology" },
+                    { 2, null, null, "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(96), "Financial operations, budgeting, and administrative services", 2, true, null, null, null, "Finance and Administration" },
+                    { 3, null, null, "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(97), "Personnel management, training, and development", 3, true, null, null, null, "Human Resources" },
+                    { 4, null, null, "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(99), "Operational activities and facility maintenance", 4, true, null, null, null, "Operations and Maintenance" },
+                    { 5, null, null, "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(100), "Legal affairs, regulatory compliance, and risk management", 5, true, null, null, null, "Legal and Compliance" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "UploadedFiles",
+                columns: new[] { "Id", "ContentType", "CreatedBy", "CreatedDate", "ExpiryDate", "FileHash", "FilePath", "FileSize", "IsActive", "MimeType", "ModifiedBy", "ModifiedDate", "OriginalFileName", "ProcessedBy", "ProcessedDate", "SavedFileName", "UploadSource" },
+                values: new object[,]
+                {
+                    { 1, "application/pdf", "System", new DateTime(2025, 6, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(588), null, "sha256_erp_contract_hash_001", "/uploads/documents/2025/01/erp_contract_20250101_001.pdf", 2456789L, true, "application/pdf", null, null, "ERP_Contract_Main.pdf", "System", new DateTime(2025, 6, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(586), "erp_contract_20250101_001.pdf", "POD" },
+                    { 2, "application/pdf", "System", new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(592), null, "sha256_fin_template_hash_001", "/uploads/templates/2025/01/fin_report_template_20250102_001.pdf", 1234567L, true, "application/pdf", null, null, "Financial_Report_Template.pdf", "System", new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(591), "fin_report_template_20250102_001.pdf", "Wizard" },
+                    { 3, "application/pdf", "System", new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(595), null, "sha256_hr_policy_hash_001", "/uploads/documents/2025/01/hr_policy_20250103_001.pdf", 987654L, true, "application/pdf", null, null, "HR_Policy_Document.pdf", "System", new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(594), "hr_policy_20250103_001.pdf", "POD" }
                 });
 
             migrationBuilder.InsertData(
                 table: "Vendors",
-                columns: new[] { "Id", "Address", "ApprovalDate", "ApprovedBy", "Code", "CommercialRegister", "CompanyName", "ContactEmail", "ContactPerson", "ContactPhone", "CreatedBy", "CreatedDate", "IsActive", "IsApproved", "ModifiedBy", "ModifiedDate", "Name", "TaxNumber" },
+                columns: new[] { "Id", "Address", "ApprovalDate", "ApprovedBy", "CommercialRegister", "CompanyName", "ContactEmail", "ContactPerson", "ContactPhone", "CreatedBy", "CreatedDate", "IsActive", "IsApproved", "ModifiedBy", "ModifiedDate", "Name", "TaxNumber" },
                 values: new object[,]
                 {
-                    { 1, null, new DateTime(2025, 7, 6, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8658), "System", "TSL001", "1010123456", "Nokia", "ahmed@nokia.sa", "Ahmed Al-Rashid", "+96650112367", "System", new DateTime(2025, 6, 21, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8672), true, true, null, null, "Nokia", "300123456789003" },
-                    { 2, null, new DateTime(2025, 7, 21, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8676), "System", "GSC002", "1010234567", "Ericsson Company", "sali@Ericsson.sa", "Fatima Al-Zahra", "+966542345678", "System", new DateTime(2025, 7, 16, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8677), true, true, null, null, "Ericsson", "300234567890003" },
-                    { 3, null, new DateTime(2025, 7, 21, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8680), "System", "GSC003", "1010234567", "Huawei Company", "fatima@Huawei.sa", "Fatima Al-Zahra", "+966509945678", "", new DateTime(2025, 7, 16, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8681), true, true, null, null, "Huawei", "300234567890003" },
-                    { 4, null, new DateTime(2025, 7, 21, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8684), "System", "GSC004", "1010234567", "Cisco Company", "mohammad@cisco.sa", "Fatima Al-Zahra", "+966502340078", "", new DateTime(2025, 7, 16, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8684), true, true, null, null, "Cisco", "300234567890003" }
+                    { 1, "King Fahd Road, Riyadh 12345, Saudi Arabia", new DateTime(2025, 2, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(209), "System Admin", "1010123456", "STS Co. Ltd.", "ahmad@sts.sa", "Ahmad Al-Riyadh", "+966-11-2345678", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(222), true, true, null, null, "Saudi Technology Solutions", "300012345600003" },
+                    { 2, "Olaya District, Riyadh 11564, Saudi Arabia", new DateTime(2025, 4, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(224), "Procurement Manager", "1010234567", "GCG International", "mariam@gcg.com", "Mariam Al-Khalil", "+966-11-3456789", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(226), true, true, null, null, "Gulf Consulting Group", "300012345600004" },
+                    { 3, "King Abdullah Financial District, Riyadh 13519, Saudi Arabia", new DateTime(2025, 6, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(227), "IT Director", "1010345678", "DTP Solutions LLC", "mohammed@dtp.sa", "Mohammed Al-Faisal", "+966-11-4567890", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(228), true, true, null, null, "Digital Transformation Partners", "300012345600005" }
                 });
 
             migrationBuilder.InsertData(
+                table: "Vendors",
+                columns: new[] { "Id", "Address", "ApprovalDate", "ApprovedBy", "CommercialRegister", "CompanyName", "ContactEmail", "ContactPerson", "ContactPhone", "CreatedBy", "CreatedDate", "IsActive", "ModifiedBy", "ModifiedDate", "Name", "TaxNumber" },
+                values: new object[] { 4, "Al-Malaz District, Riyadh 11432, Saudi Arabia", null, null, "1010456789", "ABS Company", "aisha@abs.sa", "Aisha Al-Mutairi", "+966-11-5678901", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(230), true, null, null, "Arabian Business Services", "300012345600006" });
+
+            migrationBuilder.InsertData(
+                table: "Vendors",
+                columns: new[] { "Id", "Address", "ApprovalDate", "ApprovedBy", "CommercialRegister", "CompanyName", "ContactEmail", "ContactPerson", "ContactPhone", "CreatedBy", "CreatedDate", "IsActive", "IsApproved", "ModifiedBy", "ModifiedDate", "Name", "TaxNumber" },
+                values: new object[] { 5, "Diplomatic Quarter, Riyadh 11693, Saudi Arabia", new DateTime(2025, 7, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(232), "Finance Director", "1010567890", "AAC Saudi Arabia", "hassan@aac.sa", "Hassan Al-Zahrani", "+966-11-6789012", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(233), true, true, null, null, "Advanced Analytics Corp", "300012345600007" });
+
+            migrationBuilder.InsertData(
                 table: "Departments",
-                columns: new[] { "Id", "Code", "ContactEmail", "ContactPhone", "CreatedBy", "CreatedDate", "Description", "DisplayOrder", "GeneralDirectorateId", "IsActive", "ManagerName", "ModifiedBy", "ModifiedDate", "Name" },
+                columns: new[] { "Id", "ContactEmail", "ContactPhone", "CreatedBy", "CreatedDate", "Description", "DisplayOrder", "GeneralDirectorateId", "IsActive", "ManagerName", "ModifiedBy", "ModifiedDate", "Name" },
                 values: new object[,]
                 {
-                    { 1, "ACC", null, null, "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8612), "Financial accounting and reporting", 1, 1, true, null, null, null, "TB" },
-                    { 2, "PROC", null, null, "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8615), "Procurement and vendor management", 2, 1, true, null, null, null, "SOC" },
-                    { 3, "DEV", null, null, "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8617), "Software development and maintenance", 1, 2, true, null, null, null, "NOC" },
-                    { 4, "INFRA", null, null, "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8620), "IT infrastructure and security", 2, 2, true, null, null, null, "Infrastructure" },
-                    { 5, "TM", null, null, "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8622), "Talent acquisition and development", 1, 3, true, null, null, null, "Fixed" },
-                    { 6, "ER", null, null, "System", new DateTime(2025, 8, 5, 1, 17, 11, 460, DateTimeKind.Utc).AddTicks(8624), "Employee relations and compliance", 2, 3, true, null, null, null, "Transport" }
+                    { 1, "ahmed.rashid@company.sa", "+966-11-1234567", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(130), "Application development and maintenance", 1, 1, true, "Ahmed Al-Rashid", null, null, "Software Development" },
+                    { 2, "sara.mahmoud@company.sa", "+966-11-1234568", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(132), "IT infrastructure, networking, and security", 2, 1, true, "Sara Al-Mahmoud", null, null, "Infrastructure and Networks" },
+                    { 3, "omar.fahad@company.sa", "+966-11-1234569", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(134), "Business intelligence and data analysis", 3, 1, true, "Omar Al-Fahad", null, null, "Data Analytics" },
+                    { 4, "fatima.zahra@company.sa", "+966-11-1234570", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(136), "Budget planning and financial forecasting", 1, 2, true, "Fatima Al-Zahra", null, null, "Financial Planning" },
+                    { 5, "khalid.otaibi@company.sa", "+966-11-1234571", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(137), "Vendor payments and expense management", 2, 2, true, "Khalid Al-Otaibi", null, null, "Accounts Payable" },
+                    { 6, "noura.saud@company.sa", "+966-11-1234572", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(139), "Cash management and financial investments", 3, 2, true, "Noura Al-Saud", null, null, "Treasury" },
+                    { 7, "maha.ghamdi@company.sa", "+966-11-1234573", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(141), "Recruitment and onboarding", 1, 3, true, "Maha Al-Ghamdi", null, null, "Talent Acquisition" },
+                    { 8, "ibrahim.harbi@company.sa", "+966-11-1234574", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(142), "Training and professional development", 2, 3, true, "Ibrahim Al-Harbi", null, null, "Employee Development" },
+                    { 9, "abdullah.mutairi@company.sa", "+966-11-1234575", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(144), "Building maintenance and facility operations", 1, 4, true, "Abdullah Al-Mutairi", null, null, "Facility Management" },
+                    { 10, "reem.johani@company.sa", "+966-11-1234576", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(146), "Physical and information security", 2, 4, true, "Reem Al-Johani", null, null, "Security Operations" },
+                    { 11, "yousef.dosari@company.sa", "+966-11-1234577", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(149), "Contract negotiation and management", 1, 5, true, "Yousef Al-Dosari", null, null, "Contract Management" },
+                    { 12, "layla.shammari@company.sa", "+966-11-1234578", "System", new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(151), "Regulatory compliance and auditing", 2, 5, true, "Layla Al-Shammari", null, null, "Regulatory Compliance" }
                 });
+
+            migrationBuilder.InsertData(
+                table: "PODs",
+                columns: new[] { "Id", "ApprovalDate", "ApprovedBy", "AutomationStatus", "CategoryId", "ContractNumber", "CreatedBy", "CreatedDate", "DepartmentId", "Description", "FinanceSPOCUsername", "Frequency", "GovernorSPOCUsername", "IsActive", "IsFinancialData", "LastProcessedDate", "ModifiedBy", "ModifiedDate", "Name", "PODCode", "PONumber", "ProcessedCount", "ProcessingPriority", "RequiresApproval", "Status", "VendorId", "VendorSPOCUsername", "Version" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2025, 7, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(497), "IT Director", 3, 1, "CTR-ERP-2025", "System", new DateTime(2025, 6, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(506), 1, "Complete ERP system implementation for financial and operational modules", "fatima.finance", 1, "sara.governor", true, true, new DateTime(2025, 8, 1, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(505), null, null, "ERP System Implementation", "POD-ERP-2025-001", "PO-2025-IT-001", 15, 8, true, 4, 1, "ahmad.vendor", "1.0" },
+                    { 2, new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(513), "Finance Director", 1, 2, "CTR-FIN-2025-A", "System", new DateTime(2025, 5, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(516), 4, "Automated processing of monthly financial reports and compliance documents", "noura.finance", 1, "khalid.governor", true, true, new DateTime(2025, 8, 4, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(515), null, null, "Financial Reporting Automation", "POD-FIN-2025-002", "PO-2025-FIN-002", 8, 9, true, 4, 2, "mariam.vendor", "1.2" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "PODs",
+                columns: new[] { "Id", "ApprovalDate", "ApprovedBy", "AutomationStatus", "CategoryId", "ContractNumber", "CreatedBy", "CreatedDate", "DepartmentId", "Description", "FinanceSPOCUsername", "Frequency", "GovernorSPOCUsername", "IsActive", "LastProcessedDate", "ModifiedBy", "ModifiedDate", "Name", "PODCode", "PONumber", "ProcessingPriority", "RequiresApproval", "Status", "VendorId", "VendorSPOCUsername", "Version" },
+                values: new object[] { 3, null, null, 2, 3, null, "System", new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(521), 7, "Employee performance reviews and development tracking system", "fatima.finance", 2, "maha.governor", true, null, null, null, "HR Performance Management", "POD-HR-2025-003", null, 6, true, 2, 3, "mohammed.vendor", "1.0" });
+
+            migrationBuilder.InsertData(
+                table: "PODs",
+                columns: new[] { "Id", "ApprovalDate", "ApprovedBy", "AutomationStatus", "CategoryId", "ContractNumber", "CreatedBy", "CreatedDate", "DepartmentId", "Description", "FinanceSPOCUsername", "Frequency", "GovernorSPOCUsername", "IsActive", "IsFinancialData", "LastProcessedDate", "ModifiedBy", "ModifiedDate", "Name", "PODCode", "PONumber", "ProcessingPriority", "Status", "VendorId", "VendorSPOCUsername", "Version" },
+                values: new object[] { 4, null, null, 1, 5, "CTR-MAINT-2025", "System", new DateTime(2025, 7, 30, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(530), 9, "Processing of facility maintenance requests and contract compliance", "khalid.finance", 1, "abdullah.governor", true, true, null, null, null, "Facility Maintenance Contracts", "POD-OPS-2025-004", "PO-2025-OPS-004", 4, 1, null, null, "1.0" });
+
+            migrationBuilder.InsertData(
+                table: "PODs",
+                columns: new[] { "Id", "ApprovalDate", "ApprovedBy", "AutomationStatus", "CategoryId", "ContractNumber", "CreatedBy", "CreatedDate", "DepartmentId", "Description", "FinanceSPOCUsername", "Frequency", "GovernorSPOCUsername", "IsActive", "IsFinancialData", "LastProcessedDate", "ModifiedBy", "ModifiedDate", "Name", "PODCode", "PONumber", "ProcessedCount", "ProcessingPriority", "RequiresApproval", "Status", "VendorId", "VendorSPOCUsername", "Version" },
+                values: new object[] { 5, new DateTime(2025, 7, 17, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(540), "Legal Director", 3, 4, null, "System", new DateTime(2025, 7, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(542), 12, "Regulatory compliance reports and legal documentation processing", "noura.finance", 2, "layla.governor", true, true, new DateTime(2025, 7, 27, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(542), null, null, "Legal Compliance Reporting", "POD-LEG-2025-005", null, 3, 7, true, 4, 5, "hassan.vendor", "1.1" });
+
+            migrationBuilder.InsertData(
+                table: "PODAttachments",
+                columns: new[] { "Id", "ApprovalDate", "ApprovalNotes", "ApprovedBy", "CreatedBy", "CreatedDate", "Description", "DisplayName", "DisplayOrder", "DocumentDate", "DocumentNumber", "DocumentStatus", "DocumentVersion", "ExpiryDate", "IsActive", "IsPrimary", "IssuedBy", "ModifiedBy", "ModifiedDate", "PODId", "RequiresApproval", "Type", "UploadedFileId" },
+                values: new object[] { 1, new DateTime(2025, 6, 9, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(623), null, "Legal Director", "System", new DateTime(2025, 6, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(624), "Primary contract document for ERP system implementation", "Main ERP Implementation Contract", 1, new DateTime(2025, 6, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(621), "CTR-ERP-2025-001", "Active", "1.0", null, true, true, "Legal Department", null, null, 1, true, 1, 1 });
+
+            migrationBuilder.InsertData(
+                table: "PODAttachments",
+                columns: new[] { "Id", "ApprovalDate", "ApprovalNotes", "ApprovedBy", "CreatedBy", "CreatedDate", "Description", "DisplayName", "DisplayOrder", "DocumentDate", "DocumentNumber", "DocumentStatus", "DocumentVersion", "ExpiryDate", "IsActive", "IsPrimary", "IssuedBy", "ModifiedBy", "ModifiedDate", "PODId", "Type", "UploadedFileId" },
+                values: new object[] { 2, null, null, null, "System", new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(628), "Standard operating procedures for HR performance management", "HR Policy and Procedures", 1, new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(626), "SOP-HR-2025-001", "Active", "2.1", null, true, true, "HR Department", null, null, 3, 3, 3 });
+
+            migrationBuilder.InsertData(
+                table: "PdfTemplates",
+                columns: new[] { "Id", "ApprovalDate", "ApprovedBy", "CategoryId", "CreatedBy", "CreatedDate", "DepartmentId", "ExpectedPageCount", "ExpectedPdfVersion", "IsActive", "LastProcessedDate", "ModifiedBy", "ModifiedDate", "NamingConvention", "PODId", "ProcessedCount", "ProcessingPriority", "Status", "TechnicalNotes", "VendorId", "Version" },
+                values: new object[] { 1, new DateTime(2025, 7, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(661), "IT Director", null, "System", new DateTime(2025, 7, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(663), null, 3, "1.7", true, new DateTime(2025, 8, 1, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(662), null, null, "ERP_INV_{YYYYMM}", 1, 15, 8, 2, "Requires OCR preprocessing for invoice amounts", null, "1.2" });
+
+            migrationBuilder.InsertData(
+                table: "PdfTemplates",
+                columns: new[] { "Id", "ApprovalDate", "ApprovedBy", "CategoryId", "CreatedBy", "CreatedDate", "DepartmentId", "ExpectedPageCount", "ExpectedPdfVersion", "HasFormFields", "IsActive", "LastProcessedDate", "ModifiedBy", "ModifiedDate", "NamingConvention", "PODId", "ProcessedCount", "ProcessingPriority", "Status", "TechnicalNotes", "VendorId", "Version" },
+                values: new object[] { 2, new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(665), "Finance Director", null, "System", new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(667), null, 5, "1.6", true, true, new DateTime(2025, 8, 4, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(666), null, null, "FIN_RPT_{YYYYMM}_{DD}", 2, 8, 9, 2, "Multi-page template with dynamic table extraction", null, "2.0" });
+
+            migrationBuilder.InsertData(
+                table: "PdfTemplates",
+                columns: new[] { "Id", "ApprovalDate", "ApprovedBy", "CategoryId", "CreatedBy", "CreatedDate", "DepartmentId", "ExpectedPageCount", "ExpectedPdfVersion", "HasFormFields", "IsActive", "LastProcessedDate", "ModifiedBy", "ModifiedDate", "NamingConvention", "PODId", "ProcessingPriority", "TechnicalNotes", "VendorId", "Version" },
+                values: new object[] { 3, null, null, null, "System", new DateTime(2025, 7, 27, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(670), null, 8, "1.7", true, true, null, null, null, "LEG_COMP_{YYYY}Q{Q}", 5, 7, "Quarterly compliance template with signature verification", null, "1.0" });
+
+            migrationBuilder.InsertData(
+                table: "TemplateAttachments",
+                columns: new[] { "Id", "CreatedBy", "CreatedDate", "Description", "DisplayName", "DisplayOrder", "HasFormFields", "IsActive", "IsPrimary", "LastProcessed", "ModifiedBy", "ModifiedDate", "PageCount", "PdfVersion", "ProcessingStatus", "TemplateId", "UploadedFileId" },
+                values: new object[] { 1, "System", new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(706), "Primary template for monthly financial report processing", "Monthly Financial Report Template", 1, true, true, true, null, null, null, 5, "1.6", "Ready", 2, 2 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLog_CreatedDate",
@@ -756,12 +945,6 @@ namespace DT_PODSystem.Migrations
                 name: "IX_Department_IsActive",
                 table: "Departments",
                 column: "IsActive");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Departments_Code",
-                table: "Departments",
-                column: "Code",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Departments_GeneralDirectorateId_DisplayOrder",
@@ -831,12 +1014,6 @@ namespace DT_PODSystem.Migrations
                 column: "IsActive");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GeneralDirectorates_Code",
-                table: "GeneralDirectorates",
-                column: "Code",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_GeneralDirectorates_DisplayOrder",
                 table: "GeneralDirectorates",
                 column: "DisplayOrder");
@@ -867,14 +1044,14 @@ namespace DT_PODSystem.Migrations
                 column: "DepartmentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PdfTemplates_IsFinancialData",
+                name: "IX_PdfTemplates_NamingConvention",
                 table: "PdfTemplates",
-                column: "IsFinancialData");
+                column: "NamingConvention");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PdfTemplates_Name",
+                name: "IX_PdfTemplates_PODId",
                 table: "PdfTemplates",
-                column: "Name");
+                column: "PODId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PdfTemplates_Status",
@@ -884,6 +1061,128 @@ namespace DT_PODSystem.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_PdfTemplates_VendorId",
                 table: "PdfTemplates",
+                column: "VendorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODAttachment_CreatedDate",
+                table: "PODAttachments",
+                column: "CreatedDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODAttachment_IsActive",
+                table: "PODAttachments",
+                column: "IsActive");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODAttachments_DisplayOrder",
+                table: "PODAttachments",
+                column: "DisplayOrder");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODAttachments_DocumentDate",
+                table: "PODAttachments",
+                column: "DocumentDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODAttachments_DocumentNumber",
+                table: "PODAttachments",
+                column: "DocumentNumber");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODAttachments_DocumentStatus",
+                table: "PODAttachments",
+                column: "DocumentStatus");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODAttachments_ExpiryDate",
+                table: "PODAttachments",
+                column: "ExpiryDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODAttachments_IsPrimary",
+                table: "PODAttachments",
+                column: "IsPrimary");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODAttachments_PODId_UploadedFileId",
+                table: "PODAttachments",
+                columns: new[] { "PODId", "UploadedFileId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODAttachments_Type",
+                table: "PODAttachments",
+                column: "Type");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODAttachments_UploadedFileId",
+                table: "PODAttachments",
+                column: "UploadedFileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_POD_CreatedDate",
+                table: "PODs",
+                column: "CreatedDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_POD_IsActive",
+                table: "PODs",
+                column: "IsActive");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODs_AutomationStatus",
+                table: "PODs",
+                column: "AutomationStatus");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODs_CategoryId",
+                table: "PODs",
+                column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODs_ContractNumber",
+                table: "PODs",
+                column: "ContractNumber");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODs_DepartmentId",
+                table: "PODs",
+                column: "DepartmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODs_Frequency",
+                table: "PODs",
+                column: "Frequency");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODs_IsFinancialData",
+                table: "PODs",
+                column: "IsFinancialData");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODs_Name",
+                table: "PODs",
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODs_PODCode",
+                table: "PODs",
+                column: "PODCode",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODs_PONumber",
+                table: "PODs",
+                column: "PONumber");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODs_Status",
+                table: "PODs",
+                column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PODs_VendorId",
+                table: "PODs",
                 column: "VendorId");
 
             migrationBuilder.CreateIndex(
@@ -1012,14 +1311,14 @@ namespace DT_PODSystem.Migrations
                 column: "DisplayOrder");
 
             migrationBuilder.CreateIndex(
-                name: "IX_QueryConstants_IsConstant",
-                table: "QueryConstants",
-                column: "IsConstant");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_QueryConstants_IsGlobal",
                 table: "QueryConstants",
                 column: "IsGlobal");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_QueryConstants_Name",
+                table: "QueryConstants",
+                column: "Name");
 
             migrationBuilder.CreateIndex(
                 name: "IX_QueryConstants_QueryId_Name",
@@ -1140,14 +1439,14 @@ namespace DT_PODSystem.Migrations
                 column: "IsActive");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TemplateAnchors_DisplayOrder",
+                table: "TemplateAnchors",
+                column: "DisplayOrder");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TemplateAnchors_TemplateId",
                 table: "TemplateAnchors",
                 column: "TemplateId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TemplateAnchors_TemplateId_DisplayOrder",
-                table: "TemplateAnchors",
-                columns: new[] { "TemplateId", "DisplayOrder" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_TemplateAnchors_TemplateId_Name",
@@ -1181,9 +1480,15 @@ namespace DT_PODSystem.Migrations
                 column: "IsPrimary");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TemplateAttachments_ProcessingStatus",
+                table: "TemplateAttachments",
+                column: "ProcessingStatus");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TemplateAttachments_TemplateId_UploadedFileId",
                 table: "TemplateAttachments",
-                columns: new[] { "TemplateId", "UploadedFileId" });
+                columns: new[] { "TemplateId", "UploadedFileId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_TemplateAttachments_Type",
@@ -1206,9 +1511,16 @@ namespace DT_PODSystem.Migrations
                 column: "IsActive");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UploadedFiles_ExpiryDate",
+                table: "UploadedFiles",
+                column: "ExpiryDate");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UploadedFiles_FileHash",
                 table: "UploadedFiles",
-                column: "FileHash");
+                column: "FileHash",
+                unique: true,
+                filter: "[FileHash] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UploadedFiles_IsTemporary",
@@ -1223,7 +1535,13 @@ namespace DT_PODSystem.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_UploadedFiles_SavedFileName",
                 table: "UploadedFiles",
-                column: "SavedFileName");
+                column: "SavedFileName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UploadedFiles_UploadSource",
+                table: "UploadedFiles",
+                column: "UploadSource");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Vendor_CreatedDate",
@@ -1234,12 +1552,6 @@ namespace DT_PODSystem.Migrations
                 name: "IX_Vendor_IsActive",
                 table: "Vendors",
                 column: "IsActive");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Vendors_Code",
-                table: "Vendors",
-                column: "Code",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Vendors_CommercialRegister",
@@ -1267,6 +1579,9 @@ namespace DT_PODSystem.Migrations
         {
             migrationBuilder.DropTable(
                 name: "AuditLogs");
+
+            migrationBuilder.DropTable(
+                name: "PODAttachments");
 
             migrationBuilder.DropTable(
                 name: "ProcessedFields");
@@ -1302,6 +1617,12 @@ namespace DT_PODSystem.Migrations
                 name: "FormulaCanvases");
 
             migrationBuilder.DropTable(
+                name: "PODs");
+
+            migrationBuilder.DropTable(
+                name: "Queries");
+
+            migrationBuilder.DropTable(
                 name: "Categories");
 
             migrationBuilder.DropTable(
@@ -1309,9 +1630,6 @@ namespace DT_PODSystem.Migrations
 
             migrationBuilder.DropTable(
                 name: "Vendors");
-
-            migrationBuilder.DropTable(
-                name: "Queries");
 
             migrationBuilder.DropTable(
                 name: "GeneralDirectorates");

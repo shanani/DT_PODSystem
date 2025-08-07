@@ -1,0 +1,365 @@
+@model DT_PODSystem.Models.ViewModels.PODCreateEditViewModel
+
+@{
+    ViewData["Title"] = Model.PageTitle;
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/parsleyjs/src/parsley.css" rel="stylesheet" />
+    <style>
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #007bff;
+        }
+
+            .form-section h5 {
+                color: #007bff;
+                margin-bottom: 15px;
+            }
+
+        .required-field::after {
+            content: " *";
+            color: #dc3545;
+        }
+    </style>
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="@Url.Action("Index")">POD Management</a></li>
+    <li class="breadcrumb-item active">@Model.PageTitle</li>
+</ol>
+<!-- END breadcrumb -->
+<!-- BEGIN page-header -->
+<h1 class="page-header">@Model.PageTitle <small>Process Owner Document configuration</small></h1>
+<!-- END page-header -->
+<!-- BEGIN panel -->
+<div class="panel panel-inverse">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+            <i class="fa fa-folder-plus me-2"></i>@Model.PageTitle
+        </h4>
+        <div class="panel-heading-btn">
+            <a href="@Url.Action("Index")" class="btn btn-secondary btn-sm">
+                <i class="fa fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+    <div class="panel-body">
+        <form asp-action="@(Model.IsEditing ? "Edit" : "Create")" method="post" data-parsley-validate>
+            @if (Model.IsEditing)
+            {
+                <input type="hidden" asp-for="EditingPODId" />
+                <input type="hidden" asp-for="IsEditing" />
+            }
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <!-- Basic Information Section -->
+            <div class="form-section">
+                <h5><i class="fa fa-info-circle me-2"></i>Basic Information</h5>
+                <div class="row">
+                    <div class="col-lg-8 col-md-12">
+                        <div class="mb-3">
+                            <label asp-for="POD.Name" class="form-label required-field">POD Name</label>
+                            <input asp-for="POD.Name" class="form-control"
+                                   placeholder="Enter a descriptive name for this POD"
+                                   data-parsley-required
+                                   data-parsley-minlength="3"
+                                   data-parsley-maxlength="200" />
+                            <span asp-validation-for="POD.Name" class="text-danger"></span>
+                            <small class="form-text text-muted">This will be used to identify the POD across the system</small>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label">POD Code</label>
+                            <input type="text" class="form-control bg-light"
+                                   value="@(Model.IsEditing ? "Auto-generated on save" : "Will be auto-generated")"
+                                   readonly />
+                            <small class="form-text text-muted">Unique identifier generated automatically</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="POD.Description" class="form-label">Description</label>
+                    <textarea asp-for="POD.Description" class="form-control" rows="3"
+                              placeholder="Provide a detailed description of this POD and its purpose"
+                              data-parsley-maxlength="1000"></textarea>
+                    <span asp-validation-for="POD.Description" class="text-danger"></span>
+                    <small class="form-text text-muted">Optional but recommended for better understanding</small>
+                </div>
+            </div>
+
+            <!-- Business References Section -->
+            <div class="form-section">
+                <h5><i class="fa fa-file-contract me-2"></i>Business References</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="POD.PONumber" class="form-label">Purchase Order Number</label>
+                            <input asp-for="POD.PONumber" class="form-control"
+                                   placeholder="e.g., PO-2024-001234"
+                                   data-parsley-maxlength="100" />
+                            <span asp-validation-for="POD.PONumber" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="POD.ContractNumber" class="form-label">Contract Number</label>
+                            <input asp-for="POD.ContractNumber" class="form-control"
+                                   placeholder="e.g., CTR-2024-STC-001"
+                                   data-parsley-maxlength="100" />
+                            <span asp-validation-for="POD.ContractNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Organizational Relationships Section -->
+            <div class="form-section">
+                <h5><i class="fa fa-sitemap me-2"></i>Organizational Relationships</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="POD.CategoryId" class="form-label required-field">Category</label>
+                            <select asp-for="POD.CategoryId" class="form-select"
+                                    data-parsley-required
+                                    data-parsley-required-message="Please select a category">
+                                <option value="">Select Category</option>
+                                @foreach (var category in Model.Categories)
+                                {
+                                    <option value="@category.Value">@category.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="POD.CategoryId" class="text-danger"></span>
+                            <small class="form-text text-muted">Business domain categorization</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="POD.DepartmentId" class="form-label required-field">Department</label>
+                            <select asp-for="POD.DepartmentId" class="form-select"
+                                    data-parsley-required
+                                    data-parsley-required-message="Please select a department">
+                                <option value="">Select Department</option>
+                                @foreach (var department in Model.Departments)
+                                {
+                                    <option value="@department.Value">@department.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="POD.DepartmentId" class="text-danger"></span>
+                            <small class="form-text text-muted">Owning department</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="POD.VendorId" class="form-label">Vendor</label>
+                            <select asp-for="POD.VendorId" class="form-select">
+                                @foreach (var vendor in Model.Vendors)
+                                {
+                                    <option value="@vendor.Value">@vendor.Text</option>
+                                }
+                            </select>
+                            <span asp-validation-for="POD.VendorId" class="text-danger"></span>
+                            <small class="form-text text-muted">Optional: Associated vendor/supplier</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Configuration Section -->
+            <div class="form-section">
+                <h5><i class="fa fa-cogs me-2"></i>Processing Configuration</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="POD.AutomationStatus" class="form-label required-field">Automation Status</label>
+                            <select asp-for="POD.AutomationStatus" class="form-select" data-parsley-required>
+                                <option value="">Select Automation Level</option>
+                                <option value="@((int)DT_PODSystem.Models.Enums.AutomationStatus.PDF)">PDF Only</option>
+                                <option value="@((int)DT_PODSystem.Models.Enums.AutomationStatus.ManualEntryWorkflow)">Semi-Automated</option>
+                                <option value="@((int)DT_PODSystem.Models.Enums.AutomationStatus.FullyAutomated)">Fully Automated</option>
+                            </select>
+                            <span asp-validation-for="POD.AutomationStatus" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="POD.Frequency" class="form-label required-field">Processing Frequency</label>
+                            <select asp-for="POD.Frequency" class="form-select" data-parsley-required>
+                                <option value="">Select Frequency</option>                                
+                                <option value="@((int)DT_PODSystem.Models.Enums.ProcessingFrequency.Monthly)">Monthly</option>
+                                <option value="@((int)DT_PODSystem.Models.Enums.ProcessingFrequency.Quarterly)">Quarterly</option>
+                                <option value="@((int)DT_PODSystem.Models.Enums.ProcessingFrequency.Yearly)">Yearly</option>                                
+                            </select>
+                            <span asp-validation-for="POD.Frequency" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="POD.ProcessingPriority" class="form-label">Processing Priority</label>
+                            <select asp-for="POD.ProcessingPriority" class="form-select">
+                                <option value="1">1 - Highest Priority</option>
+                                <option value="2">2 - High Priority</option>
+                                <option value="3">3 - Above Normal</option>
+                                <option value="4">4 - Above Normal</option>
+                                <option value="5" selected>5 - Normal</option>
+                                <option value="6">6 - Below Normal</option>
+                                <option value="7">7 - Below Normal</option>
+                                <option value="8">8 - Low Priority</option>
+                                <option value="9">9 - Low Priority</option>
+                                <option value="10">10 - Lowest Priority</option>
+                            </select>
+                            <span asp-validation-for="POD.ProcessingPriority" class="text-danger"></span>
+                            <small class="form-text text-muted">1 = Highest, 10 = Lowest</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SPOC (Single Point of Contact) Section -->
+            <div class="form-section">
+                <h5><i class="fa fa-users me-2"></i>Single Points of Contact (SPOC)</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="POD.VendorSPOCUsername" class="form-label">Vendor SPOC</label>
+                            <input asp-for="POD.VendorSPOCUsername" class="form-control"
+                                   placeholder="Vendor contact username"
+                                   data-parsley-maxlength="100" />
+                            <span asp-validation-for="POD.VendorSPOCUsername" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="POD.GovernorSPOCUsername" class="form-label">Governor SPOC</label>
+                            <input asp-for="POD.GovernorSPOCUsername" class="form-control"
+                                   placeholder="Governor contact username"
+                                   data-parsley-maxlength="100" />
+                            <span asp-validation-for="POD.GovernorSPOCUsername" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="POD.FinanceSPOCUsername" class="form-label">Finance SPOC</label>
+                            <input asp-for="POD.FinanceSPOCUsername" class="form-control"
+                                   placeholder="Finance contact username"
+                                   data-parsley-maxlength="100" />
+                            <span asp-validation-for="POD.FinanceSPOCUsername" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Rules Section -->
+            <div class="form-section">
+                <h5><i class="fa fa-shield-alt me-2"></i>Business Rules & Compliance</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="POD.RequiresApproval" class="form-check-input" type="checkbox" />
+                            <label asp-for="POD.RequiresApproval" class="form-check-label">Requires Approval</label>
+                            <small class="form-text text-muted d-block">Check if processing requires approval workflow</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="POD.IsFinancialData" class="form-check-input" type="checkbox" />
+                            <label asp-for="POD.IsFinancialData" class="form-check-label">Contains Financial Data</label>
+                            <small class="form-text text-muted d-block">Check if this POD contains sensitive financial information</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between">
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                            <i class="fa fa-times me-1"></i>Cancel
+                        </a>
+                        <div>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fa fa-@(Model.IsEditing ? "save" : "plus") me-1"></i>@Model.SubmitButtonText
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- END panel -->
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/parsleyjs/dist/parsley.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize Parsley validation
+            $('form').parsley();
+
+            // Auto-generate POD name suggestions based on category and department
+            $('#POD_CategoryId, #POD_DepartmentId').on('change', function() {
+                updateNameSuggestion();
+            });
+
+            function updateNameSuggestion() {
+                var categoryText = $('#POD_CategoryId option:selected').text();
+                var departmentText = $('#POD_DepartmentId option:selected').text();
+
+                if (categoryText && departmentText && categoryText !== 'Select Category' && departmentText !== 'Select Department') {
+                    // Extract department name (remove general directorate part)
+                    var deptName = departmentText.split(' (')[0];
+                    var suggestion = `${categoryText} - ${deptName}`;
+
+                    if ($('#POD_Name').val().trim() === '') {
+                        $('#POD_Name').attr('placeholder', `Suggestion: ${suggestion}`);
+                    }
+                }
+            }
+
+            // Show/hide vendor SPOC based on vendor selection
+            $('#POD_VendorId').on('change', function() {
+                var vendorSelected = $(this).val() !== '';
+                if (!vendorSelected) {
+                    $('#POD_VendorSPOCUsername').val('');
+                }
+            });
+
+            // Auto-enable approval for financial data
+            $('#POD_IsFinancialData').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#POD_RequiresApproval').prop('checked', true);
+                    if (!confirm('Financial data PODs typically require approval. Keep approval enabled?')) {
+                        $('#POD_RequiresApproval').prop('checked', false);
+                    }
+                }
+            });
+
+            // Priority helper tooltips
+            $('#POD_ProcessingPriority').on('change', function() {
+                var priority = parseInt($(this).val());
+                var message = '';
+
+                if (priority <= 2) {
+                    message = 'High priority PODs will be processed first in the queue.';
+                } else if (priority >= 8) {
+                    message = 'Low priority PODs will be processed after higher priority items.';
+                } else {
+                    message = 'Normal priority processing order.';
+                }
+
+                // You could show this in a tooltip or info message
+                console.log(message);
+            });
+        });
+    </script>
+}

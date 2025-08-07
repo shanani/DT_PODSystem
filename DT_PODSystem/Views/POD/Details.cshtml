@@ -1,0 +1,538 @@
+@model DT_PODSystem.Models.ViewModels.PODDetailsViewModel
+
+@{
+    ViewData["Title"] = "POD Details - " + Model.POD.Name;
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet" />
+    <style>
+        .info-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+        }
+
+            .info-section h5 {
+                color: #28a745;
+                margin-bottom: 15px;
+            }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .badge-large {
+            font-size: 0.9rem;
+            padding: 8px 12px;
+        }
+    </style>
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="@Url.Action("Index")">POD Management</a></li>
+    <li class="breadcrumb-item active">@Model.POD.Name</li>
+</ol>
+<!-- END breadcrumb -->
+<!-- BEGIN page-header -->
+<h1 class="page-header">
+    POD Details <small>@Model.POD.Name (@Model.POD.PODCode)</small>
+</h1>
+<!-- END page-header -->
+<!-- Status and Actions Row -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center">
+            <span class="badge @Model.StatusBadgeClass badge-large me-2">@Model.POD.Status</span>
+            <span class="badge @Model.AutomationStatusBadgeClass badge-large me-2">@Model.POD.AutomationStatus</span>
+            @if (Model.POD.RequiresApproval)
+            {
+                <span class="badge bg-info badge-large me-2">Approval Required</span>
+            }
+            @if (Model.POD.IsFinancialData)
+            {
+                <span class="badge bg-danger badge-large">Financial Data</span>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4 text-end">
+        @if (Model.CanEdit)
+        {
+            <a href="@Url.Action("Edit", new { id = Model.POD.Id })" class="btn btn-warning me-2">
+                <i class="fa fa-edit"></i> Edit POD
+            </a>
+        }
+        <a href="@Url.Action("Index")" class="btn btn-secondary">
+            <i class="fa fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="widget widget-stats bg-gradient-blue">
+            <div class="stats-icon stats-icon-lg"><i class="fa fa-file-pdf"></i></div>
+            <div class="stats-content">
+                <div class="stats-title">Templates</div>
+                <div class="stats-number">@Model.POD.Templates.Count(t => t.IsActive)</div>
+                <div class="stats-desc">Active templates</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="widget widget-stats bg-gradient-green">
+            <div class="stats-icon stats-icon-lg"><i class="fa fa-check-circle"></i></div>
+            <div class="stats-content">
+                <div class="stats-title">Processed</div>
+                <div class="stats-number">@Model.POD.ProcessedCount</div>
+                <div class="stats-desc">Total processed</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="widget widget-stats bg-gradient-orange">
+            <div class="stats-icon stats-icon-lg"><i class="fa fa-clock"></i></div>
+            <div class="stats-content">
+                <div class="stats-title">Frequency</div>
+                <div class="stats-number">@Model.POD.Frequency</div>
+                <div class="stats-desc">Processing freq</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="widget widget-stats bg-gradient-purple">
+            <div class="stats-icon stats-icon-lg"><i class="fa fa-star"></i></div>
+            <div class="stats-content">
+                <div class="stats-title">Priority</div>
+                <div class="stats-number">@Model.POD.ProcessingPriority</div>
+                <div class="stats-desc">Processing priority</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column - POD Information -->
+    <div class="col-lg-8">
+        <!-- Basic Information -->
+        <div class="info-section">
+            <h5><i class="fa fa-info-circle me-2"></i>Basic Information</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>POD Name:</strong><br>
+                    <span class="text-primary">@Model.POD.Name</span>
+                </div>
+                <div class="col-md-6">
+                    <strong>POD Code:</strong><br>
+                    <code>@Model.POD.PODCode</code>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.POD.Description))
+            {
+                <div class="mt-3">
+                    <strong>Description:</strong><br>
+                    <p class="mb-0">@Model.POD.Description</p>
+                </div>
+            }
+        </div>
+
+        <!-- Business References -->
+        @if (!string.IsNullOrEmpty(Model.POD.PONumber) || !string.IsNullOrEmpty(Model.POD.ContractNumber))
+        {
+            <div class="info-section">
+                <h5><i class="fa fa-file-contract me-2"></i>Business References</h5>
+                <div class="row">
+                    @if (!string.IsNullOrEmpty(Model.POD.PONumber))
+                    {
+                        <div class="col-md-6">
+                            <strong>Purchase Order Number:</strong><br>
+                            <span class="badge bg-outline-primary">@Model.POD.PONumber</span>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.POD.ContractNumber))
+                    {
+                        <div class="col-md-6">
+                            <strong>Contract Number:</strong><br>
+                            <span class="badge bg-outline-success">@Model.POD.ContractNumber</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Organizational Relationships -->
+        <div class="info-section">
+            <h5><i class="fa fa-sitemap me-2"></i>Organizational Relationships</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>Category:</strong><br>
+                    <div class="d-flex align-items-center">
+                        @if (!string.IsNullOrEmpty(Model.POD.Category?.IconClass))
+                        {
+                            <i class="@Model.POD.Category.IconClass me-2" style="color: @Model.POD.Category.ColorCode"></i>
+                        }
+                        <span>@(Model.POD.Category?.Name ?? "No Category")</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <strong>Department:</strong><br>
+                    <span>@(Model.POD.Department?.Name ?? "No Department")</span>
+                    @if (Model.POD.Department?.GeneralDirectorate != null)
+                    {
+                        <br>
+                    
+                        <small class="text-muted">GD: @Model.POD.Department.GeneralDirectorate.Name</small>
+                    }
+                </div>
+                <div class="col-md-4">
+                    <strong>Vendor:</strong><br>
+                    @if (Model.POD.Vendor != null)
+                    {
+                        <span>@Model.POD.Vendor.Name</span>
+                        @if (!string.IsNullOrEmpty(Model.POD.Vendor.CompanyName))
+                        {
+                            <br>
+                    
+                            <small class="text-muted">@Model.POD.Vendor.CompanyName</small>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted">No vendor assigned</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- SPOC Information -->
+        @if (!string.IsNullOrEmpty(Model.POD.VendorSPOCUsername) ||
+                !string.IsNullOrEmpty(Model.POD.GovernorSPOCUsername) ||
+                !string.IsNullOrEmpty(Model.POD.FinanceSPOCUsername))
+        {
+            <div class="info-section">
+                <h5><i class="fa fa-users me-2"></i>Single Points of Contact</h5>
+                <div class="row">
+                    @if (!string.IsNullOrEmpty(Model.POD.VendorSPOCUsername))
+                    {
+                        <div class="col-md-4">
+                            <strong>Vendor SPOC:</strong><br>
+                            <span class="badge bg-outline-warning">@Model.POD.VendorSPOCUsername</span>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.POD.GovernorSPOCUsername))
+                    {
+                        <div class="col-md-4">
+                            <strong>Governor SPOC:</strong><br>
+                            <span class="badge bg-outline-info">@Model.POD.GovernorSPOCUsername</span>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.POD.FinanceSPOCUsername))
+                    {
+                        <div class="col-md-4">
+                            <strong>Finance SPOC:</strong><br>
+                            <span class="badge bg-outline-success">@Model.POD.FinanceSPOCUsername</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Templates Panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">Associated Templates</h4>
+                <div class="panel-heading-btn">
+                    <a href="@Url.Action("Wizard", "Template", new { podId = Model.POD.Id })" class="btn btn-success btn-sm">
+                        <i class="fa fa-plus"></i> Add Template
+                    </a>
+                </div>
+            </div>
+            <div class="panel-body">
+                @if (Model.POD.Templates.Any(t => t.IsActive))
+                {
+                    <table id="templatesTable" class="table table-striped table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th>Template Details</th>
+                                <th>Status</th>
+                                <th>Processing</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var template in Model.POD.Templates.Where(t => t.IsActive).OrderBy(t => t.NamingConvention))
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@template.NamingConvention</div>
+                                        @if (!string.IsNullOrEmpty(template.TechnicalNotes))
+                                        {
+                                            <div class="small text-muted">@template.TechnicalNotes</div>
+                                        }
+                                        <div class="small text-info">
+                                            Version: @(template.Version ?? "1.0") |
+                                            Priority: @template.ProcessingPriority
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var statusClass = template.Status switch
+                                            {
+                                                DT_PODSystem.Models.Enums.TemplateStatus.Draft => "bg-secondary",
+                                                DT_PODSystem.Models.Enums.TemplateStatus.Active => "bg-success",
+                                                DT_PODSystem.Models.Enums.TemplateStatus.Testing => "bg-warning",
+                                                DT_PODSystem.Models.Enums.TemplateStatus.Suspended => "bg-danger",
+                                                _ => "bg-secondary"
+                                            };
+                                        }
+                                        <span class="badge @statusClass">@template.Status</span>
+                                        @if (template.HasFormFields)
+                                        {
+                                            <br>
+                                
+                                            <span class="badge bg-info small mt-1">Has Form Fields</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="text-center">
+                                            <div class="fw-bold">@template.ProcessedCount</div>
+                                            <div class="small text-muted">Processed</div>
+                                            @if (template.LastProcessedDate.HasValue)
+                                            {
+                                                <div class="small text-success">
+                                                    Last: @template.LastProcessedDate.Value.ToString("MMM dd, yyyy")
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="small text-warning">Never</div>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical btn-group-sm d-grid gap-1">
+                                            <a href="@Url.Action("Details", "Template", new { id = template.Id })"
+                                               class="btn btn-info btn-sm">
+                                                <i class="fa fa-eye"></i> Details
+                                            </a>
+                                            @if (template.Status == DT_PODSystem.Models.Enums.TemplateStatus.Draft)
+                                            {
+                                                <a href="@Url.Action("Wizard", "Template", new { id = template.Id })"
+                                                   class="btn btn-warning btn-sm">
+                                                    <i class="fa fa-edit"></i> Edit
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fa fa-file-pdf fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Templates</h5>
+                        <p class="text-muted">This POD doesn't have any active templates yet.</p>
+                        <a href="@Url.Action("Wizard", "Template", new { podId = Model.POD.Id })" class="btn btn-success">
+                            <i class="fa fa-plus me-1"></i>Create First Template
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Metadata and Actions -->
+    <div class="col-lg-4">
+        <!-- Processing Configuration -->
+        <div class="info-section">
+            <h5><i class="fa fa-cogs me-2"></i>Processing Configuration</h5>
+            <div class="mb-2">
+                <strong>Automation Status:</strong><br>
+                <span class="badge @Model.AutomationStatusBadgeClass">@Model.POD.AutomationStatus</span>
+            </div>
+            <div class="mb-2">
+                <strong>Frequency:</strong><br>
+                <span class="badge bg-outline-secondary">@Model.POD.Frequency</span>
+            </div>
+            <div>
+                <strong>Priority:</strong><br>
+                <span class="badge bg-outline-primary">@Model.POD.ProcessingPriority / 10</span>
+            </div>
+        </div>
+
+        <!-- Approval & Compliance -->
+        <div class="info-section">
+            <h5><i class="fa fa-shield-alt me-2"></i>Compliance</h5>
+            <div class="mb-2">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" disabled @(Model.POD.RequiresApproval ? "checked" : "") />
+                    <label class="form-check-label">Requires Approval</label>
+                </div>
+            </div>
+            <div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" disabled @(Model.POD.IsFinancialData ? "checked" : "") />
+                    <label class="form-check-label">Contains Financial Data</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Approval Status -->
+        @if (Model.POD.RequiresApproval)
+        {
+            <div class="info-section">
+                <h5><i class="fa fa-check-circle me-2"></i>Approval Status</h5>
+                @if (!string.IsNullOrEmpty(Model.POD.ApprovedBy))
+                {
+                    <div class="text-success">
+                        <i class="fa fa-check me-1"></i>Approved
+                    </div>
+                    <div class="small text-muted">
+                        By: @Model.POD.ApprovedBy<br>
+                        Date: @Model.POD.ApprovalDate?.ToString("MMM dd, yyyy HH:mm")
+                    </div>
+                }
+                else
+                {
+                    <div class="text-warning">
+                        <i class="fa fa-clock me-1"></i>Pending Approval
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Processing History -->
+        <div class="info-section">
+            <h5><i class="fa fa-history me-2"></i>Processing History</h5>
+            <div class="mb-2">
+                <strong>Total Processed:</strong><br>
+                <span class="text-success fw-bold">@Model.POD.ProcessedCount</span>
+            </div>
+            @if (Model.POD.LastProcessedDate.HasValue)
+            {
+                <div>
+                    <strong>Last Processed:</strong><br>
+                    <span class="text-info">@Model.POD.LastProcessedDate.Value.ToString("MMM dd, yyyy HH:mm")</span>
+                </div>
+            }
+            else
+            {
+                <div>
+                    <strong>Last Processed:</strong><br>
+                    <span class="text-warning">Never processed</span>
+                </div>
+            }
+        </div>
+
+        <!-- Metadata -->
+        <div class="info-section">
+            <h5><i class="fa fa-info me-2"></i>Metadata</h5>
+            <div class="mb-2">
+                <strong>Created:</strong><br>
+                <span class="small">@Model.POD.CreatedDate.ToString("MMM dd, yyyy HH:mm")</span><br>
+                <span class="small text-muted">By: @(Model.POD.CreatedBy ?? "System")</span>
+            </div>
+            @if (Model.POD.ModifiedDate.HasValue)
+            {
+                <div>
+                    <strong>Last Modified:</strong><br>
+                    <span class="small">@Model.POD.ModifiedDate.Value.ToString("MMM dd, yyyy HH:mm")</span><br>
+                    <span class="small text-muted">By: @(Model.POD.ModifiedBy ?? "System")</span>
+                </div>
+            }
+        </div>
+
+        <!-- Actions Panel -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">Quick Actions</h4>
+            </div>
+            <div class="panel-body">
+                <div class="d-grid gap-2">
+                    @if (Model.CanEdit)
+                    {
+                        <a href="@Url.Action("Edit", new { id = Model.POD.Id })" class="btn btn-warning">
+                            <i class="fa fa-edit me-1"></i>Edit POD
+                        </a>
+                    }
+                    <a href="@Url.Action("Wizard", "Template", new { podId = Model.POD.Id })" class="btn btn-success">
+                        <i class="fa fa-plus me-1"></i>Add Template
+                    </a>
+                    @if (Model.CanDelete)
+                    {
+                        <button type="button" class="btn btn-danger" onclick="deletePOD(@Model.POD.Id, '@Model.POD.Name.Replace("'", "\\'")');">
+                            <i class="fa fa-trash me-1"></i>Delete POD
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-outline-danger" disabled title="Cannot delete POD with active templates">
+                            <i class="fa fa-trash me-1"></i>Delete POD
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable for templates if it exists
+            if ($('#templatesTable').length) {
+                $('#templatesTable').DataTable({
+                    responsive: true,
+                    pageLength: 10,
+                    order: [[0, 'asc']],
+                    language: {
+                        emptyTable: "No templates found",
+                        search: "Search templates:"
+                    }
+                });
+            }
+        });
+
+        // Delete POD function
+        function deletePOD(podId, podName) {
+            if (confirm(`Are you sure you want to delete the POD "${podName}"?\n\nThis action cannot be undone and will delete all associated templates.`)) {
+                $.post('@Url.Action("Delete")', {
+                    id: podId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                })
+                .done(function(response) {
+                    if (response.success) {
+                        alert('POD deleted successfully.');
+                        window.location.href = '@Url.Action("Index")';
+                    } else {
+                        alert(response.message || 'Failed to delete POD.');
+                    }
+                })
+                .fail(function() {
+                    alert('An error occurred while deleting the POD.');
+                });
+            }
+        }
+    </script>
+
+    @Html.AntiForgeryToken()
+}

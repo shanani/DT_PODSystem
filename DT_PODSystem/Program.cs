@@ -147,10 +147,11 @@ namespace DT_PODSystem
             services.AddScoped<IFileUploadService, FileUploadService>();
             services.AddScoped<ITemplateService, TemplateService>();
             services.AddScoped<IQueryService, QueryService>();
+            services.AddScoped<IPODService, PODService>();
             //services.AddScoped<IReportService, ReportService>();
 
             services.AddScoped<IPdfProcessingService, PdfProcessingService>();
-
+         
             services.AddScoped<ILookupsService, LookupsService>();
 
             //services.AddScoped<IDashboardStatisticsService, DashboardStatisticsService>();
