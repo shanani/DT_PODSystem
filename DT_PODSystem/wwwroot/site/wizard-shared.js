@@ -1,5 +1,5 @@
-﻿// wizard-shared.js - Fixed: No Save on Step 1 Navigation
-// ========================================================
+﻿// wizard-shared.js - Updated for Template Creation on Step 1 Validation
+// =======================================================================
 
 let wizardData = {};
 let isSaving = false;
@@ -19,7 +19,7 @@ $(document).ready(function () {
     }, 500);
 });
 
-// *** UPDATED: Skip saving for Step 1 ***
+// *** UPDATED: Create template ID after Step 1 validation ***
 async function nextStep() {
     console.log('🔄 Next clicked - validating step', wizardData.currentStep);
 
@@ -36,11 +36,23 @@ async function nextStep() {
             return;
         }
 
-        // 2. *** SKIP SAVING FOR STEP 1 *** - Files already saved via AJAX
-        if (wizardData.currentStep === 1) {
-            console.log('📁 [STEP1] Skipping save on Next - files already saved via AJAX');
-        } else {
-            // Save for other steps (Step 2, Step 3, etc.)
+        // 2. *** NEW: Create template ID after Step 1 validation ***
+        if (wizardData.currentStep === 1 && (!wizardData.templateId || wizardData.templateId === 0)) {
+            console.log('🆕 [STEP1] Creating new template after validation...');
+
+            // Create template with POD ID from form
+            const templateId = await createTemplateAfterStep1Validation();
+            if (!templateId) {
+                console.log('❌ Failed to create template - canceling navigation');
+                return;
+            }
+
+            // Update wizard data with new template ID
+            wizardData.templateId = templateId;
+            console.log('✅ [STEP1] Template created with ID:', templateId);
+        }
+        // 3. Save current step data for existing templates (Step 2, Step 3, etc.)
+        else if (wizardData.templateId && wizardData.templateId > 0) {
             console.log('💾 Saving step', wizardData.currentStep, 'before navigation');
             const saveSuccess = await saveCurrentStepToDatabase();
             if (!saveSuccess) {
@@ -49,12 +61,12 @@ async function nextStep() {
             }
         }
 
-        // 3. Reset change detection before navigation
+        // 4. Reset change detection before navigation
         if (typeof resetChangeDetection === 'function') {
             resetChangeDetection();
         }
 
-        // 4. Navigate to next step
+        // 5. Navigate to next step with template ID
         const nextStepNumber = wizardData.currentStep + 1;
         if (nextStepNumber <= wizardData.totalSteps) {
             console.log('✅ Validation succeeded - navigating to step', nextStepNumber);
@@ -67,6 +79,54 @@ async function nextStep() {
     }
 }
 
+// *** NEW: Create template after Step 1 validation ***
+async function createTemplateAfterStep1Validation() {
+    try {
+        // Get Step 1 form data (POD ID and template details)
+        const step1Data = getStep1FormData();
+
+        if (!step1Data.podId || step1Data.podId <= 0) {
+            alert.error('Please select a POD before proceeding');
+            return null;
+        }
+
+        console.log('🆕 [CREATE] Creating template with data:', step1Data);
+
+        // Call controller to create template for POD
+        const response = await fetch('/Template/CreateTemplateForPOD', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            },
+            body: JSON.stringify({
+                PODId: step1Data.podId,
+                NamingConvention: step1Data.namingConvention || 'DOC_POD',
+                Name: step1Data.name,
+                Description: step1Data.description,
+                TechnicalNotes: step1Data.technicalNotes,
+                ProcessingPriority: step1Data.processingPriority || 5
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.templateId) {
+            console.log('✅ [CREATE] Template created successfully with ID:', result.templateId);
+            return result.templateId;
+        } else {
+            console.error('❌ [CREATE] Failed to create template:', result.message);
+            alert.error(result.message || 'Failed to create template');
+            return null;
+        }
+
+    } catch (error) {
+        console.error('❌ [CREATE] Error creating template:', error);
+        alert.error('Error creating template. Please try again.');
+        return null;
+    }
+}
+
 // Updated previousStep function
 function previousStep() {
     const prevStepNumber = wizardData.currentStep - 1;
@@ -75,7 +135,10 @@ function previousStep() {
         if (typeof resetChangeDetection === 'function') {
             resetChangeDetection();
         }
-        window.location.href = `/Template/Wizard?step=${prevStepNumber}&id=${wizardData.templateId}`;
+
+        // Navigate with template ID if available
+        const templateParam = wizardData.templateId && wizardData.templateId > 0 ? `&id=${wizardData.templateId}` : '';
+        window.location.href = `/Template/Wizard?step=${prevStepNumber}${templateParam}`;
     }
 }
 
@@ -103,23 +166,23 @@ function setupEventHandlers() {
     });
 }
 
-// *** UPDATED: Skip saving for Step 1 ***
+// *** UPDATED: No auto-save for Step 1 on exit ***
 async function saveAndExit() {
     if (isSaving) return;
 
     try {
         $('#save-exit-btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-2"></i>Saving...');
 
-        // Skip saving for Step 1 - files already saved via AJAX
-        if (wizardData.currentStep === 1) {
-            console.log('📁 [STEP1] Skipping save on Exit - files already saved via AJAX');
-        } else {
+        // Only save if template exists (Step 2+)
+        if (wizardData.templateId && wizardData.templateId > 0 && wizardData.currentStep > 1) {
             const saveSuccess = await saveCurrentStepToDatabase();
             if (!saveSuccess) {
                 alert.error('Failed to save progress.');
                 $('#save-exit-btn').prop('disabled', false).html('<i class="fa fa-save me-2"></i>Save & Exit');
                 return;
             }
+        } else {
+            console.log('📁 [STEP1] No save needed - template not created yet');
         }
 
         // Reset change detection
@@ -140,14 +203,14 @@ async function saveAndExit() {
     }
 }
 
-// Updated finishWizard function - now handles Step 3 finalization
+// Updated finishWizard function - handles Step 3 finalization
 async function finishWizard() {
     if (isSaving) return;
 
     try {
         $('#finish-btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-2"></i>Creating...');
 
-        // ✅ Step 3 validation
+        // Step 3 validation
         if (wizardData.currentStep === 3 && typeof validateStep3Final === 'function') {
             console.log('🔍 Validating Step 3...');
             const validationResult = validateStep3Final();
@@ -163,7 +226,7 @@ async function finishWizard() {
 
                 alert.error(errorMessage);
                 $('#finish-btn').prop('disabled', false).html('<i class="fa fa-check me-2"></i>Create Template');
-                return; // ✅ Exit early - don't continue
+                return;
             }
         } else {
             // Regular validation for other steps
@@ -171,86 +234,107 @@ async function finishWizard() {
             if (!isValid) {
                 console.log('❌ Regular validation failed');
                 $('#finish-btn').prop('disabled', false).html('<i class="fa fa-check me-2"></i>Create Template');
-                return; // ✅ Exit early - don't continue
+                return;
             }
         }
 
         console.log('✅ Validation passed, saving step data...');
 
-        // ✅ Save current step data
+        // Save current step data
         const saveSuccess = await saveCurrentStepToDatabase();
         if (!saveSuccess) {
             console.log('❌ Failed to save step data');
             alert.error('Failed to save template data');
             $('#finish-btn').prop('disabled', false).html('<i class="fa fa-check me-2"></i>Create Template');
-            return; // ✅ Exit early - don't continue
+            return;
         }
 
-        console.log('✅ Step data saved, finalizing template...');
+        console.log('🏁 Finalizing template...');
 
-        // ✅ Finalize template
-        const response = await fetch('/Template/FinalizeTemplate', {
+        // Finalize template (change status from Draft to Active)
+        const finalizeResponse = await fetch('/Template/FinalizeTemplate', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
             },
             body: JSON.stringify({
                 TemplateId: wizardData.templateId
             })
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.log('❌ HTTP error during finalization:', response.status, errorText);
-            throw new Error(`Server error: ${response.status} - ${errorText.substring(0, 100)}`);
-        }
+        const finalizeResult = await finalizeResponse.json();
 
-        const result = await response.json();
-        console.log('🔍 Finalization response:', result);
+        if (finalizeResult.success) {
+            console.log('✅ Template finalized successfully');
 
-        if (result.success) {
-            isSaving = true; // ✅ Block any further processing
-            alert.success('Template created successfully and is now active!');
+            // Reset change detection
+            if (typeof resetChangeDetection === 'function') {
+                resetChangeDetection();
+            }
+
+            alert.success('Template created and activated successfully!');
             setTimeout(() => {
                 window.location.href = '/Template';
-            }, 1000); // Shorter timeout
-            return; // ✅ EXIT IMMEDIATELY
+            }, 1500);
         } else {
-            // ✅ Server returned success: false
-            console.log('❌ Server returned failure:', result.message);            
+            console.error('❌ Failed to finalize template:', finalizeResult.message);
+            alert.error(finalizeResult.message || 'Failed to finalize template');
             $('#finish-btn').prop('disabled', false).html('<i class="fa fa-check me-2"></i>Create Template');
         }
 
     } catch (error) {
-        // ✅ CATCH: Only for actual exceptions/network errors
-        console.error('💥 Exception during template creation:', error);
-        alert.error('Network error occurred: ' + error.message);
+        console.error('❌ Error finalizing template:', error);
+        alert.error('An error occurred while finalizing the template');
         $('#finish-btn').prop('disabled', false).html('<i class="fa fa-check me-2"></i>Create Template');
     }
 }
 
-// Initialize step-specific functionality - removed Step 4
+// Navigation to specific step
+function navigateToStep(step) {
+    if (step < 1 || step > wizardData.totalSteps) {
+        console.log('❌ Invalid step number:', step);
+        return;
+    }
+
+    // Reset change detection
+    if (typeof resetChangeDetection === 'function') {
+        resetChangeDetection();
+    }
+
+    // Navigate with template ID if available
+    const templateParam = wizardData.templateId && wizardData.templateId > 0 ? `&id=${wizardData.templateId}` : '';
+    window.location.href = `/Template/Wizard?step=${step}${templateParam}`;
+}
+
+// Initialize current step
 function initializeCurrentStep() {
-    switch (wizardData.currentStep) {
+    const currentStep = wizardData.currentStep;
+
+    switch (currentStep) {
         case 1:
-            if (typeof initializeStep1 === 'function') initializeStep1();
+            if (typeof initializeStep1 === 'function') {
+                initializeStep1();
+            }
             break;
         case 2:
-            if (typeof initializeStep2 === 'function') initializeStep2();
+            if (typeof initializeStep2 === 'function') {
+                initializeStep2();
+            }
             break;
         case 3:
-            if (typeof initializeStep3 === 'function') initializeStep3();
+            if (typeof initializeStep3 === 'function') {
+                initializeStep3();
+            }
             break;
     }
 }
 
-async function navigateToStep(targetStep) {
-    window.location.href = `/Template/Wizard?step=${targetStep}&id=${wizardData.templateId}`;
-}
-
-// Validate current step - calls step-specific validation, removed Step 4
+// Validate current step
 function validateCurrentStep() {
-    switch (wizardData.currentStep) {
+    const currentStep = wizardData.currentStep;
+
+    switch (currentStep) {
         case 1:
             return typeof validateStep1Custom === 'function' ? validateStep1Custom() : true;
         case 2:
@@ -262,84 +346,51 @@ function validateCurrentStep() {
     }
 }
 
-// *** UPDATED: Skip saving for Step 1 ***
+// Save current step to database
 async function saveCurrentStepToDatabase() {
-    if (isSaving) return false;
+    const currentStep = wizardData.currentStep;
 
-    // *** Skip saving for Step 1 - files already saved via AJAX ***
-    if (wizardData.currentStep === 1) {
-        console.log('📁 [STEP1] Skipping database save - files already saved via AJAX upload/delete');
-        return true; // Always return success for Step 1
-    }
-
-    isSaving = true;
-    try {
-        const stepSaveFunction = getStepSaveFunction();
-        if (stepSaveFunction) {
-            console.log(`💾 Saving step ${wizardData.currentStep} data...`);
-            const result = await stepSaveFunction();
-            console.log(`💾 Step ${wizardData.currentStep} save result:`, result);
-            return result;
-        }
-
-        console.log(`⚠️ No save function found for step ${wizardData.currentStep}`);
-        return true; // Allow progression if no save function defined
-    } catch (error) {
-        console.error(`❌ Error saving step ${wizardData.currentStep}:`, error);
-        alert.error('Error saving step data');
-        return false;
-    } finally {
-        isSaving = false;
-    }
-}
-
-// Get step-specific save function - removed Step 4
-function getStepSaveFunction() {
-    switch (wizardData.currentStep) {
+    switch (currentStep) {
         case 1:
-            return null; // *** No save function for Step 1 ***
+            return typeof saveStep1Data === 'function' ? await saveStep1Data() : true;
         case 2:
-            return typeof saveStep2Data === 'function' ? saveStep2Data : null;
+            return typeof saveStep2Data === 'function' ? await saveStep2Data() : true;
         case 3:
-            return typeof saveStep3Data === 'function' ? saveStep3Data : null;
+            return typeof saveStep3Data === 'function' ? await saveStep3Data() : true;
         default:
-            return null;
+            return true;
     }
 }
 
-// Updated updateUI function
+// Update UI elements
 function updateUI() {
-    $('#prev-step-btn').toggle(wizardData.currentStep > 1);
-    $('#next-step-btn').toggle(wizardData.currentStep < wizardData.totalSteps);
-    $('#finish-btn').toggle(wizardData.currentStep === wizardData.totalSteps);
-    updateBreadcrumbs();
-}
-
-// Update breadcrumb navigation
-function updateBreadcrumbs() {
-    $('.nav-wizards-1 .nav-item').each(function (index) {
-        const stepNum = index + 1;
-        const $link = $(this).find('.nav-link');
-
-        $link.removeClass('completed active pending disabled');
-
-        if (stepNum < wizardData.currentStep) {
-            $link.addClass('completed');
-        } else if (stepNum === wizardData.currentStep) {
-            $link.addClass('active');
-        } else {
-            $link.addClass('disabled');
+    // Update step indicator
+    $('.nav-wizards-1 .nav-link').removeClass('active completed');
+    for (let i = 1; i <= wizardData.totalSteps; i++) {
+        const link = $(`.nav-wizards-1 .nav-link`).eq(i - 1);
+        if (i < wizardData.currentStep) {
+            link.addClass('completed');
+        } else if (i === wizardData.currentStep) {
+            link.addClass('active');
         }
+    }
 
-        $link.data('step', stepNum);
-        $link.data('accessible', stepNum <= wizardData.currentStep);
-    });
+    // Update progress bar
+    const progressPercent = (wizardData.currentStep * 100) / wizardData.totalSteps;
+    $('.progress-bar').css('width', progressPercent + '%');
+    $('.progress-text').text(`Step ${wizardData.currentStep} of ${wizardData.totalSteps}`);
+    $('.progress-percent').text(`${Math.round(progressPercent)}% Complete`);
 }
 
-// Global exports
-window.wizardData = wizardData;
-window.navigateToStep = navigateToStep;
+// Global error handling
+window.addEventListener('unhandledrejection', function (event) {
+    console.error('Unhandled promise rejection:', event.reason);
+    alert.error('An unexpected error occurred. Please try again.');
+});
+
+// Export functions for global access
 window.nextStep = nextStep;
 window.previousStep = previousStep;
+window.navigateToStep = navigateToStep;
+window.saveAndExit = saveAndExit;
 window.finishWizard = finishWizard;
-window.saveCurrentStepToDatabase = saveCurrentStepToDatabase;

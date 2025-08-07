@@ -1,262 +1,63 @@
-﻿// wizard-step1.js - Template Details Step (Updated with File Name Prefix)
-// ========================================================================
+﻿// wizard-step1.js - Updated for POD-Template Architecture
+// =========================================================
 
 // Initialize Step 1
 function initializeStep1() {
     console.log('🟢 Initializing Step 1: Template Details');
 
-    // Load existing data from server
+    // Load existing data from server (if in edit mode)
     loadServerData();
 
-    // Setup event handlers (NO auto-saving)
+    // Setup event handlers
     setupStep1EventHandlers();
 
     // Update preview displays
     updateAllPreviews();
+
+    // Initialize Select2 for POD selection
+    initializePODSelection();
 }
 
-// Save Step 1 data to database (ONLY called on Next button)
-async function saveStep1Data() {
-    try {
-        const step1Data = getStep1FormData();
-
-        console.log('💾 [STEP1] Saving step 1 data:', step1Data);
-
-        const response = await fetch('/Template/SaveStep1', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-            },
-            body: JSON.stringify({
-                TemplateId: wizardData.templateId,
-                Data: step1Data
-            })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            console.log('💾 [STEP1] ✅ Step 1 saved successfully');
-            return true;
-        } else {
-            console.error('💾 [STEP1] ❌ Save failed:', result.message);
-            alert.error(result.message || 'Failed to save step 1 data');
-            return false;
-        }
-    } catch (error) {
-        console.error('💾 [STEP1] ❌ Save error:', error);
-        alert.error('Error saving step 1 data');
-        return false;
-    }
-}
-
- 
-
-// Setup event handlers for Step 1 (ONLY for UI updates, NO saving)
-function setupStep1EventHandlers() {
-    // Template name input with preview update ONLY
-    $('#template-name').on('input', function () {
-        const name = $(this).val();
-        const preview = name;
-        $('#preview-name').text(preview || 'TEMPLATE_NAME');
-
-        // Auto-update file prefix based on template name
-        updateFilePrefixFromName(name);
-        updateNamingConvention();
+// *** NEW: Initialize POD selection with enhanced features ***
+function initializePODSelection() {
+    $('#pod-id').select2({
+        placeholder: 'Search and select a POD',
+        allowClear: true,
+        width: '100%'
     });
 
-    // File name prefix input
-    $('#file-name-prefix').on('input', function () {
-        updateNamingConvention();
-    });
+    // Auto-select POD if PODId is provided in URL or model
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlPodId = urlParams.get('podId');
+    const modelPodId = wizardData?.step1?.podId;
 
-    // Description input (UI only)
-    $('#template-description').on('input', function () {
-        // NO triggerAutoSave() - removed
-    });
+    const podIdToSelect = urlPodId || modelPodId;
 
-    // Category selection (UI only)
-    $('#category-id').on('change', function () {
-        updatePreviewCategory();
-    });
-
-    // Department selection (UI only)
-    $('#department-id').on('change', function () {
-        updatePreviewDepartment();
-    });
-
-    // Vendor selection (UI only)
-    $('#vendor-id').on('change', function () {
-        updatePreviewVendor();
-    });
-
-    // Priority range (UI only)
-    $('#processing-priority').on('input', function () {
-        const priority = parseInt($(this).val());
-        const priorityText = getPriorityText(priority);
-        $('#preview-priority').text(priorityText);
-        $('#priority-label').text(priority);
-    });
-
-    // Checkboxes (UI only)
-    $('#requires-approval, #is-financial').on('change', function () {  // ✅ FIX: Changed to is-financial
-        updatePreviewFlags();
-    });
-}
-
-// Auto-update file prefix based on template name
-function updateFilePrefixFromName(templateName) {
-    if (templateName && templateName.trim()) {
-        const prefix = templateName.trim();
-             
-        $('#file-name-prefix').val(prefix);
-    }
-}
-
-// Update naming convention based on file prefix
-function updateNamingConvention() {
-    const prefix = $('#file-name-prefix').val().trim();
-    if (prefix) {
-        const convention = `${prefix}_yyyyMM`;
-        $('#preview-convention').text(convention);
-    } else {
-        $('#preview-convention').text('DOC_POD_yyyyMM');
-    }
-}
-
-// Update all preview displays
-function updateAllPreviews() {
-    updatePreviewCategory();
-    updatePreviewDepartment();
-    updatePreviewVendor();
-    updatePreviewPriority();
-    updatePreviewFlags();
-    updateNamingConvention();
-
-    // Update template name preview
-    const name = $('#template-name').val();
-    if (name) {
-        const preview = name;
-        $('#preview-name').text(preview);
+    if (podIdToSelect && podIdToSelect !== '0') {
+        $('#pod-id').val(podIdToSelect).trigger('change');
+        console.log('🎯 Auto-selected POD:', podIdToSelect);
     }
 
-    // Initialize priority display
-    initializePriorityDisplay();
+    // Update preview when POD changes
+    $('#pod-id').on('change', function () {
+        const selectedText = $(this).find('option:selected').text();
+        $('#preview-pod').text(selectedText || 'Not Selected');
+        updateValidationStatus('pod', $(this).val() !== '');
+
+        // Update technical notes when POD is selected
+        updateTechnicalNotesFromPOD();
+    });
+
+    // Initialize validation status
+    updateValidationStatus('pod', $('#pod-id').val() !== '');
 }
 
-// Initialize priority display on page load
-function initializePriorityDisplay() {
-    const priority = parseInt($('#processing-priority').val()) || 5;
-    const priorityText = getPriorityText(priority);
-
-    $('#priority-label').text(priority);
-    $('#priority-text').text(priorityText);
-    $('#preview-priority').removeClass('bg-secondary bg-primary bg-danger bg-warning')
-        .addClass(getPriorityBadgeClass(priority))
-        .text(priorityText);
-}
-
-// Helper functions for preview updates
-function updatePreviewCategory() {
-    const categoryText = $('#category-id option:selected').text();
-    $('#preview-category').text(categoryText !== 'Select Domain (NOC, Finance, etc.)' ? categoryText : 'Not selected');
-}
-
-function updatePreviewDepartment() {
-    const deptText = $('#department-id option:selected').text();
-    $('#preview-department').text(deptText !== 'Select Department' ? deptText : 'Not selected');
-}
-
-function updatePreviewVendor() {
-    const vendorText = $('#vendor-id option:selected').text();
-    $('#preview-vendor').text(vendorText !== 'Select Template Owner' ? vendorText : 'Not selected');
-}
-
-function updatePreviewPriority() {
-    const priority = parseInt($('#processing-priority').val()) || 5;
-    const priorityText = getPriorityText(priority);
-
-    $('#priority-label').text(priority);
-    $('#priority-text').text(priorityText);
-    $('#preview-priority').removeClass('bg-secondary bg-primary bg-danger bg-warning')
-        .addClass(getPriorityBadgeClass(priority))
-        .text(priorityText);
-}
-
-// Get priority badge class
-function getPriorityBadgeClass(priority) {
-    if (priority <= 2) return 'bg-danger';   // Highest - Red
-    if (priority <= 4) return 'bg-warning';  // High - Orange  
-    if (priority <= 6) return 'bg-primary';  // Normal - Blue
-    if (priority <= 8) return 'bg-secondary'; // Low - Gray
-    return 'bg-secondary';                    // Lowest - Gray
-}
-
-function updatePreviewFlags() {
-    const requiresApproval = $('#requires-approval').is(':checked');
-    const isFinancialData = $('#is-financial').is(':checked');  // ✅ FIX: Changed to is-financial
-
-    let flags = [];
-    if (requiresApproval) flags.push('Requires Approval');
-    if (isFinancialData) flags.push('Financial Data');
-
-    $('#preview-flags').text(flags.length > 0 ? flags.join(', ') : 'None');
-}
-
-// Get priority text from number
-function getPriorityText(priority) {
-    if (priority <= 2) return 'Highest';
-    if (priority <= 4) return 'High';
-    if (priority <= 6) return 'Normal';
-    if (priority <= 8) return 'Low';
-    return 'Lowest';
-}
-
-
-
-// Load existing data from server (FIXED - No need to strip suffix)
-function loadServerData() {
-    const serverData = window.serverWizardData?.Step1;
-
-    if (serverData) {
-        // Populate form fields with server data
-        if (serverData.Name) $('#template-name').val(serverData.Name);
-        if (serverData.Description) $('#template-description').val(serverData.Description);
-        if (serverData.NamingConvention) {
-            // ✅ FIXED: NamingConvention now contains only prefix, use as-is
-            $('#file-name-prefix').val(serverData.NamingConvention);
-        }
-        if (serverData.CategoryId) $('#category-id').val(serverData.CategoryId);
-        if (serverData.DepartmentId) $('#department-id').val(serverData.DepartmentId);
-        if (serverData.VendorId) $('#vendor-id').val(serverData.VendorId);
-        if (serverData.ProcessingPriority) {
-            $('#processing-priority').val(serverData.ProcessingPriority);
-        }
-
-        // Handle checkboxes
-        if (serverData.RequiresApproval !== undefined) {
-            $('#requires-approval').prop('checked', serverData.RequiresApproval);
-        }
-        if (serverData.IsFinancialData !== undefined) {
-            $('#is-financial').prop('checked', serverData.IsFinancialData);
-        }
-
-        console.log('📥 Loaded Step 1 data from server (fixed)');
-    }
-}
-
-// Get Step 1 form data for saving (FIXED - Save only prefix)
+// *** NEW: Get Step 1 form data for template creation ***
 function getStep1FormData() {
-    // Helper function to safely get form field values
+    // Safe value extraction with null checks
     const safeGetValue = (selector) => {
         const element = $(selector);
         return element.length > 0 ? (element.val() || '') : '';
-    };
-
-    const safeGetChecked = (selector) => {
-        const element = $(selector);
-        return element.length > 0 ? element.is(':checked') : false;
     };
 
     const safeGetInt = (selector, defaultValue = null) => {
@@ -267,62 +68,68 @@ function getStep1FormData() {
 
     console.log('🔍 [DEBUG] Collecting Step 1 form data...');
 
-    const filePrefix = safeGetValue('#file-name-prefix').trim() || 'DOC_POD';
-
     const formData = {
+        // *** CRITICAL: POD ID is required for template creation ***
+        podId: safeGetInt('#pod-id'),
+
+        // Template technical configuration
         name: safeGetValue('#template-name').trim(),
         description: safeGetValue('#template-description').trim(),
-        namingConvention: filePrefix,  // ✅ FIXED: Save only prefix, not full pattern
-        categoryId: safeGetInt('#category-id'),
-        departmentId: safeGetInt('#department-id'),
-        vendorId: safeGetInt('#vendor-id'),
-        requiresApproval: safeGetChecked('#requires-approval'),
-        isFinancialData: safeGetChecked('#is-financial'),
-        processingPriority: safeGetInt('#processing-priority', 5)
+        namingConvention: safeGetValue('#naming-convention').trim() || 'DOC_POD',
+        technicalNotes: safeGetValue('#technical-notes').trim(),
+        processingPriority: safeGetInt('#processing-priority', 5),
+
+        // Template processing settings
+        hasFormFields: $('#has-form-fields').is(':checked'),
+        version: safeGetValue('#version').trim() || '1.0'
     };
 
-    console.log('🔍 [DEBUG] Collected form data (FIXED):', formData);
+    console.log('🔍 [DEBUG] Collected form data:', formData);
     return formData;
 }
 
-// Custom validation for Step 1 (called on Next button)
+// *** UPDATED: Enhanced validation for POD-Template relationship ***
 function validateStep1Custom() {
+    const podId = $('#pod-id').val();
     const templateName = $('#template-name').val().trim();
-    const filePrefix = $('#file-name-prefix').val().trim();
-    const categoryId = $('#category-id').val();
-    const departmentId = $('#department-id').val();
+    const namingConvention = $('#naming-convention').val().trim();
 
     // Clear previous validation styles
-    $('#template-name, #file-name-prefix, #category-id, #department-id').removeClass('is-invalid');
+    $('#pod-id, #template-name, #naming-convention').removeClass('is-invalid');
 
     let isValid = true;
     const errors = [];
 
+    // *** CRITICAL: POD selection is required ***
+    if (!podId || podId <= 0) {
+        errors.push('Please select a POD. Templates must belong to a POD.');
+        $('#pod-id').addClass('is-invalid').focus();
+        isValid = false;
+    }
+
+    // Template name validation
     if (!templateName || templateName.length < 3) {
         errors.push('Template name must be at least 3 characters');
         $('#template-name').addClass('is-invalid');
+        if (isValid) $('#template-name').focus(); // Focus first invalid field
+        isValid = false;
+    } else if (templateName.length > 200) {
+        errors.push('Template name cannot exceed 200 characters');
+        $('#template-name').addClass('is-invalid');
+        if (isValid) $('#template-name').focus();
         isValid = false;
     }
 
-    if (!filePrefix || filePrefix.length < 3) {
-        errors.push('File name prefix must be at least 3 characters');
-        $('#file-name-prefix').addClass('is-invalid');
+    // Naming convention validation
+    if (!namingConvention || namingConvention.length < 3) {
+        errors.push('Naming convention must be at least 3 characters');
+        $('#naming-convention').addClass('is-invalid');
+        if (isValid) $('#naming-convention').focus();
         isValid = false;
-    } else if (!/^[^<>:"/\\|?*\x00-\x1f]+$/.test(filePrefix)) {
-        errors.push('File name prefix contains invalid characters. Cannot contain: < > : " / \\ | ? *');
-        $('#file-name-prefix').addClass('is-invalid');
-        isValid = false;
-    }
-
-    if (!categoryId) {
-        errors.push('Please select a category');
-        $('#category-id').addClass('is-invalid');
-        isValid = false;
-    }
-
-    if (!departmentId) {
-        errors.push('Please select a department');
-        $('#department-id').addClass('is-invalid');
+    } else if (!/^[A-Z][A-Z0-9_]*$/.test(namingConvention)) {
+        errors.push('Naming convention must start with uppercase letter and contain only A-Z, 0-9, and underscore');
+        $('#naming-convention').addClass('is-invalid');
+        if (isValid) $('#naming-convention').focus();
         isValid = false;
     }
 
@@ -330,42 +137,179 @@ function validateStep1Custom() {
         const errorMessage = errors.length === 1 ? errors[0] :
             `Please fix the following issues:\n• ${errors.join('\n• ')}`;
         alert.warning(errorMessage);
-
-        // Focus on first invalid field
-        if (!templateName || templateName.length < 3) {
-            $('#template-name').focus();
-        } else if (!filePrefix || filePrefix.length < 3 || !/^[A-Z][A-Z0-9_]*$/.test(filePrefix)) {
-            $('#file-name-prefix').focus();
-        } else if (!categoryId) {
-            $('#category-id').focus();
-        } else if (!departmentId) {
-            $('#department-id').focus();
-        }
     }
 
     return isValid;
 }
 
+// *** NO SAVE FUNCTION FOR STEP 1 - Template creation happens in wizard-shared.js ***
+// This step only validates, the actual template creation happens on Next button
+
+// Setup event handlers for Step 1
+function setupStep1EventHandlers() {
+    // Template name updates
+    $('#template-name').on('input', function () {
+        const value = $(this).val();
+        $('#preview-name').text(value || 'Template Name');
+        updateValidationStatus('name', value.length >= 3);
+        updatePreviewConvention();
+    });
+
+    // Naming convention updates
+    $('#naming-convention').on('input', function () {
+        const value = $(this).val();
+        updateValidationStatus('convention', value.length >= 3 && /^[A-Z][A-Z0-9_]*$/.test(value));
+        updatePreviewConvention();
+    });
+
+    // Description updates
+    $('#template-description').on('input', function () {
+        const value = $(this).val();
+        $('#preview-description').text(value || 'No description provided');
+    });
+
+    // Processing priority updates
+    $('#processing-priority').on('change', function () {
+        const value = parseInt($(this).val());
+        const priorityText = getPriorityText(value);
+        $('#preview-priority').text(priorityText).attr('class', `badge ${getPriorityClass(value)}`);
+    });
+
+    // Form field detection checkbox
+    $('#has-form-fields').on('change', function () {
+        const hasFields = $(this).is(':checked');
+        $('#preview-form-fields').text(hasFields ? 'Yes' : 'No');
+    });
+
+    // Version input
+    $('#version').on('input', function () {
+        const value = $(this).val();
+        $('#preview-version').text(value || '1.0');
+    });
+
+    console.log('✅ Step 1 event handlers setup complete');
+}
+
+// Update all preview displays
+function updateAllPreviews() {
+    // Update name preview
+    const templateName = $('#template-name').val();
+    $('#preview-name').text(templateName || 'Template Name');
+
+    // Update description preview
+    const description = $('#template-description').val();
+    $('#preview-description').text(description || 'No description provided');
+
+    // Update priority preview
+    const priority = parseInt($('#processing-priority').val());
+    if (!isNaN(priority)) {
+        $('#preview-priority').text(getPriorityText(priority)).attr('class', `badge ${getPriorityClass(priority)}`);
+    }
+
+    // Update convention preview
+    updatePreviewConvention();
+
+    // Update form fields preview
+    const hasFormFields = $('#has-form-fields').is(':checked');
+    $('#preview-form-fields').text(hasFormFields ? 'Yes' : 'No');
+
+    // Update version preview
+    const version = $('#version').val();
+    $('#preview-version').text(version || '1.0');
+
+    console.log('🖼️ All previews updated');
+}
+
+// Update naming convention preview with dynamic pattern
+function updatePreviewConvention() {
+    const convention = $('#naming-convention').val() || 'DOC_POD';
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+
+    // Generate example with current date
+    const example = `${convention}_${year}${month}_001.pdf`;
+    $('#preview-convention').text(example);
+}
+
+// Load existing data from server (for edit mode)
+function loadServerData() {
+    if (wizardData && wizardData.step1) {
+        const step1Data = wizardData.step1;
+
+        // Load form values
+        if (step1Data.podId) $('#pod-id').val(step1Data.podId);
+        if (step1Data.name) $('#template-name').val(step1Data.name);
+        if (step1Data.description) $('#template-description').val(step1Data.description);
+        if (step1Data.namingConvention) $('#naming-convention').val(step1Data.namingConvention);
+        if (step1Data.technicalNotes) $('#technical-notes').val(step1Data.technicalNotes);
+        if (step1Data.processingPriority) $('#processing-priority').val(step1Data.processingPriority);
+        if (step1Data.hasFormFields) $('#has-form-fields').prop('checked', step1Data.hasFormFields);
+        if (step1Data.version) $('#version').val(step1Data.version);
+
+        console.log('📥 Loaded existing Step 1 data:', step1Data);
+    }
+}
+
+// Update technical notes when POD is selected
+function updateTechnicalNotesFromPOD() {
+    const podId = $('#pod-id').val();
+    const podText = $('#pod-id').find('option:selected').text();
+
+    if (podId && podText !== 'Search and select a POD') {
+        const currentNotes = $('#technical-notes').val();
+        if (!currentNotes) {
+            $('#technical-notes').val(`Template created for ${podText} processing`);
+        }
+    }
+}
+
+// Helper functions for priority display
+function getPriorityText(priority) {
+    const priorityMap = {
+        1: 'Critical', 2: 'High', 3: 'High',
+        4: 'Medium-High', 5: 'Medium', 6: 'Medium',
+        7: 'Medium-Low', 8: 'Low', 9: 'Low', 10: 'Very Low'
+    };
+    return priorityMap[priority] || 'Medium';
+}
+
+function getPriorityClass(priority) {
+    if (priority <= 2) return 'bg-danger';
+    if (priority <= 4) return 'bg-warning';
+    if (priority <= 6) return 'bg-info';
+    return 'bg-secondary';
+}
+
+// Update validation status indicators
+function updateValidationStatus(field, isValid) {
+    const item = $(`.validation-item[data-field="${field}"]`);
+    const icon = item.find('i');
+
+    if (isValid) {
+        icon.removeClass('text-muted text-danger fa-circle')
+            .addClass('text-success fa-check-circle');
+    } else {
+        icon.removeClass('text-success text-danger fa-check-circle')
+            .addClass('text-muted fa-circle');
+    }
+}
+
 // Export functions for global access
 window.getStep1FormData = getStep1FormData;
 window.validateStep1Custom = validateStep1Custom;
-window.saveStep1Data = saveStep1Data;
 window.initializeStep1 = initializeStep1;
 
-// Debug function to check current form values
+// Debug function for development
 window.debugStep1Values = function () {
-    console.log('🔍 [DEBUG] Current form values:', {
+    console.log('🔍 [DEBUG] Current Step 1 values:', {
+        podId: $('#pod-id').val(),
         templateName: $('#template-name').val(),
         description: $('#template-description').val(),
-        filePrefix: $('#file-name-prefix').val(),
+        namingConvention: $('#naming-convention').val(),
+        technicalNotes: $('#technical-notes').val(),
         processingPriority: $('#processing-priority').val(),
-        priorityType: typeof $('#processing-priority').val(),
-        priorityExists: $('#processing-priority').length > 0,
-        priorityParsed: parseInt($('#processing-priority').val()),
-        categoryId: $('#category-id').val(),
-        departmentId: $('#department-id').val(),
-        vendorId: $('#vendor-id').val(),
-        requiresApproval: $('#requires-approval').is(':checked'),
-        isFinancialData: $('#is-financial').is(':checked')  // ✅ FIX: Changed to is-financial
+        hasFormFields: $('#has-form-fields').is(':checked'),
+        version: $('#version').val()
     });
 };

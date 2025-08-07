@@ -17,6 +17,11 @@ namespace DT_PODSystem.Models.Entities
         [Required]
         public int PODId { get; set; }
 
+
+        [StringLength(200)]
+        public string? Title { get; set; } = "Untitled Template";
+         
+
         // Technical PDF processing configuration
         [Required]
         [StringLength(100)]

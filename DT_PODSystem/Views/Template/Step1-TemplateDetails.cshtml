@@ -2,107 +2,144 @@
 
 <div class="row">
     <div class="col-lg-8">
+        <!-- Template Configuration Form -->
         <div class="panel panel-inverse">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    <i class="fa fa-info-circle me-2"></i>Template Information
+                    <i class="fa fa-cog me-2"></i>Template Configuration
                 </h4>
             </div>
             <div class="panel-body">
-                <form id="template-info-form" data-parsley-validate="true">
+                <form id="step1-form">
+                    @Html.AntiForgeryToken()
 
-                    <!-- POD Selection -->
-                    <div class="row mb-15px">
-                        <label class="form-label col-form-label col-md-3">Parent POD *</label>
-                        <div class="col-md-9">
-                            <select id="pod-id" class="form-select select2"
-                                    data-parsley-required="true"
-                                    data-parsley-required-message="Please select a POD">
-                                <option value="">Select POD (Process Owner Document)</option>
-                                @if (Model.PODs != null)
-                                {
-                                    @foreach (var pod in Model.PODs)
-                                    {
-                                        <option value="@pod.Value"
-                                                selected="@(pod.Value == Model.PODId.ToString())">
-                                            @pod.Text
-                                        </option>
-                                    }
-                                }
-                            </select>
-                            <small class="form-text text-muted">
-                                Templates belong to PODs. Select the parent POD for this template.
-                            </small>
-                        </div>
-                    </div>
+                    <!-- POD Selection - CRITICAL for template creation -->
+                    <div class="form-section">
+                        <h5><i class="fa fa-folder me-2"></i>Parent POD Selection</h5>
+                        <p class="text-muted small mb-3">
+                            Templates must belong to a POD (Point of Data). Select the POD that will own this template.
+                        </p>
 
-                    
-                    <!-- Configuration Options -->
-                    <div class="row mb-15px">
-                        <div class="col-md-12">
-                            <h6 class="text-primary mb-3">
-                                <i class="fa fa-cogs me-2"></i>Processing Configuration
-                            </h6>
-                        </div>
-                    </div>
-
-                    <!-- File Name Prefix -->
-                    <div class="row mb-15px">
-                        <label class="form-label col-form-label col-md-3">File Name Prefix *</label>
-                        <div class="col-md-9">
-                            <div class="input-group">
-                                <input type="text" id="file-name-prefix" class="form-control"
-                                       placeholder="Enter file prefix (e.g., DOC_POD, INVOICE_NOC)"
-                                       value="@Model.NamingConvention"
-                                       data-parsley-required="true"
-                                       data-parsley-pattern="@Html.Raw("^[^<>:\"/\\\\|?*\\x00-\\x1f]+$")"
-                                       data-parsley-pattern-message="Prefix must start with letter, use only uppercase letters, numbers, and underscores" />
-                                <span class="input-group-text bg-light">_yyyyMM</span>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="pod-id" class="form-label required">Parent POD</label>
+                                    <select id="pod-id" name="PODId" class="form-control" asp-for="PODId" required>
+                                        <option value="">Search and select a POD</option>
+                                        @foreach (var pod in Model.PODs)
+                                        {
+                                            <option value="@pod.Value" selected="@(pod.Value == Model.PODId.ToString())">
+                                                @pod.Text
+                                            </option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="PODId" class="text-danger"></span>
+                                    <small class="form-text text-muted">
+                                        The template will inherit settings from the selected POD
+                                    </small>
+                                </div>
                             </div>
-                            <small class="form-text text-muted">
-                                Prefix for generated file names. Will be combined with year-month (e.g., DOC_POD_202507)
-                            </small>
                         </div>
                     </div>
 
-                    <!-- Processing Priority -->
-                    <div class="row mb-15px">
-                        <label class="form-label col-form-label col-md-3">Processing Priority</label>
-                        <div class="col-md-9">
-                            <div class="d-flex align-items-center">
-                                <input type="range" id="processing-priority" class="form-range me-3"
-                                       min="1" max="10" step="1" value="@Model.ProcessingPriority"
-                                       style="width: 200px;" />
-                                <span class="badge bg-primary" id="priority-label">@Model.ProcessingPriority</span>
-                                <span class="ms-2" id="priority-text">Medium</span>
+                    <!-- Template Technical Details -->
+                    <div class="form-section">
+                        <h5><i class="fa fa-file-alt me-2"></i>Template Details</h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="template-name" class="form-label required">Template Name</label>
+                                    <input type="text" id="template-name" name="Name" class="form-control"
+                                           asp-for="Name" placeholder="Enter template name"
+                                           maxlength="200" required />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                    <small class="form-text text-muted">Descriptive name for the template</small>
+                                </div>
                             </div>
-                            <small class="form-text text-muted">
-                                1 = Low Priority, 5 = Medium Priority, 10 = High Priority
-                            </small>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="naming-convention" class="form-label required">Naming Convention</label>
+                                    <input type="text" id="naming-convention" name="NamingConvention" class="form-control"
+                                           asp-for="NamingConvention" placeholder="DOC_POD"
+                                           pattern="^[A-Z][A-Z0-9_]*$" maxlength="100" required />
+                                    <span asp-validation-for="NamingConvention" class="text-danger"></span>
+                                    <small class="form-text text-muted">File prefix pattern (uppercase, A-Z, 0-9, underscore)</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="template-description" class="form-label">Description</label>
+                                    <textarea id="template-description" name="Description" class="form-control"
+                                              asp-for="Description" rows="3" maxlength="1000"
+                                              placeholder="Describe the purpose and content of this template"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Configuration Checkboxes -->
-                    <div class="row mb-15px">
-                        <label class="form-label col-form-label col-md-3">Options</label>
-                        <div class="col-md-9">
-                            <div class="form-check mb-3">
-                                <input type="checkbox" id="requires-approval" class="form-check-input"
-                                       @(Model.RequiresApproval ? "checked" : "") />
-                                <label class="form-check-label" for="requires-approval">
-                                    <strong>Requires Approval</strong>
-                                    <br>
-                                    <small class="text-muted">Documents need approval before processing</small>
-                                </label>
+                    <!-- Processing Configuration -->
+                    <div class="form-section">
+                        <h5><i class="fa fa-settings me-2"></i>Processing Configuration</h5>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="processing-priority" class="form-label">Processing Priority</label>
+                                    <select id="processing-priority" name="ProcessingPriority" class="form-control" asp-for="ProcessingPriority">
+                                        <option value="1">1 - Critical</option>
+                                        <option value="2">2 - High</option>
+                                        <option value="3">3 - High</option>
+                                        <option value="4">4 - Medium-High</option>
+                                        <option value="5" selected>5 - Medium</option>
+                                        <option value="6">6 - Medium</option>
+                                        <option value="7">7 - Medium-Low</option>
+                                        <option value="8">8 - Low</option>
+                                        <option value="9">9 - Low</option>
+                                        <option value="10">10 - Very Low</option>
+                                    </select>
+                                    <small class="form-text text-muted">Processing queue priority (1 = highest)</small>
+                                </div>
                             </div>
-                            <div class="form-check">
-                                <input type="checkbox" id="is-financial" class="form-check-input"
-                                       @(Model.IsFinancialData ? "checked" : "") />
-                                <label class="form-check-label" for="is-financial">
-                                    <strong>Contains Financial Data</strong>
-                                    <br>
-                                    <small class="text-muted">Template processes financial information</small>
-                                </label>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="version" class="form-label">Version</label>
+                                    <input type="text" id="version" name="Version" class="form-control"
+                                           asp-for="Version" value="1.0" maxlength="10" />
+                                    <small class="form-text text-muted">Template version number</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <div class="form-check mt-4">
+                                        <input type="checkbox" id="has-form-fields" name="HasFormFields"
+                                               class="form-check-input" asp-for="HasFormFields" />
+                                        <label class="form-check-label" for="has-form-fields">
+                                            <strong>Has Form Fields</strong>
+                                            <br>
+                                            <small class="text-muted">PDF contains interactive form fields</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="technical-notes" class="form-label">Technical Notes</label>
+                                    <textarea id="technical-notes" name="TechnicalNotes" class="form-control"
+                                              asp-for="TechnicalNotes" rows="2" maxlength="500"
+                                              placeholder="Optional technical notes for developers"></textarea>
+                                    <span asp-validation-for="TechnicalNotes" class="text-danger"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -124,37 +161,47 @@
                 <div class="template-preview">
                     <div class="mb-3">
                         <strong>Parent POD:</strong><br>
-                        <span id="preview-pod" class="text-primary">@(Model.PODs?.FirstOrDefault(p => p.Value == Model.PODId.ToString())?.Text ?? "Not Selected")</span>
+                        <span id="preview-pod" class="text-primary">
+                            @(Model.PODs?.FirstOrDefault(p => p.Value == Model.PODId.ToString())?.Text ?? "Not Selected")
+                        </span>
                     </div>
 
                     <div class="mb-3">
                         <strong>Template Name:</strong><br>
-                        <span id="preview-name" class="text-primary">@(string.IsNullOrEmpty(Model.Name) ? "Template Name" : Model.Name)</span>
+                        <span id="preview-name" class="text-primary">
+                            @(string.IsNullOrEmpty(Model.Name) ? "Template Name" : Model.Name)
+                        </span>
                     </div>
 
                     <div class="mb-3">
-                        <strong>File Naming Convention:</strong><br>
-                        <code id="preview-convention">DOC_POD_yyyyMM</code>
+                        <strong>File Naming Pattern:</strong><br>
+                        <code id="preview-convention">DOC_POD_202501_001.pdf</code>
                     </div>
 
                     <div class="mb-3">
-                        <strong>Domain:</strong><br>
-                        <span id="preview-category" class="badge bg-info">@(Model.Categories.FirstOrDefault(c => c.Value == Model.CategoryId.ToString())?.Text ?? "Not Selected")</span>
-                    </div>
-
-                    <div class="mb-3">
-                        <strong>Department:</strong><br>
-                        <span id="preview-department" class="text-muted">@(Model.Departments.FirstOrDefault(d => d.Value == Model.DepartmentId.ToString())?.Text ?? "Not Selected")</span>
-                    </div>
-
-                    <div class="mb-3">
-                        <strong>Vendor:</strong><br>
-                        <span id="preview-vendor" class="text-muted">@(Model.Vendors.FirstOrDefault(v => v.Value == Model.VendorId.ToString())?.Text ?? "Not Selected")</span>
+                        <strong>Description:</strong><br>
+                        <span id="preview-description" class="text-muted">
+                            @(string.IsNullOrEmpty(Model.Description) ? "No description provided" : Model.Description)
+                        </span>
                     </div>
 
                     <div class="mb-3">
                         <strong>Priority:</strong><br>
-                        <span id="preview-priority" class="badge bg-secondary">Medium</span>
+                        <span id="preview-priority" class="badge bg-info">Medium</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Version:</strong><br>
+                        <span id="preview-version" class="text-muted">
+                            @(string.IsNullOrEmpty(Model.Version) ? "1.0" : Model.Version)
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Form Fields:</strong><br>
+                        <span id="preview-form-fields" class="text-muted">
+                            @(Model.HasFormFields ? "Yes" : "No")
+                        </span>
                     </div>
 
                     <div class="mb-3">
@@ -175,63 +222,65 @@
             <div class="panel-body">
                 <div id="validation-status">
                     <div class="validation-item" data-field="pod">
-                        <i class="fa fa-circle text-muted me-2"></i>Parent POD
+                        <i class="fa fa-circle text-muted me-2"></i>Parent POD Selection
                     </div>
                     <div class="validation-item" data-field="name">
                         <i class="fa fa-circle text-muted me-2"></i>Template Name
                     </div>
-                    <div class="validation-item" data-field="prefix">
-                        <i class="fa fa-circle text-muted me-2"></i>File Name Prefix
+                    <div class="validation-item" data-field="convention">
+                        <i class="fa fa-circle text-muted me-2"></i>Naming Convention
                     </div>
-                    <div class="validation-item" data-field="category">
-                        <i class="fa fa-circle text-muted me-2"></i>Domain Selection
-                    </div>
-                    <div class="validation-item" data-field="department">
-                        <i class="fa fa-circle text-muted me-2"></i>Department Selection
-                    </div>
-                    <div class="validation-item" data-field="vendor">
-                        <i class="fa fa-circle text-muted me-2"></i>Vendor Selection
-                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fa fa-info-circle me-1"></i>
+                        Complete all required fields to proceed to Step 2
+                    </small>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    $(document).ready(function() {
-        // Initialize Select2 for POD selection
-        $('#pod-id').select2({
-            placeholder: 'Search and select a POD',
-            allowClear: true,
-            width: '100%'
-        });
-
-        // Auto-select POD if PODId is provided in URL or model
-        var podId = '@Model.PODId';
-        if (podId && podId !== '0') {
-            $('#pod-id').val(podId).trigger('change');
-        }
-
-        // Update preview when POD changes
-        $('#pod-id').on('change', function() {
-            var selectedText = $(this).find('option:selected').text();
-            $('#preview-pod').text(selectedText || 'Not Selected');
-            updateValidationStatus('pod', $(this).val() !== '');
-        });
-
-        // Initialize validation status
-        updateValidationStatus('pod', $('#pod-id').val() !== '');
-    });
-
-    function updateValidationStatus(field, isValid) {
-        var item = $('.validation-item[data-field="' + field + '"]');
-        var icon = item.find('i');
-
-        if (isValid) {
-            icon.removeClass('text-muted text-danger').addClass('text-success fa-check-circle');
-        } else {
-            icon.removeClass('text-success text-danger fa-check-circle').addClass('text-muted fa-circle');
-        }
+<style>
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #eee;
     }
-</script>
+
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .form-section h5 {
+            color: #4F008C;
+            margin-bottom: 1rem;
+        }
+
+    .required::after {
+        content: " *";
+        color: #dc3545;
+    }
+
+    .validation-item {
+        padding: 0.25rem 0;
+    }
+
+    .template-preview {
+        font-size: 0.9rem;
+    }
+
+        .template-preview strong {
+            color: #333;
+        }
+
+    #preview-convention {
+        background-color: #f8f9fa;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-family: 'Courier New', monospace;
+    }
+</style>

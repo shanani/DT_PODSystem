@@ -35,6 +35,76 @@ namespace DT_PODSystem.Controllers
             _logger = logger;
         }
 
+        // Add this method to your TemplateController.cs
+
+        [HttpPost]
+        public async Task<IActionResult> CreateTemplateForPOD([FromBody] CreateTemplateForPODRequest request)
+        {
+            try
+            {
+                // Validate request
+                if (request?.PODId == null || request.PODId <= 0)
+                {
+                    return Json(new { success = false, message = "Invalid POD ID" });
+                }
+
+                _logger.LogInformation("Creating template for POD {PODId} with naming convention {NamingConvention}",
+                    request.PODId, request.NamingConvention);
+
+                // Create template using service
+                var template = await _templateService.CreateTemplateForPODAsync(
+                    request.PODId,
+                    request.NamingConvention ?? "DOC_POD"
+                );
+
+                if (template == null)
+                {
+                    return Json(new { success = false, message = "Failed to create template" });
+                }
+
+                // Update template with additional details from Step 1
+                var step1Data = new Step1DataDto
+                {
+                    Name = request.Name,
+                    Description = request.Description,
+                    NamingConvention = request.NamingConvention ?? "DOC_POD",
+                    TechnicalNotes = request.TechnicalNotes,
+                    ProcessingPriority = request.ProcessingPriority ?? 5,
+                    HasFormFields = request.HasFormFields ?? false,
+                    Status = TemplateStatus.Draft,
+                    IsActive = true
+                };
+
+                // Save the Step 1 data to the newly created template
+                var saveSuccess = await _templateService.SaveStep1DataAsync(template.Id, step1Data);
+
+                if (!saveSuccess)
+                {
+                    _logger.LogWarning("Template created but failed to save Step 1 data for template {TemplateId}", template.Id);
+                }
+
+                _logger.LogInformation("Successfully created template {TemplateId} for POD {PODId}",
+                    template.Id, request.PODId);
+
+                return Json(new
+                {
+                    success = true,
+                    templateId = template.Id,
+                    message = "Template created successfully"
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Invalid POD ID {PODId}", request?.PODId);
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating template for POD {PODId}", request?.PODId);
+                return Json(new { success = false, message = "Error occurred while creating template" });
+            }
+        }
+
         
         // Wizard method - Updated to open with empty model, no auto template creation
         public async Task<IActionResult> Wizard(int step = 1, int? id = null)
@@ -923,5 +993,16 @@ namespace DT_PODSystem.Controllers
     public class GetMappedFieldsInfoRequest
     {
         public List<int> FieldIds { get; set; } = new List<int>();
+    }
+    // Add this request class to your DTOs or ViewModels
+    public class CreateTemplateForPODRequest
+    {
+        public int PODId { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public string? NamingConvention { get; set; }
+        public string? TechnicalNotes { get; set; }
+        public int? ProcessingPriority { get; set; }
+        public bool? HasFormFields { get; set; }
     }
 }
