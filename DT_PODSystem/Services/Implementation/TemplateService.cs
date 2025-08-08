@@ -645,9 +645,8 @@ namespace DT_PODSystem.Services.Implementation
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
-         
 
-        // ✅ UPDATED: SaveStep1DataAsync - Now saves template technical details only
+
         public async Task<bool> SaveStep1DataAsync(int templateId, Step1DataDto stepData)
         {
             try
@@ -656,27 +655,56 @@ namespace DT_PODSystem.Services.Implementation
                     .FirstOrDefaultAsync(t => t.Id == templateId);
 
                 if (template == null)
+                {
+                    _logger.LogWarning("Template {TemplateId} not found for Step 1 save", templateId);
                     return false;
+                }
 
-                // ✅ UPDATED: Save only technical template properties (POD fields removed)
-                template.NamingConvention = stepData.NamingConvention;
+                // ✅ CLEAN: Update ALL PdfTemplate entity fields (excluding read-only tracking fields)
+
+                // PODId is read-only after creation, don't update
+                // template.PODId remains unchanged
+
+                // Template identification
+                template.Title = stepData.Title ?? template.Title;
+
+                // Technical PDF processing configuration
+                template.NamingConvention = stepData.NamingConvention ?? template.NamingConvention;
+                template.Status = stepData.Status;
+                template.Version = stepData.Version ?? template.Version;
+
+                // Technical processing settings
+                template.ProcessingPriority = stepData.ProcessingPriority;
+
+                // Approval fields (only update if provided, usually handled elsewhere)
+                if (!string.IsNullOrEmpty(stepData.ApprovedBy))
+                    template.ApprovedBy = stepData.ApprovedBy;
+                if (stepData.ApprovalDate.HasValue)
+                    template.ApprovalDate = stepData.ApprovalDate;
+
+                // Processing tracking fields are typically read-only, but include for completeness
+                if (stepData.LastProcessedDate.HasValue)
+                    template.LastProcessedDate = stepData.LastProcessedDate;
+                template.ProcessedCount = stepData.ProcessedCount;
+
+                // Technical notes
                 template.TechnicalNotes = stepData.TechnicalNotes;
+
+                // PDF-specific settings
                 template.HasFormFields = stepData.HasFormFields;
                 template.ExpectedPdfVersion = stepData.ExpectedPdfVersion;
                 template.ExpectedPageCount = stepData.ExpectedPageCount;
-                template.ProcessingPriority = stepData.ProcessingPriority;
-                template.Status = stepData.Status;
+
+                // Base entity fields
                 template.IsActive = stepData.IsActive;
 
-                // ✅ REMOVED: POD fields (Name, Description, CategoryId, DepartmentId, VendorId, RequiresApproval, IsFinancialData)
-                // These are now handled by POD parent entity
-
+                // Audit fields (inherited from BaseEntity)
                 template.ModifiedDate = DateTime.UtcNow;
                 template.ModifiedBy = "System";
 
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Saved Step 1 data for template {TemplateId}", templateId);
+                _logger.LogInformation("Successfully saved Step 1 data for template {TemplateId}", templateId);
                 return true;
             }
             catch (Exception ex)
@@ -685,6 +713,7 @@ namespace DT_PODSystem.Services.Implementation
                 return false;
             }
         }
+
 
         // ✅ UPDATED: SaveStep2DataAsync - Now saves PDF uploads (was Step1)
         public async Task<bool> SaveStep2DataAsync(int templateId, Step2DataDto stepData)

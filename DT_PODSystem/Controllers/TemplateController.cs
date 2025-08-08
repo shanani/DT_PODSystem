@@ -755,18 +755,42 @@ namespace DT_PODSystem.Controllers
             }
         }
 
+        // ✅ FIX: Add null check in SaveStep1 controller method
+        // Replace the SaveStep1 method in TemplateController.cs
+
         [HttpPost]
         public async Task<IActionResult> SaveStep1([FromBody] SaveStep1Request request)
         {
             try
             {
+                // ✅ FIX: Add null checks with detailed logging
+                if (request == null)
+                {
+                    _logger.LogWarning("SaveStep1: Received null request");
+                    return Json(new { success = false, message = "Invalid request - request is null" });
+                }
+
+                if (request.Data == null)
+                {
+                    _logger.LogWarning("SaveStep1: Request.Data is null for TemplateId {TemplateId}", request.TemplateId);
+                    return Json(new { success = false, message = "Invalid request - data is null" });
+                }
+
+                if (request.TemplateId <= 0)
+                {
+                    _logger.LogWarning("SaveStep1: Invalid TemplateId {TemplateId}", request.TemplateId);
+                    return Json(new { success = false, message = "Invalid template ID" });
+                }
+
+                _logger.LogInformation("SaveStep1: Processing request for TemplateId {TemplateId}", request.TemplateId);
+
                 var success = await _templateService.SaveStep1DataAsync(request.TemplateId, request.Data);
                 return Json(new { success, message = success ? "Step 1 saved" : "Failed to save" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving Step 1");
-                return Json(new { success = false, message = "Error occurred" });
+                _logger.LogError(ex, "Error saving Step 1 for TemplateId {TemplateId}", request?.TemplateId);
+                return Json(new { success = false, message = "Error occurred: " + ex.Message });
             }
         }
 

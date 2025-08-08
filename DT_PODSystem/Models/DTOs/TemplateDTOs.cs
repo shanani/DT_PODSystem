@@ -8,43 +8,55 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace DT_PODSystem.Models.DTOs
 {
 
-    // ✅ UPDATED: Step1DataDto - Now for POD creation, not Template
     public class Step1DataDto
     {
-        // ✅ MOVED TO POD: Business fields
-        public string Title { get; set; } = string.Empty;        
-        public int CategoryId { get; set; }
-        public int DepartmentId { get; set; }
-        public int? VendorId { get; set; }
+        // ✅ ALL PDFTEMPLATE ENTITY FIELDS (from PdfTemplate.cs)
 
-        // ✅ NEW POD FIELDS:
-        public string? PONumber { get; set; }
-        public string? ContractNumber { get; set; }
-        public AutomationStatus AutomationStatus { get; set; } = AutomationStatus.PDF;
-        public ProcessingFrequency Frequency { get; set; } = ProcessingFrequency.Monthly;
-        public string? VendorSPOCUsername { get; set; }
-        public string? GovernorSPOCUsername { get; set; }
-        public string? FinanceSPOCUsername { get; set; }
+        // Parent POD relationship (read-only, set during creation)
+        public int PODId { get; set; }
 
-        // ✅ MOVED TO POD: Business configuration
-        public bool RequiresApproval { get; set; }
-        public bool IsFinancialData { get; set; }
-        public int ProcessingPriority { get; set; } = 5;
+        // Template identification
+        [Required]
+        [StringLength(100)]
+        public string Title { get; set; } = "Untitled Template";
 
-        // ✅ UPDATED: Now for Template technical settings only
+        // Technical PDF processing configuration
+        [Required]
+        [StringLength(100)]
         public string NamingConvention { get; set; } = "DOC_POD";
-        public string? TechnicalNotes { get; set; }
-        public bool HasFormFields { get; set; } = false;
-        public string? ExpectedPdfVersion { get; set; }
-        public int? ExpectedPageCount { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        [Required]
         public TemplateStatus Status { get; set; } = TemplateStatus.Draft;
 
-        // UI Support
-        public List<SelectListItem> Categories { get; internal set; } = new();
-        public List<SelectListItem> Departments { get; internal set; } = new();
-        public List<SelectListItem> Vendors { get; internal set; } = new();
+        [StringLength(50)]
+        public string? Version { get; set; } = "1.0";
+
+        // Technical processing settings
+        public int ProcessingPriority { get; set; } = 5; // 1-10 scale
+
+        // Approval fields (read-only for Step 1)
+        [StringLength(100)]
+        public string? ApprovedBy { get; set; }
+        public DateTime? ApprovalDate { get; set; }
+
+        // Processing tracking (read-only for Step 1)
+        public DateTime? LastProcessedDate { get; set; }
+        public int ProcessedCount { get; set; } = 0;
+
+        // Technical notes for this specific template configuration
+        [StringLength(500)]
+        public string? TechnicalNotes { get; set; }
+
+        // PDF-specific settings
+        public bool HasFormFields { get; set; } = false;
+
+        [StringLength(50)]
+        public string? ExpectedPdfVersion { get; set; }
+
+        public int? ExpectedPageCount { get; set; }
+
+        // Base entity fields
+        public bool IsActive { get; set; } = true;
     }
 
     // ✅ UPDATED: TemplateDefinitionDto - Now minimal for templates

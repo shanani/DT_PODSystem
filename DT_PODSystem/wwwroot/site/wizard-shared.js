@@ -130,9 +130,8 @@ async function createTemplateAfterStep1Validation() {
     }
 }
 
-async function saveTemplateAfterStep1Validation() {
+ async function saveTemplateAfterStep1Validation() {
     try {
-        // Get Step 1 form data
         const step1Data = getStep1FormData();
 
         if (!step1Data.podId || step1Data.podId <= 0) {
@@ -141,9 +140,8 @@ async function saveTemplateAfterStep1Validation() {
         }
 
         console.log('💾 [SAVE] Saving Step 1 changes to existing template:', wizardData.templateId);
-        console.log('💾 [SAVE] Form data:', step1Data);
 
-        // Call SaveStep1 endpoint to update existing template
+        // ✅ CLEAN: Send ALL PdfTemplate entity fields
         const response = await fetch('/Template/SaveStep1', {
             method: 'POST',
             headers: {
@@ -153,24 +151,28 @@ async function saveTemplateAfterStep1Validation() {
             body: JSON.stringify({
                 TemplateId: wizardData.templateId,
                 Data: {
-                    // Send all form fields that can be updated
+                    // All PdfTemplate entity fields
+                    PODId: step1Data.podId, // Read-only, but include for completeness
+                    Title: step1Data.name || 'Untitled Template', // Map form name to Title
                     NamingConvention: step1Data.namingConvention || 'DOC_POD',
+                    Status: 0, // TemplateStatus.Draft
+                    Version: step1Data.version || '1.0',
+                    ProcessingPriority: step1Data.processingPriority || 5,
+                    ApprovedBy: null, // Will be set during approval process
+                    ApprovalDate: null,
+                    LastProcessedDate: null, // Read-only tracking field
+                    ProcessedCount: 0, // Read-only tracking field
                     TechnicalNotes: step1Data.technicalNotes || '',
                     HasFormFields: step1Data.hasFormFields || false,
-                    ProcessingPriority: step1Data.processingPriority || 5,
-                    Version: step1Data.version || '1.0',
-                    Status: 'Draft', // Keep as draft
-                    IsActive: true,
-                    // Note: POD cannot be changed after template creation
-                    // Name and Description could be stored in TechnicalNotes if needed
-                    ExpectedPdfVersion: null, // You said you don't want these fields
-                    ExpectedPageCount: null
+                    ExpectedPdfVersion: step1Data.expectedPdfVersion || null,
+                    ExpectedPageCount: step1Data.expectedPageCount || null,
+                    IsActive: true
                 }
             })
         });
 
         const result = await response.json();
-
+        
         if (result.success) {
             console.log('✅ [SAVE] Step 1 changes saved successfully');
             return true;
@@ -186,6 +188,7 @@ async function saveTemplateAfterStep1Validation() {
         return false;
     }
 }
+
 
 
 // Updated previousStep function
