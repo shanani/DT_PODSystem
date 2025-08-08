@@ -294,9 +294,9 @@
                             <label class="form-label required-field">Processing Frequency</label>
                             <select name="processingFrequency" class="form-control">
                                 <option value="">Select Frequency</option>
-                                <option value="MONTHLY" selected>Monthly</option>
-                                <option value="QUARTERLY">Quarterly</option>
-                                <option value="YEARLY">Yearly</option>
+                                <option value="Monthly" selected>Monthly</option>
+                                <option value="Quarterly">Quarterly</option>
+                                <option value="Yearly">Yearly</option>
                             </select>
                         </div>
                     </div>
@@ -947,6 +947,8 @@
         }
 
         // ✅ UPDATED: Main save function with real server integration
+                
+
         async function savePOD() {
             try {
                 // Collect form data using existing method
@@ -955,12 +957,7 @@
                 // Validate using existing validator
                 const validation = PODValidator.validate(podFormData);
                 if (!validation.isValid) {
-                    alert.error('Please fix the following errors:\n\n' + validation.errors.join('\n'), {popup: false});
-                    return;
-                }
-
-                // Confirm save
-                if (!confirm('Save all changes to this POD?')) {
+                    alert('Please fix the following errors:\n\n' + validation.errors.join('\n'));
                     return;
                 }
 
@@ -973,18 +970,20 @@
                 // Save to server using real API
                 const result = await PODService.save(podFormData);
 
-                // Success feedback
-                alert.success('POD saved successfully!', {popup: false});
+                // Success feedback and redirect
+                alert('POD saved successfully! Redirecting to POD list...');
                 console.log('✅ POD saved successfully:', result);
 
-                // Update last modified display if exists
-                updateLastModifiedDisplay(result.lastModified);
+                // Redirect to index page after short delay
+                setTimeout(() => {
+                    window.location.href = '/POD/Index';
+                }, 1500);
 
             } catch (error) {
                 console.error('❌ Error in savePOD:', error);
-                alert.error('Error saving POD: ' + error.message, {popup: false});
-            } finally {
-                // Reset button
+                alert('Error saving POD: ' + error.message);
+
+                // Reset button on error
                 const saveBtn = document.querySelector('button[onclick="savePOD()"]');
                 if (saveBtn) {
                     saveBtn.innerHTML = '<i class="fa fa-save me-1"></i>Save Changes';
