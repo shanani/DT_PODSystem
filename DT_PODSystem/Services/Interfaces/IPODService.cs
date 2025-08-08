@@ -67,6 +67,9 @@ namespace DT_PODSystem.Services.Interfaces
         /// Get POD display name with code
         /// </summary>
         string GetPODDisplayName(POD pod);
+        Task<PODDto?> GetPODWithEntriesAsync(int id);
+
+        Task<bool> SavePODEntriesFromJsonAsync(int podId, dynamic entriesJson);
 
         #endregion
     }

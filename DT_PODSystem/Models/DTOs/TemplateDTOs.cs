@@ -110,6 +110,7 @@ namespace DT_PODSystem.Models.DTOs
         public DateTime CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
         public string CreatedBy { get; set; } = string.Empty;
+        public object Entries { get; internal set; }
     }
 
     // ✅ UPDATED: TemplateFilterOption - Now includes POD info

@@ -29,6 +29,65 @@ namespace DT_PODSystem.Controllers
             _lookupsService = lookupsService;
             _logger = logger;
         }
+         
+        /// <summary>
+        /// AJAX endpoint to save POD entries only
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SavePODEntries(int id, [FromBody] dynamic entriesData)
+        {
+            try
+            {
+                _logger.LogInformation("Saving POD entries for ID: {PODId}", id);
+
+                var success = await _podService.SavePODEntriesFromJsonAsync(id, entriesData);
+
+                if (success)
+                {
+                    return Json(new { success = true, message = "POD entries saved successfully." });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "POD not found or could not be updated." });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving POD entries for ID: {PODId}", id);
+                return Json(new { success = false, message = "An error occurred while saving POD entries." });
+            }
+        }
+
+        /// <summary>
+        /// Get POD data with entries for editing (AJAX)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetPODWithEntries(int id)
+        {
+            try
+            {
+                var pod = await _podService.GetPODWithEntriesAsync(id);
+
+                if (pod == null)
+                {
+                    return Json(new { success = false, message = "POD not found." });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    pod = pod,
+                    message = "POD loaded successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting POD with entries for ID: {PODId}", id);
+                return Json(new { success = false, message = "Error loading POD data." });
+            }
+        }    
+
 
         #region Index and List
 
