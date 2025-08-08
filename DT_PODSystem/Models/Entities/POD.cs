@@ -93,6 +93,10 @@ namespace DT_PODSystem.Models.Entities
         public virtual ICollection<PdfTemplate> Templates { get; set; } = new List<PdfTemplate>();
 
         public virtual ICollection<PODAttachment> Attachments { get; set; } = new List<PODAttachment>();
+         
+
+        // ✅ NEW: Add POD Entries navigation property
+        public virtual ICollection<PODEntry> Entries { get; set; } = new List<PODEntry>();
 
         // Processed files will be linked through templates, but we can add direct navigation if needed
         // public virtual ICollection<ProcessedFile> ProcessedFiles { get; set; } = new List<ProcessedFile>();

@@ -1,396 +1,1156 @@
-@model DT_PODSystem.Models.ViewModels.PODCreateEditViewModel
-
-@{
-    ViewData["Title"] = Model.PageTitle;
-    Layout = "_Layout";
-}
-
-@section Styles {
-    <link href="https://ops_cdn.stc.com.sa/ca/plugins/parsleyjs/src/parsley.css" rel="stylesheet" />
+ 
+  @section Styles{
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/fontawesome/css/all.min.css" rel="stylesheet">
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/blueimp-file-upload/css/jquery.fileupload.css" rel="stylesheet">
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/blueimp-file-upload/css/jquery.fileupload-ui.css" rel="stylesheet">
     <style>
         .form-section {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-left: 4px solid #ffc107;
+            margin-bottom: 2rem;
         }
 
             .form-section h5 {
-                color: #ffc107;
-                margin-bottom: 15px;
+                color: #495057;
+                font-weight: 600;
+                margin-bottom: 1rem;
+                border-bottom: 1px solid #e9ecef;
+                padding-bottom: 0.5rem;
             }
+
+        .pod-section {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+            .pod-section h6 {
+                color: #495057;
+                font-weight: 600;
+                margin-bottom: 0.75rem;
+            }
+
+        .single-entry {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 0.25rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-entry {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .entry-table {
+            font-size: 0.875rem;
+        }
+
+            .entry-table th, .entry-table td {
+                padding: 0.375rem;
+                vertical-align: middle;
+            }
+
+            .entry-table td:first-child input,
+            .entry-table th input {
+                font-weight:500;
+                    color: var(--bs-primary) !important;
+            }
+            .entry-table input {
+                border: 1px solid #ced4da;
+                border-radius: 0.25rem;
+                padding: 0.25rem 0.5rem;
+                width: 100%;
+                font-size: 0.875rem;
+            }
+             
+
+            .entry-table th {
+                background-color: #e5e5e5;
+                color: var(--bs-primary);
+                font-weight:500;
+            }
+
+        .table-top-left {
+            background-color: #e5e5e5 !important;
+            border: none;
+            color: white;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            transition: border-color 0.3s ease;
+            background: #f8f9fa;
+        }
+
+            .file-upload-area:hover,
+            .file-upload-area.dragover {
+                border-color: #0d6efd;
+                background-color: #f0f7ff;
+            }
+
+        .uploaded-file {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 0.25rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: box-shadow 0.15s ease-in-out;
+        }
+
+            .uploaded-file:hover {
+                box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            }
+
+        .file-icon {
+            width: 32px;
+            height: 32px;
+            background: #e9ecef;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+        }
 
         .required-field::after {
             content: " *";
             color: #dc3545;
         }
-
-        .edit-info {
-            background: #e7f3ff;
-            border: 1px solid #b8daff;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 20px;
-        }
     </style>
-}
-
-<!-- BEGIN breadcrumb -->
-<ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="@Url.Action("Index")">POD Management</a></li>
-    <li class="breadcrumb-item active">@Model.PageTitle</li>
-</ol>
-<!-- END breadcrumb -->
-<!-- BEGIN page-header -->
-<h1 class="page-header">@Model.PageTitle <small>Process Owner Document modification</small></h1>
-<!-- END page-header -->
-<!-- BEGIN panel -->
-<div class="panel panel-inverse">
-    <div class="panel-heading">
-        <h4 class="panel-title">
-            <i class="fa fa-edit me-2"></i>@Model.PageTitle
-        </h4>
-        <div class="panel-heading-btn">
-            <a href="@Url.Action("Details", new { id = Model.EditingPODId })" class="btn btn-info btn-sm me-1">
-                <i class="fa fa-eye"></i> View Details
-            </a>
-            <a href="@Url.Action("Index")" class="btn btn-secondary btn-sm">
-                <i class="fa fa-arrow-left"></i> Back to List
-            </a>
+ }
+    <!-- BEGIN breadcrumb -->
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="javascript:;">Home</a></li>
+        <li class="breadcrumb-item"><a href="javascript:;">POD Management</a></li>
+        <li class="breadcrumb-item active">Edit POD</li>
+    </ol>
+    <!-- END breadcrumb -->
+    <!-- BEGIN page-header -->
+    <h1 class="page-header">Edit POD <small>Proof of Delivery Configuration</small></h1>
+    <!-- END page-header -->
+    <!-- BEGIN POD Details Panel -->
+    <div class="panel panel-inverse" data-sortable-id="pod-details">
+        <!-- BEGIN panel-heading -->
+        <div class="panel-heading ui-sortable-handle">
+            <h4 class="panel-title">
+                <i class="fa fa-info-circle me-2"></i>POD Details
+            </h4>
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-danger" data-toggle="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
         </div>
+        <!-- END panel-heading -->
+        <!-- BEGIN panel-body -->
+        <div class="panel-body">
+            <form id="pod-edit-form">
+                <!-- Basic Information Section -->
+                <div class="form-section">
+                    <h5><i class="fa fa-file-alt me-2"></i>Basic Information</h5>
+
+                    <div class="row">
+                        <div class="col-lg-8 col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label required-field">POD Name</label>
+                                <input type="text" class="form-control" value="Monthly Financial Reports Processing"
+                                       placeholder="Enter a descriptive name for this POD" />
+                                <small class="form-text text-muted">This will be used to identify the POD across the system</small>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">POD Code</label>
+                                <input type="text" class="form-control bg-light" value="POD-2025-001" readonly />
+                                <small class="form-text text-muted">Unique identifier generated automatically</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" rows="3"
+                                  placeholder="Provide a detailed description of this POD and its purpose">Automated processing of monthly financial reports including budget analysis, expense tracking, and revenue reporting. This POD handles critical financial data that requires approval workflow.</textarea>
+                        <small class="form-text text-muted">Optional but recommended for better understanding</small>
+                    </div>
+                </div>
+
+                <!-- Business References Section -->
+                <div class="form-section">
+                    <h5><i class="fa fa-file-contract me-2"></i>Business References</h5>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Purchase Order Number</label>
+                                <input type="text" class="form-control" value="PO-2024-001234"
+                                       placeholder="e.g., PO-2024-001234" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Contract Number</label>
+                                <input type="text" class="form-control" value="CTR-2024-STC-001"
+                                       placeholder="e.g., CTR-2024-STC-001" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Organizational Relationships Section -->
+                <div class="form-section">
+                    <h5><i class="fa fa-sitemap me-2"></i>Organizational Relationships</h5>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label required-field">Category</label>
+                                <select class="form-control">
+                                    <option>Select Category</option>
+                                    <option>MSP Certificates</option>
+                                    <option selected>Financial Documents</option>
+                                    <option>HR Documents</option>
+                                    <option>Legal Documents</option>
+                                    <option>Procurement Documents</option>
+                                </select>
+                                <small class="form-text text-muted">Business domain categorization</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label required-field">Department</label>
+                                <select class="form-control">
+                                    <option>Select Department</option>
+                                    <option selected>Financial Planning (Finance and Administration)</option>
+                                    <option>Accounts Payable (Finance and Administration)</option>
+                                    <option>Treasury (Finance and Administration)</option>
+                                    <option>Talent Acquisition (Human Resources)</option>
+                                    <option>Employee Development (Human Resources)</option>
+                                    <option>Software Development (Information Technology)</option>
+                                    <option>Infrastructure and Networks (Information Technology)</option>
+                                    <option>Data Analytics (Information Technology)</option>
+                                    <option>Contract Management (Legal and Compliance)</option>
+                                    <option>Regulatory Compliance (Legal and Compliance)</option>
+                                    <option>Facility Management (Operations and Maintenance)</option>
+                                    <option>Security Operations (Operations and Maintenance)</option>
+                                </select>
+                                <small class="form-text text-muted">Owning department</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Vendor</label>
+                                <select class="form-control">
+                                    <option>Select Vendor (Optional)</option>
+                                    <option>Advanced Analytics Corp</option>
+                                    <option selected>Arabian Business Services</option>
+                                    <option>Digital Transformation Partners</option>
+                                    <option>Gulf Consulting Group</option>
+                                    <option>Saudi Technology Solutions</option>
+                                </select>
+                                <small class="form-text text-muted">Optional: Associated vendor/supplier</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Processing Configuration Section -->
+                <div class="form-section">
+                    <h5><i class="fa fa-cogs me-2"></i>Processing Configuration</h5>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label required-field">Automation Status</label>
+                                <select class="form-control">
+                                    <option>Select Automation Level</option>
+                                    <option>PDF Only</option>
+                                    <option selected>Semi-Automated</option>
+                                    <option>Fully Automated</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label required-field">Processing Frequency</label>
+                                <select class="form-control">
+                                    <option>Select Frequency</option>
+                                    <option selected>Monthly</option>
+                                    <option>Quarterly</option>
+                                    <option>Yearly</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label required-field">Processing Priority</label>
+                                <select class="form-control">
+                                    <option>1 - Highest Priority</option>
+                                    <option selected>2 - High Priority</option>
+                                    <option>3 - Above Normal</option>
+                                    <option>4 - Above Normal</option>
+                                    <option>5 - Normal</option>
+                                    <option>6 - Below Normal</option>
+                                    <option>7 - Below Normal</option>
+                                    <option>8 - Low Priority</option>
+                                    <option>9 - Low Priority</option>
+                                    <option>10 - Lowest Priority</option>
+                                </select>
+                                <small class="form-text text-muted">1 = Highest, 10 = Lowest</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Single Points of Contact Section -->
+                <div class="form-section">
+                    <h5><i class="fa fa-users me-2"></i>Single Points of Contact (SPOC)</h5>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Vendor SPOC</label>
+                                <input type="text" class="form-control" value="vendor.contact@arabianbiz.com"
+                                       placeholder="Vendor contact username" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Governor SPOC</label>
+                                <input type="text" class="form-control" value="ahmed.alrashid@stc.com.sa"
+                                       placeholder="Governor contact username" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Finance SPOC</label>
+                                <input type="text" class="form-control" value="finance.manager@stc.com.sa"
+                                       placeholder="Finance contact username" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business Rules & Compliance Section -->
+                <div class="form-section">
+                    <h5><i class="fa fa-shield-alt me-2"></i>Business Rules & Compliance</h5>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" checked />
+                                <label class="form-check-label">Requires Approval</label>
+                                <small class="form-text text-muted d-block">Check if processing requires approval workflow</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" checked />
+                                <label class="form-check-label">Contains Financial Data</label>
+                                <small class="form-text text-muted d-block">Check if this POD contains sensitive financial information</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <!-- END panel-body -->
     </div>
-    <div class="panel-body">
-        <!-- Edit Information Alert -->
-        <div class="edit-info">
-            <div class="d-flex align-items-center">
-                <i class="fa fa-info-circle me-2 text-primary"></i>
-                <div>
-                    <strong>Editing POD ID: @Model.EditingPODId</strong>
-                    <div class="small text-muted mt-1">
-                        Be careful when modifying organizational relationships as this may affect existing templates and processing workflows.
-                    </div>
-                </div>
+    <!-- END POD Details Panel -->
+    <!-- BEGIN Upload Attachments Panel -->
+    <div class="panel panel-inverse" data-sortable-id="pod-attachments">
+        <!-- BEGIN panel-heading -->
+        <div class="panel-heading ui-sortable-handle">
+            <h4 class="panel-title">
+                <i class="fa fa-paperclip me-2"></i>Upload Attachments
+            </h4>
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-danger" data-toggle="panel-remove"><i class="fa fa-times"></i></a>
             </div>
         </div>
-
-        <form asp-action="Edit" method="post" data-parsley-validate>
-            <input type="hidden" asp-for="EditingPODId" />
-            <input type="hidden" asp-for="IsEditing" />
-
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-
-            <!-- Basic Information Section -->
-            <div class="form-section">
-                <h5><i class="fa fa-info-circle me-2"></i>Basic Information</h5>
-                <div class="row">
-                    <div class="col-lg-8 col-md-12">
-                        <div class="mb-3">
-                            <label asp-for="POD.Name" class="form-label required-field">POD Name</label>
-                            <input asp-for="POD.Name" class="form-control"
-                                   placeholder="Enter a descriptive name for this POD"
-                                   data-parsley-required
-                                   data-parsley-minlength="3"
-                                   data-parsley-maxlength="200" />
-                            <span asp-validation-for="POD.Name" class="text-danger"></span>
-                            <small class="form-text text-muted">This will be used to identify the POD across the system</small>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-12">
-                        <div class="mb-3">
-                            <label class="form-label">POD Code</label>
-                            <input type="text" class="form-control bg-light"
-                                   value="Assigned automatically (unchanged)"
-                                   readonly />
-                            <small class="form-text text-muted">POD codes cannot be changed after creation</small>
-                        </div>
-                    </div>
-                </div>
-
+        <!-- END panel-heading -->
+        <!-- BEGIN panel-body -->
+        <div class="panel-body">
+            <!-- File Upload Area -->
+            <div class="file-upload-area" id="fileUploadArea"
+                 ondrop="dropHandler(event)"
+                 ondragover="dragOverHandler(event)"
+                 ondragenter="dragEnterHandler(event)"
+                 ondragleave="dragLeaveHandler(event)">
+                <input type="file" id="fileInput" multiple style="display: none;" onchange="handleFileSelect(event)">
                 <div class="mb-3">
-                    <label asp-for="POD.Description" class="form-label">Description</label>
-                    <textarea asp-for="POD.Description" class="form-control" rows="3"
-                              placeholder="Provide a detailed description of this POD and its purpose"
-                              data-parsley-maxlength="1000"></textarea>
-                    <span asp-validation-for="POD.Description" class="text-danger"></span>
-                    <small class="form-text text-muted">Optional but recommended for better understanding</small>
+                    <i class="fa fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                    <h5 class="text-dark">Drop files here or click to upload</h5>
+                    <p class="text-muted mb-3">Support for multiple file uploads. Maximum file size: 10MB</p>
+                    <button type="button" class="btn btn-primary" onclick="triggerFileUpload()">
+                        <i class="fa fa-upload me-1"></i>Select Files
+                    </button>
                 </div>
             </div>
 
-            <!-- Business References Section -->
-            <div class="form-section">
-                <h5><i class="fa fa-file-contract me-2"></i>Business References</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label asp-for="POD.PONumber" class="form-label">Purchase Order Number</label>
-                            <input asp-for="POD.PONumber" class="form-control"
-                                   placeholder="e.g., PO-2024-001234"
-                                   data-parsley-maxlength="100" />
-                            <span asp-validation-for="POD.PONumber" class="text-danger"></span>
+            <!-- Uploaded Files List -->
+            <div id="uploadedFilesList" class="mt-4">
+                <h6 class="mb-3 text-dark">Uploaded Files</h6>
+                <div id="filesContainer">
+                    <!-- Sample existing files -->
+                    <div class="uploaded-file">
+                        <div class="d-flex align-items-center">
+                            <div class="file-icon">
+                                <i class="fa fa-file-pdf text-danger"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">pod-specification.pdf</div>
+                                <small class="text-muted">2.1 MB • Uploaded 2 hours ago</small>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="downloadFile('pod-specification.pdf')" title="Download">
+                                <i class="fa fa-download"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(this)" title="Remove">
+                                <i class="fa fa-trash"></i>
+                            </button>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label asp-for="POD.ContractNumber" class="form-label">Contract Number</label>
-                            <input asp-for="POD.ContractNumber" class="form-control"
-                                   placeholder="e.g., CTR-2024-STC-001"
-                                   data-parsley-maxlength="100" />
-                            <span asp-validation-for="POD.ContractNumber" class="text-danger"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Organizational Relationships Section -->
-            <div class="form-section">
-                <h5><i class="fa fa-sitemap me-2"></i>Organizational Relationships</h5>
-                <div class="alert alert-warning" role="alert">
-                    <i class="fa fa-exclamation-triangle me-2"></i>
-                    <strong>Warning:</strong> Changing organizational relationships may affect existing templates and processing workflows. Proceed with caution.
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label asp-for="POD.CategoryId" class="form-label required-field">Category</label>
-                            <select asp-for="POD.CategoryId" class="form-select"
-                                    data-parsley-required
-                                    data-parsley-required-message="Please select a category">
-                                <option value="">Select Category</option>
-                                @foreach (var category in Model.Categories)
-                                {
-                                    <option value="@category.Value">@category.Text</option>
-                                }
-                            </select>
-                            <span asp-validation-for="POD.CategoryId" class="text-danger"></span>
-                            <small class="form-text text-muted">Business domain categorization</small>
+                    <div class="uploaded-file">
+                        <div class="d-flex align-items-center">
+                            <div class="file-icon">
+                                <i class="fa fa-file-excel text-success"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">financial-template.xlsx</div>
+                                <small class="text-muted">1.8 MB • Uploaded 1 hour ago</small>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label asp-for="POD.DepartmentId" class="form-label required-field">Department</label>
-                            <select asp-for="POD.DepartmentId" class="form-select"
-                                    data-parsley-required
-                                    data-parsley-required-message="Please select a department">
-                                <option value="">Select Department</option>
-                                @foreach (var department in Model.Departments)
-                                {
-                                    <option value="@department.Value">@department.Text</option>
-                                }
-                            </select>
-                            <span asp-validation-for="POD.DepartmentId" class="text-danger"></span>
-                            <small class="form-text text-muted">Owning department</small>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label asp-for="POD.VendorId" class="form-label">Vendor</label>
-                            <select asp-for="POD.VendorId" class="form-select">
-                                @foreach (var vendor in Model.Vendors)
-                                {
-                                    <option value="@vendor.Value">@vendor.Text</option>
-                                }
-                            </select>
-                            <span asp-validation-for="POD.VendorId" class="text-danger"></span>
-                            <small class="form-text text-muted">Optional: Associated vendor/supplier</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Processing Configuration Section -->
-            <div class="form-section">
-                <h5><i class="fa fa-cogs me-2"></i>Processing Configuration</h5>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label asp-for="POD.AutomationStatus" class="form-label required-field">Automation Status</label>
-                            <select asp-for="POD.AutomationStatus" class="form-select" data-parsley-required>
-                                <option value="">Select Automation Level</option>
-                                <option value="@((int)DT_PODSystem.Models.Enums.AutomationStatus.PDF)">PDF Only</option>
-                                <option value="@((int)DT_PODSystem.Models.Enums.AutomationStatus.ManualEntryWorkflow)">Semi-Automated</option>
-                                <option value="@((int)DT_PODSystem.Models.Enums.AutomationStatus.FullyAutomated)">Fully Automated</option>
-                            </select>
-                            <span asp-validation-for="POD.AutomationStatus" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label asp-for="POD.Frequency" class="form-label required-field">Processing Frequency</label>
-                            <select asp-for="POD.Frequency" class="form-select" data-parsley-required>                                
-                                <option value="@((int)DT_PODSystem.Models.Enums.ProcessingFrequency.Monthly)">Monthly</option>
-                                <option value="@((int)DT_PODSystem.Models.Enums.ProcessingFrequency.Quarterly)">Quarterly</option>
-                                <option value="@((int)DT_PODSystem.Models.Enums.ProcessingFrequency.Yearly)">Yearly</option>
-                                
-                            </select>
-                            <span asp-validation-for="POD.Frequency" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label asp-for="POD.ProcessingPriority" class="form-label">Processing Priority</label>
-                            <select asp-for="POD.ProcessingPriority" class="form-select">
-                                <option value="1">1 - Highest Priority</option>
-                                <option value="2">2 - High Priority</option>
-                                <option value="3">3 - Above Normal</option>
-                                <option value="4">4 - Above Normal</option>
-                                <option value="5">5 - Normal</option>
-                                <option value="6">6 - Below Normal</option>
-                                <option value="7">7 - Below Normal</option>
-                                <option value="8">8 - Low Priority</option>
-                                <option value="9">9 - Low Priority</option>
-                                <option value="10">10 - Lowest Priority</option>
-                            </select>
-                            <span asp-validation-for="POD.ProcessingPriority" class="text-danger"></span>
-                            <small class="form-text text-muted">1 = Highest, 10 = Lowest</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SPOC (Single Point of Contact) Section -->
-            <div class="form-section">
-                <h5><i class="fa fa-users me-2"></i>Single Points of Contact (SPOC)</h5>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label asp-for="POD.VendorSPOCUsername" class="form-label">Vendor SPOC</label>
-                            <input asp-for="POD.VendorSPOCUsername" class="form-control"
-                                   placeholder="Vendor contact username"
-                                   data-parsley-maxlength="100" />
-                            <span asp-validation-for="POD.VendorSPOCUsername" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label asp-for="POD.GovernorSPOCUsername" class="form-label">Governor SPOC</label>
-                            <input asp-for="POD.GovernorSPOCUsername" class="form-control"
-                                   placeholder="Governor contact username"
-                                   data-parsley-maxlength="100" />
-                            <span asp-validation-for="POD.GovernorSPOCUsername" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label asp-for="POD.FinanceSPOCUsername" class="form-label">Finance SPOC</label>
-                            <input asp-for="POD.FinanceSPOCUsername" class="form-control"
-                                   placeholder="Finance contact username"
-                                   data-parsley-maxlength="100" />
-                            <span asp-validation-for="POD.FinanceSPOCUsername" class="text-danger"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Business Rules Section -->
-            <div class="form-section">
-                <h5><i class="fa fa-shield-alt me-2"></i>Business Rules & Compliance</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-check form-switch mb-3">
-                            <input asp-for="POD.RequiresApproval" class="form-check-input" type="checkbox" />
-                            <label asp-for="POD.RequiresApproval" class="form-check-label">Requires Approval</label>
-                            <small class="form-text text-muted d-block">Check if processing requires approval workflow</small>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-check form-switch mb-3">
-                            <input asp-for="POD.IsFinancialData" class="form-check-input" type="checkbox" />
-                            <label asp-for="POD.IsFinancialData" class="form-check-label">Contains Financial Data</label>
-                            <small class="form-text text-muted d-block">Check if this POD contains sensitive financial information</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <a href="@Url.Action("Index")" class="btn btn-secondary me-2">
-                                <i class="fa fa-times me-1"></i>Cancel
-                            </a>
-                            <a href="@Url.Action("Details", new { id = Model.EditingPODId })" class="btn btn-outline-info">
-                                <i class="fa fa-eye me-1"></i>View Details
-                            </a>
-                        </div>
-                        <div>
-                            <button type="submit" class="btn btn-warning">
-                                <i class="fa fa-save me-1"></i>@Model.SubmitButtonText
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="downloadFile('financial-template.xlsx')" title="Download">
+                                <i class="fa fa-download"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(this)" title="Remove">
+                                <i class="fa fa-trash"></i>
                             </button>
                         </div>
                     </div>
                 </div>
+                <div id="noFilesMessage" class="text-muted text-center py-3" style="display: none;">
+                    <i class="fa fa-file fa-2x mb-2"></i>
+                    <p>No files uploaded yet.</p>
+                </div>
             </div>
-        </form>
+        </div>
+        <!-- END panel-body -->
     </div>
-</div>
-<!-- END panel -->
-@section Scripts {
-    <script src="https://ops_cdn.stc.com.sa/ca/plugins/parsleyjs/dist/parsley.min.js"></script>
+    <!-- END Upload Attachments Panel -->
+    <!-- BEGIN POD Attributes Panel -->
+    <div class="panel panel-inverse" data-sortable-id="pod-attributes">
+        <!-- BEGIN panel-heading -->
+        <div class="panel-heading ui-sortable-handle">
+            <h4 class="panel-title">
+                <i class="fa fa-database me-2"></i>POD Attributes
+            </h4>
+            <div class="panel-heading-btn">
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                <a href="javascript:;" class="btn btn-xs btn-icon btn-danger" data-toggle="panel-remove"><i class="fa fa-times"></i></a>
+            </div>
+        </div>
+        <!-- END panel-heading -->
+        <!-- BEGIN panel-body -->
+        <div class="panel-body">
+            <div class="mb-3">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-success" onclick="showAddSingleModal()">
+                        <i class="fa fa-plus me-1"></i>Add Single Value
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="showAddTableModal()">
+                        <i class="fa fa-table me-1"></i>Add Table
+                    </button>
+                    <button type="button" class="btn btn-info" onclick="loadSampleData()">
+                        <i class="fa fa-upload me-1"></i>Load Sample
+                    </button>
+                </div>
+            </div>
+
+            <!-- Single Values Section -->
+            <div class="pod-section">
+                <h6><i class="fa fa-circle me-2 text-success"></i>Single Values</h6>
+                <div id="single-values-container">
+                    <!-- Single values will be added here -->
+                </div>
+                <div id="no-single-values" class="text-muted text-center py-3">
+                    <i class="fa fa-plus-circle fa-2x mb-2"></i>
+                    <p>No single values defined. Click "Add Single Value" to start.</p>
+                </div>
+            </div>
+
+            <!-- Tables Section -->
+            <div class="pod-section">
+                <h6><i class="fa fa-table me-2 text-primary"></i>Tables (Arrays)</h6>
+                <div id="tables-container">
+                    <!-- Tables will be added here -->
+                </div>
+                <div id="no-tables" class="text-muted text-center py-3">
+                    <i class="fa fa-table fa-2x mb-2"></i>
+                    <p>No tables defined. Click "Add Table" to start.</p>
+                </div>
+            </div>
+
+            <!-- JSON Preview -->
+            <div class="pod-section">
+                <h6><i class="fa fa-code me-2 text-info"></i>JSON Preview</h6>
+                <pre id="json-preview" class="bg-light p-3 rounded border" style="font-size: 0.8rem; max-height: 300px; overflow-y: auto; font-family: 'Courier New', monospace;">{}</pre>
+            </div>
+        </div>
+        <!-- END panel-body -->
+    </div>
+    <!-- END POD Attributes Panel -->
+    <!-- BEGIN Form Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <a href="javascript:;" class="btn btn-secondary" onclick="cancelEdit()">
+                    <i class="fa fa-times me-1"></i>Cancel
+                </a>
+                <div>
+                    <button type="button" class="btn btn-primary" onclick="savePOD()">
+                        <i class="fa fa-save me-1"></i>Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END Form Actions -->
+    <!-- Add Single Value Modal -->
+    <div class="modal fade" id="addSingleModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa fa-plus-circle me-2"></i>Add Single Value</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Field Name</label>
+                        <input type="text" class="form-control" id="singleFieldName" placeholder="Enter field name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-control" id="singleDescription" placeholder="Enter description (optional)">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="addSingleValue()">
+                        <i class="fa fa-plus me-1"></i>Add Single Value
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Table Modal -->
+    <div class="modal fade" id="addTableModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa fa-table me-2"></i>Add Table (Array)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Table Name</label>
+                        <input type="text" class="form-control" id="tableName" placeholder="Enter table name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-control" id="tableDescription" placeholder="Enter table description (optional)">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Number of Rows</label>
+                                <input type="number" class="form-control" id="tableRows" value="3" min="1" max="20">
+                                <small class="text-muted">1-20 rows</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Number of Fields</label>
+                                <input type="number" class="form-control" id="tableFields" value="3" min="1" max="10">
+                                <small class="text-muted">1-10 fields</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="addTable()">
+                        <i class="fa fa-table me-1"></i>Create Table
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @section Scripts{
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/jquery/jquery.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        $(document).ready(function() {
-            // Initialize Parsley validation
-            $('form').parsley();
+        let podData = {
+            singleValues: {},
+            tables: {}
+        };
 
-            // Warning for organizational changes
-            $('#POD_CategoryId, #POD_DepartmentId, #POD_VendorId').on('change', function() {
-                showOrganizationalChangeWarning();
-            });
+        // File upload functions
+        function triggerFileUpload() {
+            document.getElementById('fileInput').click();
+        }
 
-            function showOrganizationalChangeWarning() {
-                // You could implement a more sophisticated change detection here
-                console.log('Organizational relationship changed - templates may be affected');
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            for (let i = 0; i < files.length; i++) {
+                addFileToList(files[i]);
+            }
+        }
+
+        function dropHandler(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('dragover');
+            const files = ev.dataTransfer.files;
+            for (let i = 0; i < files.length; i++) {
+                addFileToList(files[i]);
+            }
+        }
+
+        function dragOverHandler(ev) {
+            ev.preventDefault();
+        }
+
+        function dragEnterHandler(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('dragover');
+        }
+
+        function dragLeaveHandler(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('dragover');
+        }
+
+        function addFileToList(file) {
+            const filesContainer = document.getElementById('filesContainer');
+            const fileId = 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            const fileElement = document.createElement('div');
+            fileElement.className = 'uploaded-file';
+            fileElement.id = fileId;
+
+            const fileIcon = getFileIcon(file.name);
+            const fileSize = formatFileSize(file.size);
+
+            fileElement.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="file-icon">
+                        <i class="fa ${fileIcon}"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark">${file.name}</div>
+                        <small class="text-muted">${fileSize} • Just uploaded</small>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="downloadFile('${file.name}')" title="Download">
+                        <i class="fa fa-download"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(this)" title="Remove">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            filesContainer.appendChild(fileElement);
+            document.getElementById('noFilesMessage').style.display = 'none';
+        }
+
+        function getFileIcon(fileName) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            switch(ext) {
+                case 'pdf': return 'fa-file-pdf text-danger';
+                case 'doc':
+                case 'docx': return 'fa-file-word text-primary';
+                case 'xls':
+                case 'xlsx': return 'fa-file-excel text-success';
+                case 'jpg':
+                case 'jpeg':
+                case 'png':
+                case 'gif': return 'fa-file-image text-info';
+                case 'txt': return 'fa-file-alt text-secondary';
+                default: return 'fa-file text-muted';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function removeFile(button) {
+            button.closest('.uploaded-file').remove();
+            const filesContainer = document.getElementById('filesContainer');
+            if (filesContainer.children.length === 0) {
+                document.getElementById('noFilesMessage').style.display = 'block';
+            }
+        }
+
+        function downloadFile(fileName) {
+            alert('Downloading: ' + fileName);
+        }
+
+        // POD Entry functions
+        function showAddSingleModal() {
+            $('#singleFieldName').val('');
+            $('#singleDescription').val('');
+            $('#addSingleModal').modal('show');
+        }
+
+        function showAddTableModal() {
+            $('#tableName').val('');
+            $('#tableDescription').val('');
+            $('#tableRows').val(3);
+            $('#tableFields').val(3);
+            $('#addTableModal').modal('show');
+        }
+
+        function addSingleValue() {
+            const fieldName = $('#singleFieldName').val().trim();
+            const description = $('#singleDescription').val().trim();
+
+            if (!fieldName) {
+                alert('Please enter a field name');
+                return;
             }
 
-            // Show/hide vendor SPOC based on vendor selection
-            $('#POD_VendorId').on('change', function() {
-                var vendorSelected = $(this).val() !== '';
-                if (!vendorSelected) {
-                    if (confirm('Removing vendor will clear the Vendor SPOC. Continue?')) {
-                        $('#POD_VendorSPOCUsername').val('');
-                    }
+            podData.singleValues[fieldName] = {
+                description: description,
+                value: "(input)"
+            };
+
+            const singleHtml = `
+                <div class="single-entry" data-key="${fieldName}">
+                    <div>
+                        <strong class="text-dark">${fieldName}</strong>
+                        <br><small class="text-muted">${description || 'No description'}</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger" onclick="removeSingleValue('${fieldName}')" title="Remove">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            $('#single-values-container').append(singleHtml);
+            $('#no-single-values').hide();
+            $('#addSingleModal').modal('hide');
+            updateJsonPreview();
+        }
+
+       
+
+        function getValue() {
+            const options = ['(input)', '0.99', '100', '(input)'];
+            return options[Math.floor(Math.random() * options.length)];
+        }
+
+        function updateTableData(tableName) {
+            const tableDiv = $(`[data-table="${tableName}"]`);
+            const table = tableDiv.find('table');
+
+            const headers = [];
+            table.find('thead th input').each(function() {
+                headers.push($(this).val().trim() || '');
+            });
+
+            const data = { Keys: [] };
+            headers.forEach(header => {
+                if (header) data[header] = [];
+            });
+
+            table.find('tbody tr').each(function() {
+                const inputs = $(this).find('input');
+                const key = inputs.eq(0).val().trim();
+                if (key) {
+                    data.Keys.push(key);
+                    inputs.slice(1).each(function(index) {
+                        const header = headers[index];
+                        if (header) {
+                            let value = $(this).val().trim();
+                            if (value && !isNaN(value) && value !== '(input)') {
+                                value = parseFloat(value);
+                            }
+                            data[header].push(value || '(input)');
+                        }
+                    });
                 }
             });
 
-            // Auto-enable approval for financial data
-            $('#POD_IsFinancialData').on('change', function() {
-                if ($(this).is(':checked')) {
-                    $('#POD_RequiresApproval').prop('checked', true);
-                    if (!confirm('Financial data PODs typically require approval. Keep approval enabled?')) {
-                        $('#POD_RequiresApproval').prop('checked', false);
-                    }
+            podData.tables[tableName].headers = headers.filter(h => h);
+            podData.tables[tableName].data = data;
+
+            updateJsonPreview();
+        }
+
+        function removeSingleValue(key) {
+            if (confirm(`Remove single value "${key}"?`)) {
+                delete podData.singleValues[key];
+                $(`[data-key="${key}"]`).remove();
+
+                if (Object.keys(podData.singleValues).length === 0) {
+                    $('#no-single-values').show();
+                }
+                updateJsonPreview();
+            }
+        }
+                function updateJsonPreview() {
+            const output = [];
+
+            Object.keys(podData.singleValues).forEach(key => {
+                output.push(key);
+            });
+
+            Object.keys(podData.tables).forEach(tableName => {
+                const tableData = podData.tables[tableName];
+                if (tableData.data && Object.keys(tableData.data).length > 0) {
+                    const tableObject = {};
+                    tableObject[tableName] = tableData.data;
+                    output.push(tableObject);
                 }
             });
 
-            // Confirmation for critical changes
-            $('form').on('submit', function(e) {
-                var criticalChanges = [];
+            $('#json-preview').text(JSON.stringify(output, null, 2));
+        }
 
-                // Check if automation status is being changed to fully automated
-                if ($('#POD_AutomationStatus').val() == '@((int)DT_PODSystem.Models.Enums.AutomationStatus.FullyAutomated)') {
-                    criticalChanges.push('Fully Automated processing');
+        function removeTable(tableName) {
+            if (confirm(`Remove table "${tableName}"?`)) {
+                delete podData.tables[tableName];
+                $(`[data-table="${tableName}"]`).remove();
+
+                if (Object.keys(podData.tables).length === 0) {
+                    $('#no-tables').show();
                 }
+                updateJsonPreview();
+            }
+        }
 
-                // Check if approval is being disabled for financial data
-                if ($('#POD_IsFinancialData').is(':checked') && !$('#POD_RequiresApproval').is(':checked')) {
-                    criticalChanges.push('Removing approval for financial data');
+
+
+             function addTable() {
+            const tableName = $('#tableName').val().trim();
+            const description = $('#tableDescription').val().trim();
+            const rows = parseInt($('#tableRows').val());
+            const fields = parseInt($('#tableFields').val());
+
+            if (!tableName) {
+                alert('Please enter a table name');
+                return;
+            }
+
+            if (rows < 1 || rows > 20) {
+                alert('Number of rows must be between 1 and 20');
+                return;
+            }
+
+            if (fields < 1 || fields > 10) {
+                alert('Number of fields must be between 1 and 10');
+                return;
+            }
+
+            let tableHtml = `
+                <div class="table-entry" data-table="${tableName}">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-0 text-dark">${tableName}</h6>
+                            <small class="text-muted">${description || 'No description'}</small>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-success" onclick="addTableRow('${tableName}')" title="Add Row">
+                                <i class="fa fa-plus me-1"></i>Add Row
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeTable('${tableName}')" title="Remove Table">
+                                <i class="fa fa-trash me-1"></i>Remove Table
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered entry-table">
+                            <thead>
+                                <tr>
+                                    <th class="table-top-left"></th>
+            `;
+
+            for (let f = 1; f <= fields; f++) {
+                tableHtml += `
+                    <th>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" placeholder="Field ${f}" onchange="updateTableData('${tableName}')" style="font-size: 0.75rem;">
+                            <button class="btn btn-outline-danger btn-sm" type="button" onclick="removeTableColumn(this, '${tableName}')" title="Delete Column" style="padding: 0.125rem 0.25rem;">
+                                <i class="fa fa-times" style="font-size: 0.7rem;"></i>
+                            </button>
+                        </div>
+                    </th>
+                `;
+            }
+            tableHtml += `<th width="80">Action</th>`;
+            tableHtml += `</tr></thead><tbody>`;
+
+            for (let r = 1; r <= rows; r++) {
+                tableHtml += `<tr>`;
+                tableHtml += `<td><input type="text" placeholder="Key ${r}" onchange="updateTableData('${tableName}')"></td>`;
+                for (let f = 1; f <= fields; f++) {
+                    tableHtml += `<td><input type="text" placeholder="${getValue()}" onchange="updateTableData('${tableName}')"></td>`;
                 }
+                tableHtml += `<td><button class="btn btn-xs btn-outline-danger" onclick="removeTableRow(this, '${tableName}')" title="Delete Row"><i class="fa fa-trash"></i></button></td>`;
+                tableHtml += `</tr>`;
+            }
 
-                if (criticalChanges.length > 0) {
-                    var message = 'You are making the following critical changes:\n\n' +
-                                 criticalChanges.map(c => '• ' + c).join('\n') +
-                                 '\n\nAre you sure you want to continue?';
+            tableHtml += `</tbody></table></div></div>`;
 
-                    if (!confirm(message)) {
-                        e.preventDefault();
-                        return false;
+            $('#tables-container').append(tableHtml);
+            $('#no-tables').hide();
+            $('#addTableModal').modal('hide');
+
+            podData.tables[tableName] = {
+                description: description,
+                rows: rows,
+                fields: fields,
+                headers: [],
+                data: {}
+            };
+
+            updateJsonPreview();
+        }
+
+        function addTableFromData(tableName, tableData) {
+            if (!tableData.Keys || !Array.isArray(tableData.Keys)) return;
+
+            const keys = tableData.Keys;
+            const fieldNames = Object.keys(tableData).filter(key => key !== 'Keys');
+            const rows = keys.length;
+            const fields = fieldNames.length;
+
+            let tableHtml = `
+                <div class="table-entry" data-table="${tableName}">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-0 text-dark">${tableName}</h6>
+                            <small class="text-muted">Loaded from existing data</small>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-success" onclick="addTableRow('${tableName}')" title="Add Row">
+                                <i class="fa fa-plus me-1"></i>Add Row
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeTable('${tableName}')" title="Remove Table">
+                                <i class="fa fa-trash me-1"></i>Remove Table
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered entry-table">
+                            <thead>
+                                <tr>
+                                    <th class="table-top-left"></th>
+            `;
+
+            fieldNames.forEach((fieldName, index) => {
+                tableHtml += `
+                    <th>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" value="${fieldName}" onchange="updateTableData('${tableName}')" style="font-size: 0.75rem;">
+                            <button class="btn btn-outline-danger btn-sm" type="button" onclick="removeTableColumn(this, '${tableName}')" title="Delete Column" style="padding: 0.125rem 0.25rem;">
+                                <i class="fa fa-times" style="font-size: 0.7rem;"></i>
+                            </button>
+                        </div>
+                    </th>
+                `;
+            });
+            tableHtml += `<th width="80">Action</th>`;
+            tableHtml += `</tr></thead><tbody>`;
+
+            keys.forEach((key, rowIndex) => {
+                tableHtml += `<tr>`;
+                tableHtml += `<td><input type="text" value="${key}" onchange="updateTableData('${tableName}')"></td>`;
+                fieldNames.forEach(fieldName => {
+                    const value = tableData[fieldName] && tableData[fieldName][rowIndex] !== undefined
+                        ? tableData[fieldName][rowIndex]
+                        : '';
+                    tableHtml += `<td><input type="text" value="${value}" onchange="updateTableData('${tableName}')"></td>`;
+                });
+                tableHtml += `<td><button class="btn btn-xs btn-outline-danger" onclick="removeTableRow(this, '${tableName}')" title="Delete Row"><i class="fa fa-trash"></i></button></td>`;
+                tableHtml += `</tr>`;
+            });
+
+            tableHtml += `</tbody></table></div></div>`;
+
+            $('#tables-container').append(tableHtml);
+            $('#no-tables').hide();
+
+            podData.tables[tableName] = {
+                description: 'Loaded from existing data',
+                rows: rows,
+                fields: fields,
+                headers: fieldNames,
+                data: tableData
+            };
+        }
+
+        // Add row to existing table
+        function addTableRow(tableName) {
+            const tableDiv = $(`[data-table="${tableName}"]`);
+            const table = tableDiv.find('table tbody');
+            const headerInputs = tableDiv.find('thead th input');
+            const fieldsCount = headerInputs.length;
+
+            let newRowHtml = `<tr>`;
+            newRowHtml += `<td><input type="text" placeholder="New Key" onchange="updateTableData('${tableName}')"></td>`;
+            for (let f = 0; f < fieldsCount; f++) {
+                newRowHtml += `<td><input type="text" placeholder="${getValue()}" onchange="updateTableData('${tableName}')"></td>`;
+            }
+            newRowHtml += `<td><button class="btn btn-xs btn-outline-danger" onclick="removeTableRow(this, '${tableName}')" title="Delete Row"><i class="fa fa-trash"></i></button></td>`;
+            newRowHtml += `</tr>`;
+
+            table.append(newRowHtml);
+            updateTableData(tableName);
+        }
+
+        // Remove specific table row
+        function removeTableRow(button, tableName) {
+            if (confirm('Remove this row?')) {
+                $(button).closest('tr').remove();
+                updateTableData(tableName);
+            }
+        }
+
+        // NEW: Remove table column
+        function removeTableColumn(button, tableName) {
+            if (confirm('Remove this column? This will delete all data in this column.')) {
+                const th = $(button).closest('th');
+                const columnIndex = th.index() - 1; // -1 because first column is the key column
+
+                // Remove header
+                th.remove();
+
+                // Remove all cells in this column from all rows
+                const tableDiv = $(`[data-table="${tableName}"]`);
+                const table = tableDiv.find('table tbody');
+
+                table.find('tr').each(function() {
+                    $(this).find('td').eq(columnIndex + 1).remove(); // +1 because first td is key column
+                });
+
+                // Update the data
+                updateTableData(tableName);
+            }
+        }
+        
+
+        function loadSampleData() {
+            const sampleData = [
+                "Test 1",
+                {
+                    "Test table": {
+                        "Keys": ["kpi1", "kpi2", "kpi3"],
+                        "Target": [99, 99, 89],
+                        "weight": [89, 90, 78],
+                        "Threshold": [69, 78, 30]
                     }
                 }
+            ];
+
+            loadFromJson(sampleData);
+        }
+
+        function loadFromJson(jsonData) {
+            podData = { singleValues: {}, tables: {} };
+            $('#single-values-container').empty();
+            $('#tables-container').empty();
+            $('#no-single-values').show();
+            $('#no-tables').show();
+
+            if (!Array.isArray(jsonData)) return;
+
+            jsonData.forEach(item => {
+                if (typeof item === 'string') {
+                    addSingleValueFromData(item);
+                } else if (typeof item === 'object') {
+                    Object.keys(item).forEach(tableName => {
+                        addTableFromData(tableName, item[tableName]);
+                    });
+                }
             });
+
+            updateJsonPreview();
+        }
+
+        function addSingleValueFromData(fieldName) {
+            podData.singleValues[fieldName] = {
+                description: '',
+                value: "(input)"
+            };
+
+            const singleHtml = `
+                <div class="single-entry" data-key="${fieldName}">
+                    <div>
+                        <strong class="text-dark">${fieldName}</strong>
+                        <br><small class="text-muted">No description</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger" onclick="removeSingleValue('${fieldName}')" title="Remove">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            $('#single-values-container').append(singleHtml);
+            $('#no-single-values').hide();
+        }
+
+   
+
+        // Form action functions
+        function savePOD() {
+            if (confirm('Save all changes to this POD?')) {
+                alert('POD changes saved successfully!');
+            }
+        }
+
+        function cancelEdit() {
+            if (confirm('Discard all changes and return to POD list?')) {
+                alert('Changes discarded. Returning to POD list...');
+            }
+        }
+
+        // Initialize
+        $(document).ready(function() {
+            updateJsonPreview();
         });
     </script>
-}
+ }

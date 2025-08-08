@@ -15,6 +15,8 @@ namespace DT_PODSystem.Data
         {
         }
 
+        public DbSet<PODEntry> PODEntries { get; set; }
+
         // Core lookup entities
         public DbSet<Category> Categories { get; set; }
         public DbSet<GeneralDirectorate> GeneralDirectorates { get; set; }
@@ -177,6 +179,29 @@ namespace DT_PODSystem.Data
                     .HasForeignKey(p => p.VendorId)
                     .OnDelete(DeleteBehavior.SetNull);
             });
+
+            // ✅ NEW: PODEntry configuration
+            modelBuilder.Entity<PODEntry>(entity =>
+            {
+                entity.HasIndex(e => e.PODId);
+                entity.HasIndex(e => e.EntryType);
+                entity.HasIndex(e => e.EntryOrder);
+                entity.HasIndex(e => e.IsActive);
+                entity.HasIndex(e => e.Category);
+
+                // Default values
+                entity.Property(e => e.EntryType).HasDefaultValue("single");
+                entity.Property(e => e.EntryOrder).HasDefaultValue(0);
+                entity.Property(e => e.IsRequired).HasDefaultValue(false);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+                // Relationships
+                entity.HasOne(pe => pe.POD)
+                    .WithMany(p => p.Entries)
+                    .HasForeignKey(pe => pe.PODId)
+                    .OnDelete(DeleteBehavior.Cascade); // If POD deleted, entries are deleted
+            });
+
 
             // ✅ CLEAN: PODAttachment configuration - No file duplication
             modelBuilder.Entity<PODAttachment>(entity =>
