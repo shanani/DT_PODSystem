@@ -37,6 +37,229 @@ namespace DT_PODSystem.Services.Implementation
             _pdfProcessingService = pdfProcessingService;
         }
 
+
+        /// <summary>
+        /// Enhanced GetWizardStateAsync - Fixed to populate PODs list for Step 1
+        /// </summary>
+        public async Task<TemplateWizardViewModel> GetWizardStateAsync(int step = 1, int? templateId = null)
+        {
+            var model = new TemplateWizardViewModel
+            {
+                CurrentStep = step,
+                TemplateId = templateId ?? 0
+            };
+
+            try
+            {
+                // ✅ FIX: Always populate PODs list for Step 1 dropdown
+                if (step == 1)
+                {
+                    await PopulatePODsListAsync(model.Step1);
+                }
+
+                if (templateId.HasValue && templateId.Value > 0)
+                {
+                    var template = await _context.PdfTemplates
+                        .Include(t => t.POD)
+                            .ThenInclude(p => p.Category)
+                        .Include(t => t.POD)
+                            .ThenInclude(p => p.Department)
+                                .ThenInclude(d => d.GeneralDirectorate)
+                        .Include(t => t.POD)
+                            .ThenInclude(p => p.Vendor)
+                        .Include(t => t.Attachments)
+                            .ThenInclude(a => a.UploadedFile)
+                        .Include(t => t.FieldMappings)
+                        .FirstOrDefaultAsync(t => t.Id == templateId.Value);
+
+                    if (template != null)
+                    {
+                        // ✅ UPDATED: Step 1 is now Template Details (technical only) + PODId
+                        model.Step1.PODId = template.PODId;
+                        model.Step1.Name = template.POD.Name; // Show POD name as template name
+                        model.Step1.Description = template.POD.Description; // Show POD description
+                        model.Step1.NamingConvention = template.NamingConvention;
+                        model.Step1.TechnicalNotes = template.TechnicalNotes;
+                        model.Step1.HasFormFields = template.HasFormFields;
+                        model.Step1.ExpectedPdfVersion = template.ExpectedPdfVersion;
+                        model.Step1.ExpectedPageCount = template.ExpectedPageCount;
+                        model.Step1.ProcessingPriority = template.ProcessingPriority;
+                        model.Step1.Status = template.Status;
+                        model.Step1.Version = template.Version;
+                        // ✅ FIX: Don't set SelectedPOD to avoid circular reference issues
+                        // The POD data is already populated in other properties above
+
+                        // ✅ UPDATED: Step 2 is now PDF Uploads
+                        var primaryAttachment = template.Attachments.FirstOrDefault(a => a.IsPrimary);
+
+                        model.Step2.UploadedFiles = template.Attachments.Select(a => new FileUploadDto
+                        {
+                            OriginalFileName = a.UploadedFile.OriginalFileName,
+                            SavedFileName = a.UploadedFile.SavedFileName,
+                            FilePath = a.UploadedFile.FilePath,
+                            FileSize = a.UploadedFile.FileSize,
+                            ContentType = a.UploadedFile.ContentType,
+                            IsPrimary = a.IsPrimary,
+                            Success = true,
+                            UploadedAt = a.UploadedFile.CreatedDate,
+                            PageCount = a.PageCount ?? 0,
+                            PdfVersion = a.PdfVersion,
+                            HasFormFields = a.HasFormFields
+                        }).OrderByDescending(f => f.IsPrimary)
+                          .ThenBy(f => f.UploadedAt)
+                          .ToList();
+
+                        model.Step2.PrimaryFileId = primaryAttachment?.Id ?? 0;
+                        model.Step2.PrimaryFileName = primaryAttachment?.UploadedFile.SavedFileName ?? "";
+
+                        // ✅ UPDATED: Step 3 is now Field Mapping
+                        model.Step3.FieldMappings = template.FieldMappings.Select(fm => new FieldMappingDto
+                        {
+                            Id = fm.Id,
+                            FieldName = fm.FieldName,
+                            DisplayName = fm.DisplayName,
+                            //DataType = fm.DataType,
+                            IsRequired = fm.IsRequired,
+                            ValidationPattern = fm.ValidationPattern,
+                            DefaultValue = fm.DefaultValue,
+                            Description = fm.Description,
+                            X = fm.X,
+                            Y = fm.Y,
+                            Width = fm.Width,
+                            Height = fm.Height,
+                            PageNumber = fm.PageNumber
+                        }).ToList();
+
+                        model.IsEditMode = true;
+                        model.Status = template.Status;
+                        model.StatusDisplayName = template.Status.ToString();
+                    }
+                }
+
+                // Set navigation capabilities
+                model.CanNavigateBack = step > 1;
+                model.CanNavigateForward = step < 3;
+                model.CanSaveAndExit = true;
+                model.CanFinalize = step == 3 && model.IsEditMode;
+
+                // Generate step info
+                model.Steps = GenerateStepInfo(step);
+
+                return model;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting wizard state for step {Step}, templateId {TemplateId}", step, templateId);
+
+                // Return basic model with PODs list populated for Step 1
+                if (step == 1)
+                {
+                    await PopulatePODsListAsync(model.Step1);
+                }
+
+                return model;
+            }
+        }
+
+        /// <summary>
+        /// ✅ NEW: Helper method to populate PODs list for dropdown
+        /// </summary>
+        private async Task PopulatePODsListAsync(Step1TemplateDetailsViewModel step1Model)
+        {
+            try
+            {
+                var pods = await _context.PODs
+                    //.Where(p => p.IsActive && p.Status == PODStatus.Active)
+                    .OrderBy(p => p.Name)
+                    .Select(p => new SelectListItem
+                    {
+                        Value = p.Id.ToString(),
+                        Text = $"{p.Name} ({p.PODCode})",
+                        Selected = false
+                    })
+                    .ToListAsync();
+
+                step1Model.PODs = pods;
+
+                _logger.LogInformation("Populated {Count} PODs for dropdown selection", pods.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error populating PODs list for dropdown");
+                step1Model.PODs = new List<SelectListItem>();
+            }
+        }
+
+        /// <summary>
+        /// ✅ ALTERNATIVE: If you need the POD entity for display, create a safe DTO instead
+        /// </summary>
+        private PODSummaryDto CreateSafePODSummary(POD pod)
+        {
+            return new PODSummaryDto
+            {
+                Id = pod.Id,
+                Name = pod.Name,
+                PODCode = pod.PODCode,
+                Description = pod.Description,
+                CategoryName = pod.Category?.Name,
+                DepartmentName = pod.Department?.Name,
+                VendorName = pod.Vendor?.Name,
+                Status = pod.Status,
+                ProcessingPriority = pod.ProcessingPriority
+            };
+        }
+
+        /// <summary>
+        /// DTO to safely pass POD information without circular references
+        /// </summary>
+        public class PODSummaryDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string PODCode { get; set; } = string.Empty;
+            public string? Description { get; set; }
+            public string? CategoryName { get; set; }
+            public string? DepartmentName { get; set; }
+            public string? VendorName { get; set; }
+            public PODStatus Status { get; set; }
+            public int ProcessingPriority { get; set; }
+        }
+        private List<WizardStepViewModel> GenerateStepInfo(int currentStep)
+        {
+            return new List<WizardStepViewModel>
+    {
+        new WizardStepViewModel
+        {
+            StepNumber = 1,
+            Title = "Template Details",
+            Description = "Select POD and configure template settings",
+            Icon = "fa-cogs",
+            IsActive = currentStep == 1,
+            IsCompleted = currentStep > 1,
+            IsAccessible = true
+        },
+        new WizardStepViewModel
+        {
+            StepNumber = 2,
+            Title = "Upload Files",
+            Description = "Upload PDF templates and attachments",
+            Icon = "fa-upload",
+            IsActive = currentStep == 2,
+            IsCompleted = currentStep > 2,
+            IsAccessible = currentStep >= 2
+        },
+        new WizardStepViewModel
+        {
+            StepNumber = 3,
+            Title = "Field Mapping",
+            Description = "Map PDF fields for data extraction",
+            Icon = "fa-map-marker-alt",
+            IsActive = currentStep == 3,
+            IsCompleted = false,
+            IsAccessible = currentStep >= 3
+        }
+    };
+        } 
         // ✅ UPDATED: GetMappedFieldsInfoAsync - Now includes POD information
         public async Task<List<MappedFieldInfo>> GetMappedFieldsInfoAsync(List<int> fieldIds)
         {
@@ -422,89 +645,7 @@ namespace DT_PODSystem.Services.Implementation
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        // ✅ UPDATED: GetWizardStateAsync - Now works with POD architecture
-        public async Task<TemplateWizardViewModel> GetWizardStateAsync(int step = 1, int? templateId = null)
-        {
-            var model = new TemplateWizardViewModel
-            {
-                CurrentStep = step,
-                TemplateId = templateId ?? 0
-            };
-
-            if (templateId.HasValue && templateId.Value > 0)
-            {
-                var template = await _context.PdfTemplates
-                    .Include(t => t.POD)
-                        .ThenInclude(p => p.Category)
-                    .Include(t => t.POD)
-                        .ThenInclude(p => p.Department)
-                            .ThenInclude(d => d.GeneralDirectorate)
-                    .Include(t => t.POD)
-                        .ThenInclude(p => p.Vendor)
-                    .Include(t => t.Attachments)
-                        .ThenInclude(a => a.UploadedFile)
-                    .Include(t => t.FieldMappings)
-                    .FirstOrDefaultAsync(t => t.Id == templateId.Value);
-
-                if (template != null)
-                {
-                    // ✅ UPDATED: Step 1 is now Template Details (technical only) + PODId
-                    model.Step1.PODId = template.PODId;
-                    model.Step1.NamingConvention = template.NamingConvention;
-                    model.Step1.TechnicalNotes = template.TechnicalNotes;
-                    model.Step1.HasFormFields = template.HasFormFields;
-                    model.Step1.ExpectedPdfVersion = template.ExpectedPdfVersion;
-                    model.Step1.ExpectedPageCount = template.ExpectedPageCount;
-                    model.Step1.ProcessingPriority = template.ProcessingPriority;
-                    model.Step1.Status = template.Status;
-
-                    // ✅ UPDATED: Step 2 is now PDF Uploads
-                    var primaryAttachment = template.Attachments.FirstOrDefault(a => a.IsPrimary);
-                    var primaryFileName = primaryAttachment?.UploadedFile.SavedFileName; // ✅ CLEAN: Access via navigation
-
-                    model.Step2.UploadedFiles = template.Attachments.Select(a => new FileUploadDto
-                    {
-                        OriginalFileName = a.UploadedFile.OriginalFileName, // ✅ CLEAN: Via navigation
-                        SavedFileName = a.UploadedFile.SavedFileName,
-                        FilePath = a.UploadedFile.FilePath,
-                        FileSize = a.UploadedFile.FileSize,
-                        ContentType = a.UploadedFile.ContentType,
-                        IsPrimary = a.IsPrimary,
-                        Success = true,
-                        UploadedAt = a.UploadedFile.CreatedDate,
-                        PageCount = a.PageCount ?? 0,
-                        PdfVersion = a.PdfVersion,
-                        HasFormFields = a.HasFormFields
-                    }).OrderByDescending(f => f.IsPrimary)
-                      .ThenBy(f => f.UploadedAt)
-                      .ToList();
-
-                    model.Step2.PrimaryFileId = primaryAttachment?.Id ?? 0;
-                    model.Step2.PrimaryFileName = primaryFileName ?? string.Empty;
-
-                    // Step 3: Field Mapping (unchanged)
-                    model.Step3.FieldMappings = template.FieldMappings.Select(fm => new FieldMappingDto
-                    {
-                        Id = fm.Id,
-                        FieldName = fm.FieldName,
-                        DisplayName = fm.DisplayName,
-                        Description = fm.Description ?? string.Empty,
-                        X = (double)fm.X,
-                        Y = (double)fm.Y,
-                        Width = (double)fm.Width,
-                        Height = (double)fm.Height,
-                        PageNumber = fm.PageNumber,
-                        IsRequired = fm.IsRequired
-                    }).ToList();
-
-                    // Load anchor points for Step 3
-                    var templateAnchors = await _pdfProcessingService.GetTemplateAnchorsAsync(templateId.Value);
-                    model.Step3.TemplateAnchors = templateAnchors;
-                }
-            }
-
-            return model;
-        }
+         
 
         // ✅ UPDATED: SaveStep1DataAsync - Now saves template technical details only
         public async Task<bool> SaveStep1DataAsync(int templateId, Step1DataDto stepData)

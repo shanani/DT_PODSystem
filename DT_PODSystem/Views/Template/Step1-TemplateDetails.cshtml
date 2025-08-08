@@ -63,7 +63,7 @@
                                     <label for="naming-convention" class="form-label required">File Prefix Name</label>
                                     <input type="text" id="naming-convention" name="NamingConvention" class="form-control"
                                            asp-for="NamingConvention" placeholder="DOC_POD"
-                                           pattern="^[A-Z][A-Z0-9_]*$" maxlength="100" required />
+                                           maxlength="100" required />
                                     <span asp-validation-for="NamingConvention" class="text-danger"></span>
                                     <small class="form-text text-muted">File prefix Name</small>
                                 </div>

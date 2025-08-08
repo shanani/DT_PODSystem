@@ -4,6 +4,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://ops_cdn.stc.com.sa/ca/plugins/dropzone/dist/min/dropzone.min.css" rel="stylesheet" />
     <link href="~/site/template-wizard.css" rel="stylesheet" />
 }
@@ -144,6 +145,7 @@
     <!-- Step-specific JavaScript -->
     @if (Model.CurrentStep == 1)
     {
+         <script src="https://ops_cdn.stc.com.sa/ca/plugins/select2/dist/js/select2.min.js"></script>
         <script src="~/site/wizard-step1.js"></script>
     }
     @if (Model.CurrentStep == 2)

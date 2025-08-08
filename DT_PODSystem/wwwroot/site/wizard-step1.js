@@ -126,12 +126,7 @@ function validateStep1Custom() {
         $('#naming-convention').addClass('is-invalid');
         if (isValid) $('#naming-convention').focus();
         isValid = false;
-    } else if (!/^[A-Z][A-Z0-9_]*$/.test(namingConvention)) {
-        errors.push('Naming convention must start with uppercase letter and contain only A-Z, 0-9, and underscore');
-        $('#naming-convention').addClass('is-invalid');
-        if (isValid) $('#naming-convention').focus();
-        isValid = false;
-    }
+    }  
 
     if (!isValid) {
         const errorMessage = errors.length === 1 ? errors[0] :

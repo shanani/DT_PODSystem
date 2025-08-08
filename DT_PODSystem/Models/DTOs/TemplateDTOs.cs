@@ -12,8 +12,7 @@ namespace DT_PODSystem.Models.DTOs
     public class Step1DataDto
     {
         // ✅ MOVED TO POD: Business fields
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;        
         public int CategoryId { get; set; }
         public int DepartmentId { get; set; }
         public int? VendorId { get; set; }

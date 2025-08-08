@@ -65,8 +65,7 @@ namespace DT_PODSystem.Controllers
                 // Update template with additional details from Step 1
                 var step1Data = new Step1DataDto
                 {
-                    Name = request.Name,
-                    Description = request.Description,
+                    Title = request.Title,                     
                     NamingConvention = request.NamingConvention ?? "DOC_POD",
                     TechnicalNotes = request.TechnicalNotes,
                     ProcessingPriority = request.ProcessingPriority ?? 5,
@@ -998,7 +997,7 @@ namespace DT_PODSystem.Controllers
     public class CreateTemplateForPODRequest
     {
         public int PODId { get; set; }
-        public string? Name { get; set; }
+        public string? Title { get; set; }
         public string? Description { get; set; }
         public string? NamingConvention { get; set; }
         public string? TechnicalNotes { get; set; }

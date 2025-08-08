@@ -21,6 +21,7 @@ $(document).ready(function () {
 
 // *** UPDATED: Create template ID after Step 1 validation ***
 async function nextStep() {
+    debugger;
     console.log('🔄 Next clicked - validating step', wizardData.currentStep);
 
     if (isSaving) {
@@ -52,9 +53,9 @@ async function nextStep() {
             console.log('✅ [STEP1] Template created with ID:', templateId);
         }
         // 3. Save current step data for existing templates (Step 2, Step 3, etc.)
-        else if (wizardData.templateId && wizardData.templateId > 0) {
-            console.log('💾 Saving step', wizardData.currentStep, 'before navigation');
-            const saveSuccess = await saveCurrentStepToDatabase();
+        else if (wizardData.currentStep === 1 &&  wizardData.templateId && wizardData.templateId > 0) {
+           
+            const saveSuccess = await saveTemplateAfterStep1Validation();
             if (!saveSuccess) {
                 console.log('❌ Save failed - canceling navigation');
                 return;
@@ -81,6 +82,7 @@ async function nextStep() {
 
 // *** NEW: Create template after Step 1 validation ***
 async function createTemplateAfterStep1Validation() {
+    
     try {
         // Get Step 1 form data (POD ID and template details)
         const step1Data = getStep1FormData();
@@ -102,10 +104,11 @@ async function createTemplateAfterStep1Validation() {
             body: JSON.stringify({
                 PODId: step1Data.podId,
                 NamingConvention: step1Data.namingConvention || 'DOC_POD',
-                Name: step1Data.name,
+                Title: step1Data.name,
                 Description: step1Data.description,
                 TechnicalNotes: step1Data.technicalNotes,
-                ProcessingPriority: step1Data.processingPriority || 5
+                ProcessingPriority: step1Data.processingPriority || 5,
+                HasFormFields: step1Data.hasFormFields || false  
             })
         });
 
@@ -126,6 +129,64 @@ async function createTemplateAfterStep1Validation() {
         return null;
     }
 }
+
+async function saveTemplateAfterStep1Validation() {
+    try {
+        // Get Step 1 form data
+        const step1Data = getStep1FormData();
+
+        if (!step1Data.podId || step1Data.podId <= 0) {
+            alert.error('Please select a POD before proceeding');
+            return false;
+        }
+
+        console.log('💾 [SAVE] Saving Step 1 changes to existing template:', wizardData.templateId);
+        console.log('💾 [SAVE] Form data:', step1Data);
+
+        // Call SaveStep1 endpoint to update existing template
+        const response = await fetch('/Template/SaveStep1', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            },
+            body: JSON.stringify({
+                TemplateId: wizardData.templateId,
+                Data: {
+                    // Send all form fields that can be updated
+                    NamingConvention: step1Data.namingConvention || 'DOC_POD',
+                    TechnicalNotes: step1Data.technicalNotes || '',
+                    HasFormFields: step1Data.hasFormFields || false,
+                    ProcessingPriority: step1Data.processingPriority || 5,
+                    Version: step1Data.version || '1.0',
+                    Status: 'Draft', // Keep as draft
+                    IsActive: true,
+                    // Note: POD cannot be changed after template creation
+                    // Name and Description could be stored in TechnicalNotes if needed
+                    ExpectedPdfVersion: null, // You said you don't want these fields
+                    ExpectedPageCount: null
+                }
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            console.log('✅ [SAVE] Step 1 changes saved successfully');
+            return true;
+        } else {
+            console.error('❌ [SAVE] Failed to save Step 1 changes:', result.message);
+            alert.error(result.message || 'Failed to save changes');
+            return false;
+        }
+
+    } catch (error) {
+        console.error('❌ [SAVE] Error saving Step 1 changes:', error);
+        alert.error('Error saving changes. Please try again.');
+        return false;
+    }
+}
+
 
 // Updated previousStep function
 function previousStep() {
@@ -345,22 +406,7 @@ function validateCurrentStep() {
             return true;
     }
 }
-
-// Save current step to database
-async function saveCurrentStepToDatabase() {
-    const currentStep = wizardData.currentStep;
-
-    switch (currentStep) {
-        case 1:
-            return typeof saveStep1Data === 'function' ? await saveStep1Data() : true;
-        case 2:
-            return typeof saveStep2Data === 'function' ? await saveStep2Data() : true;
-        case 3:
-            return typeof saveStep3Data === 'function' ? await saveStep3Data() : true;
-        default:
-            return true;
-    }
-}
+ 
 
 // Update UI elements
 function updateUI() {
