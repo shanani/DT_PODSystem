@@ -13,33 +13,66 @@
                 <form id="step1-form">
                     @Html.AntiForgeryToken()
 
-                    <!-- POD Selection - CRITICAL for template creation -->
+                    <!-- POD Selection/Display - Dynamic based on edit mode -->
                     <div class="form-section">
-                        <h5><i class="fa fa-folder me-2"></i>Parent POD Selection</h5>
-                        <p class="text-muted small mb-3">
-                            Templates must belong to a POD (Point of Data). Select the POD that will own this template.
-                        </p>
+                        <h5><i class="fa fa-folder me-2"></i>Parent POD @(Model.TemplateId > 0 ? "Assignment" : "Selection")</h5>
+                        
+                        @if (Model.TemplateId > 0 && Model.PODId >0)
+                        {
+                            <!-- Edit Mode: Show POD details in read-only box -->
+                            <div class="alert alert-info mb-3">
+                                <i class="fa fa-info-circle me-2"></i>
+                                <strong>Note:</strong> POD assignment cannot be changed for existing templates.
+                            </div>
 
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="mb-3">
-                                    <label for="pod-id" class="form-label required">Parent POD</label>
-                                    <select id="pod-id" name="PODId" class="form-control" asp-for="PODId" required>
-                                        <option value="">Search and select a POD</option>
-                                        @foreach (var pod in Model.PODs)
-                                        {
-                                            <option value="@pod.Value" selected="@(pod.Value == Model.PODId.ToString())">
-                                                @pod.Text
-                                            </option>
-                                        }
-                                    </select>
-                                    <span asp-validation-for="PODId" class="text-danger"></span>
-                                    <small class="form-text text-muted">
-                                        The template will inherit settings from the selected POD
-                                    </small>
+                           <div class="mb-3">
+                             <label class="form-label">Assigned POD</label>
+                             <div class="pod-readonly-input">
+                                 <i class="fa fa-folder me-2 text-primary"></i>
+                                 @Model.SelectedPOD.Name
+                             </div>
+                         <small class="form-text text-muted">
+                             @{
+                                 var details = new List<string>();
+                                 if (Model.SelectedPOD.Vendor?.Name != null) details.Add($"Vendor: {Model.SelectedPOD.Vendor.Name}");
+                                 if (Model.SelectedPOD.Category?.Name != null) details.Add($"Category: {Model.SelectedPOD.Category.Name}");
+                                 if (Model.SelectedPOD.Department?.Name != null) details.Add($"Department: {Model.SelectedPOD.Department.Name}");
+                             }
+                             @(details.Any() ? string.Join(" • ", details) : "No additional details available")
+                         </small>
+                            </div>
+
+                            <!-- Hidden field to maintain POD ID -->
+                            <input type="hidden" id="pod-id" name="PODId" asp-for="PODId" value="@Model.PODId" />
+                        }
+                        else
+                        {
+                            <!-- Create Mode: Show dropdown selection -->
+                            <p class="text-muted small mb-3">
+                                Templates must belong to a POD (Point of Data). Select the POD that will own this template.
+                            </p>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label for="pod-id" class="form-label required">Parent POD</label>
+                                        <select id="pod-id" name="PODId" class="form-control" asp-for="PODId" required>
+                                            <option value="">Search and select a POD</option>
+                                            @foreach (var pod in Model.PODs)
+                                            {
+                                                <option value="@pod.Value" selected="@(pod.Value == Model.PODId.ToString())">
+                                                    @pod.Text
+                                                </option>
+                                            }
+                                        </select>
+                                        <span asp-validation-for="PODId" class="text-danger"></span>
+                                        <small class="form-text text-muted">
+                                            The template will inherit settings from the selected POD
+                                        </small>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
                     </div>
 
                     <!-- Template Technical Details -->
@@ -49,12 +82,12 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="template-name" class="form-label required">Template Title</label>
-                                    <input type="text" id="template-name" name="Name" class="form-control"
-                                           asp-for="Name" placeholder="Enter template name"
+                                    <label for="template-title" class="form-label required">Template Title</label>
+                                    <input type="text" id="template-title" name="Title" class="form-control"
+                                           asp-for="Title" placeholder="Enter template name"
                                            maxlength="200" required />
-                                    <span asp-validation-for="Name" class="text-danger"></span>
-                                    <small class="form-text text-muted">Descriptive name for the template</small>
+                                    <span asp-validation-for="Title" class="text-danger"></span>
+                                    <small class="form-text text-muted">Descriptive title for the template</small>
                                 </div>
                             </div>
 
@@ -69,7 +102,6 @@
                                 </div>
                             </div>
                         </div>
- 
                     </div>
 
                     <!-- Processing Configuration -->
@@ -149,16 +181,23 @@
             <div class="panel-body">
                 <div class="template-preview">
                     <div class="mb-3">
-                        <strong>Parent POD:</strong><br>
+                        <strong>Assigned To POD:</strong><br>
                         <span id="preview-pod" class="text-primary">
-                            @(Model.PODs?.FirstOrDefault(p => p.Value == Model.PODId.ToString())?.Text ?? "Not Selected")
+                            @if (Model.SelectedPOD != null)
+                            {
+                                @Model.SelectedPOD.Name
+                            }
+                            else
+                            {
+                                @(Model.PODs?.FirstOrDefault(p => p.Value == Model.PODId.ToString())?.Text ?? "Not Selected")
+                            }
                         </span>
                     </div>
 
                     <div class="mb-3">
                         <strong>Template Name:</strong><br>
                         <span id="preview-name" class="text-primary">
-                            @(string.IsNullOrEmpty(Model.Name) ? "Template Name" : Model.Name)
+                            @(string.IsNullOrEmpty(Model.Title) ? "Template Name" : Model.Title)
                         </span>
                     </div>
 
@@ -271,5 +310,47 @@
         padding: 0.25rem 0.5rem;
         border-radius: 0.25rem;
         font-family: 'Courier New', monospace;
+    }
+
+    /* POD Details Box Styling */
+     .pod-readonly-input {
+        display: flex;
+        align-items: center;
+        background-color: #f8f9fa;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        font-size: 1rem;
+        color: #495057;
+        min-height: 38px;
+        position: relative;
+    }
+
+        .pod-readonly-input::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 3px;
+            background-color: #4F008C;
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+
+        .pod-readonly-input i {
+            flex-shrink: 0;
+            width: 20px;
+        }
+
+    /* Hover effect for better UX */
+    .pod-readonly-input:hover {
+        background-color: #e9ecef;
+        border-color: #adb5bd;
+    }
+
+    /* Focus-like state for accessibility */
+    .pod-readonly-input:focus-within {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
 </style>

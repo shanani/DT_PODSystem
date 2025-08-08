@@ -451,6 +451,8 @@ namespace DT_PODSystem.Models.ViewModels
     // Step 1 - Template Details & Configuration (POD Architecture)
     public class Step1TemplateDetailsViewModel
     {
+
+
         // POD Relationship - Templates belong to ONE POD
         [Required(ErrorMessage = "POD is required")]
         [Range(1, int.MaxValue, ErrorMessage = "Please select a POD")]
@@ -461,11 +463,13 @@ namespace DT_PODSystem.Models.ViewModels
 
         // Selected POD object (populated when POD is selected)
         public POD? SelectedPOD { get; set; }
+         
+        public int TemplateId { get; set; }
 
         // Template Technical Configuration
-        [Required(ErrorMessage = "Template name is required")]
-        [StringLength(200, ErrorMessage = "Name cannot exceed 200 characters")]
-        public string Name { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Template title is required")]
+        [StringLength(200, ErrorMessage = "Title cannot exceed 200 characters")]
+        public string Title { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Naming convention is required")]
         [StringLength(100, ErrorMessage = "Naming convention cannot exceed 100 characters")]

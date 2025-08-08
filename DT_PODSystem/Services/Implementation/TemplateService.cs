@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DT_PODSystem.Data;
 using DT_PODSystem.Models.DTOs;
 using DT_PODSystem.Models.Entities;
@@ -14,6 +10,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace DT_PODSystem.Services.Implementation
 {
@@ -38,9 +39,7 @@ namespace DT_PODSystem.Services.Implementation
         }
 
 
-        /// <summary>
-        /// Enhanced GetWizardStateAsync - Fixed to populate PODs list for Step 1
-        /// </summary>
+
         public async Task<TemplateWizardViewModel> GetWizardStateAsync(int step = 1, int? templateId = null)
         {
             var model = new TemplateWizardViewModel
@@ -51,7 +50,6 @@ namespace DT_PODSystem.Services.Implementation
 
             try
             {
-                // ✅ FIX: Always populate PODs list for Step 1 dropdown
                 if (step == 1)
                 {
                     await PopulatePODsListAsync(model.Step1);
@@ -64,102 +62,86 @@ namespace DT_PODSystem.Services.Implementation
                             .ThenInclude(p => p.Category)
                         .Include(t => t.POD)
                             .ThenInclude(p => p.Department)
-                                .ThenInclude(d => d.GeneralDirectorate)
                         .Include(t => t.POD)
                             .ThenInclude(p => p.Vendor)
-                        .Include(t => t.Attachments)
-                            .ThenInclude(a => a.UploadedFile)
-                        .Include(t => t.FieldMappings)
                         .FirstOrDefaultAsync(t => t.Id == templateId.Value);
 
                     if (template != null)
                     {
-                        // ✅ UPDATED: Step 1 is now Template Details (technical only) + PODId
-                        model.Step1.PODId = template.PODId;
-                        model.Step1.Name = template.POD.Name; // Show POD name as template name
-                        model.Step1.Description = template.POD.Description; // Show POD description
-                        model.Step1.NamingConvention = template.NamingConvention;
-                        model.Step1.TechnicalNotes = template.TechnicalNotes;
-                        model.Step1.HasFormFields = template.HasFormFields;
-                        model.Step1.ExpectedPdfVersion = template.ExpectedPdfVersion;
-                        model.Step1.ExpectedPageCount = template.ExpectedPageCount;
-                        model.Step1.ProcessingPriority = template.ProcessingPriority;
-                        model.Step1.Status = template.Status;
-                        model.Step1.Version = template.Version;
-                        // ✅ FIX: Don't set SelectedPOD to avoid circular reference issues
-                        // The POD data is already populated in other properties above
+                        model.TemplateId = template.Id;
+                        model.PODId = template.PODId;
 
-                        // ✅ UPDATED: Step 2 is now PDF Uploads
-                        var primaryAttachment = template.Attachments.FirstOrDefault(a => a.IsPrimary);
-
-                        model.Step2.UploadedFiles = template.Attachments.Select(a => new FileUploadDto
+                        if (step == 1)
                         {
-                            OriginalFileName = a.UploadedFile.OriginalFileName,
-                            SavedFileName = a.UploadedFile.SavedFileName,
-                            FilePath = a.UploadedFile.FilePath,
-                            FileSize = a.UploadedFile.FileSize,
-                            ContentType = a.UploadedFile.ContentType,
-                            IsPrimary = a.IsPrimary,
-                            Success = true,
-                            UploadedAt = a.UploadedFile.CreatedDate,
-                            PageCount = a.PageCount ?? 0,
-                            PdfVersion = a.PdfVersion,
-                            HasFormFields = a.HasFormFields
-                        }).OrderByDescending(f => f.IsPrimary)
-                          .ThenBy(f => f.UploadedAt)
-                          .ToList();
+                            model.Step1.TemplateId = template.Id;
+                            model.Step1.Title = template.Title ?? "";
+                            model.Step1.PODId = template.PODId;
+                            model.Step1.NamingConvention = template.NamingConvention ?? "DOC_POD";
+                            model.Step1.TechnicalNotes = template.TechnicalNotes ?? "";
+                            model.Step1.HasFormFields = template.HasFormFields;
+                            model.Step1.ProcessingPriority = template.ProcessingPriority;
+                            model.Step1.Version = template.Version ?? "1.0";
 
-                        model.Step2.PrimaryFileId = primaryAttachment?.Id ?? 0;
-                        model.Step2.PrimaryFileName = primaryAttachment?.UploadedFile.SavedFileName ?? "";
+                            // ✅ MINIMAL FIX: Create new POD object with only needed properties
+                            if (template.POD != null)
+                            {
+                                model.Step1.SelectedPOD = new POD
+                                {
+                                    Id = template.POD.Id,
+                                    Name = template.POD.Name,
+                                    PODCode = template.POD.PODCode,
+                                    Description = template.POD.Description,
+                                    CategoryId = template.POD.CategoryId,
+                                    DepartmentId = template.POD.DepartmentId,
+                                    VendorId = template.POD.VendorId,
+                                    RequiresApproval = template.POD.RequiresApproval,
+                                    IsFinancialData = template.POD.IsFinancialData,
+                                    ProcessingPriority = template.POD.ProcessingPriority,
 
-                        // ✅ UPDATED: Step 3 is now Field Mapping
-                        model.Step3.FieldMappings = template.FieldMappings.Select(fm => new FieldMappingDto
-                        {
-                            Id = fm.Id,
-                            FieldName = fm.FieldName,
-                            DisplayName = fm.DisplayName,
-                            //DataType = fm.DataType,
-                            IsRequired = fm.IsRequired,
-                            ValidationPattern = fm.ValidationPattern,
-                            DefaultValue = fm.DefaultValue,
-                            Description = fm.Description,
-                            X = fm.X,
-                            Y = fm.Y,
-                            Width = fm.Width,
-                            Height = fm.Height,
-                            PageNumber = fm.PageNumber
-                        }).ToList();
+                                    // ✅ CRITICAL: Create simple objects for related entities without circular references
+                                    Category = template.POD.Category != null ? new Category
+                                    {
+                                        Id = template.POD.Category.Id,
+                                        Name = template.POD.Category.Name
+                                    } : null,
 
-                        model.IsEditMode = true;
-                        model.Status = template.Status;
-                        model.StatusDisplayName = template.Status.ToString();
+                                    Department = template.POD.Department != null ? new Department
+                                    {
+                                        Id = template.POD.Department.Id,
+                                        Name = template.POD.Department.Name
+                                    } : null,
+
+                                    Vendor = template.POD.Vendor != null ? new Vendor
+                                    {
+                                        Id = template.POD.Vendor.Id,
+                                        Name = template.POD.Vendor.Name
+                                    } : null
+
+                                    // ✅ NO navigation collections that cause cycles
+                                    // Templates = null (don't set this)
+                                };
+                            }
+                        }
                     }
                 }
-
-                // Set navigation capabilities
-                model.CanNavigateBack = step > 1;
-                model.CanNavigateForward = step < 3;
-                model.CanSaveAndExit = true;
-                model.CanFinalize = step == 3 && model.IsEditMode;
-
-                // Generate step info
-                model.Steps = GenerateStepInfo(step);
+                else
+                {
+                    if (step == 1)
+                    {
+                        model.Step1.TemplateId = 0;
+                    }
+                }
 
                 return model;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting wizard state for step {Step}, templateId {TemplateId}", step, templateId);
-
-                // Return basic model with PODs list populated for Step 1
-                if (step == 1)
-                {
-                    await PopulatePODsListAsync(model.Step1);
-                }
-
+                _logger.LogError(ex, "Error loading wizard state for template {TemplateId}, step {Step}", templateId, step);
                 return model;
             }
         }
+
+
 
         /// <summary>
         /// ✅ NEW: Helper method to populate PODs list for dropdown
@@ -259,7 +241,7 @@ namespace DT_PODSystem.Services.Implementation
             IsAccessible = currentStep >= 3
         }
     };
-        } 
+        }
         // ✅ UPDATED: GetMappedFieldsInfoAsync - Now includes POD information
         public async Task<List<MappedFieldInfo>> GetMappedFieldsInfoAsync(List<int> fieldIds)
         {
@@ -660,10 +642,8 @@ namespace DT_PODSystem.Services.Implementation
                     return false;
                 }
 
-                // ✅ CLEAN: Update ALL PdfTemplate entity fields (excluding read-only tracking fields)
 
-                // PODId is read-only after creation, don't update
-                // template.PODId remains unchanged
+                //template.PODId= stepData.PODId;
 
                 // Template identification
                 template.Title = stepData.Title ?? template.Title;
