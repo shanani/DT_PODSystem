@@ -98,9 +98,7 @@ namespace DT_PODSystem.Services.Implementation
 
                             var rowCount = entryElement.TryGetProperty("rowCount", out var rowCountProperty) ?
                                 rowCountProperty.GetInt32() : 0;
-
-                            // Store column metadata in Category field
-                            var metadata = JsonSerializer.Serialize(new { columns, rowCount });
+                             
 
                             var tableEntry = new PODEntry
                             {
@@ -109,8 +107,7 @@ namespace DT_PODSystem.Services.Implementation
                                 EntryOrder = order,
                                 EntryData = data,
                                 EntryName = name,
-                                Description = description,
-                                Category = metadata,
+                                Description = description,                                
                                 IsActive = true,
                                 CreatedBy = "system",
                                 CreatedDate = DateTime.UtcNow
