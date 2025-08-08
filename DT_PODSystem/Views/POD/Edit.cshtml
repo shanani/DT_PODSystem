@@ -627,6 +627,8 @@
         };
 
         // POD Data Management Class
+                // Clean JavaScript - Only your exact format, no backward compatibility
+
         class PODDataManager {
             static collectFormData() {
                 const formData = new FormData(document.getElementById('pod-edit-form'));
@@ -660,7 +662,7 @@
                     requiresApproval: formData.has('requiresApproval'),
                     containsFinancialData: formData.has('containsFinancialData'),
 
-                    // POD Entries
+                    // POD Entries - Your exact format
                     podEntries: this.generatePODEntriesJSON(),
 
                     // Attachments
@@ -668,24 +670,42 @@
                 };
             }
 
+            // Generate your exact format only
             static generatePODEntriesJSON() {
                 const output = [];
 
-                // Add single values
+                // Add single values with metadata
                 Object.keys(podData.singleValues).forEach(key => {
-                    output.push(key);
+                    const singleData = podData.singleValues[key];
+                    output.push({
+                        type: "single",
+                        name: key,
+                        description: singleData.description || `Single value field: ${key}`,
+                        value: key
+                    });
                 });
 
-                // Add tables
+                // Add tables with metadata
                 Object.keys(podData.tables).forEach(tableName => {
-                    const tableData = podData.tables[tableName];
-                    if (tableData.data && Object.keys(tableData.data).length > 0) {
-                        const tableObject = {};
-                        tableObject[tableName] = tableData.data;
-                        output.push(tableObject);
+                    const tableInfo = podData.tables[tableName];
+                    if (tableInfo.data && Object.keys(tableInfo.data).length > 0) {
+
+                        // Extract columns (exclude 'Keys')
+                        const columns = Object.keys(tableInfo.data).filter(col => col !== 'Keys');
+                        const rowCount = tableInfo.data.Keys ? tableInfo.data.Keys.length : 0;
+
+                        output.push({
+                            type: "table",
+                            name: tableName,
+                            description: tableInfo.description || `Table: ${tableName}`,
+                            columns: columns,
+                            rowCount: rowCount,
+                            data: tableInfo.data
+                        });
                     }
                 });
 
+                console.log('Generated POD entries:', output);
                 return output;
             }
 
@@ -703,7 +723,7 @@
                 return files;
             }
 
-            // ✅ NEW: Load POD data from server
+            // Load POD data from server
             static async loadPODFromServer() {
                 const podId = getPODIdFromUrl();
                 if (!podId) {
@@ -730,9 +750,9 @@
                     if (result.success) {
                         this.populateFormWithPODData(result.pod);
 
-                        // Load entries using existing loadFromJson function
+                        // Load entries in your format
                         if (result.pod.entries && result.pod.entries.length > 0) {
-                            loadFromJson(result.pod.entries);
+                            this.loadFromNewFormat(result.pod.entries);
                         }
 
                         console.log('✅ POD data loaded successfully from server');
@@ -747,7 +767,76 @@
                 }
             }
 
-            // ✅ NEW: Populate form fields with POD data
+            // Load from your metadata format only
+            static loadFromNewFormat(entriesData) {
+                // Clear existing data
+                podData = { singleValues: {}, tables: {} };
+                $('#single-values-container').empty();
+                $('#tables-container').empty();
+                $('#no-single-values').show();
+                $('#no-tables').show();
+
+                entriesData.forEach(entry => {
+                    if (entry.type === "single") {
+                        this.loadSingleFromMetadata(entry);
+                    } else if (entry.type === "table") {
+                        this.loadTableFromMetadata(entry);
+                    }
+                });
+
+                updateJsonPreview();
+            }
+
+            // Load single value from metadata
+            static loadSingleFromMetadata(entry) {
+                const fieldName = entry.name;
+                const description = entry.description || '';
+
+                // Add to podData
+                podData.singleValues[fieldName] = {
+                    description: description,
+                    value: "(input)"
+                };
+
+                // Add to UI
+                const singleHtml = `
+                    <div class="single-entry" data-key="${fieldName}">
+                        <div>
+                            <strong class="text-dark">${fieldName}</strong>
+                            <br><small class="text-muted">${description || 'No description'}</small>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeSingleValue('${fieldName}')" title="Remove">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+
+                $('#single-values-container').append(singleHtml);
+                $('#no-single-values').hide();
+            }
+
+            // Load table from metadata
+            static loadTableFromMetadata(entry) {
+                const tableName = entry.name;
+                const description = entry.description || '';
+                const tableData = entry.data;
+                const columns = entry.columns || [];
+                const rowCount = entry.rowCount || 0;
+
+                // Add to podData
+                podData.tables[tableName] = {
+                    description: description,
+                    rows: rowCount,
+                    fields: columns.length,
+                    headers: columns,
+                    data: tableData
+                };
+
+                // Use existing addTableFromData function
+                addTableFromData(tableName, tableData);
+            }
+
+            // Populate form fields with POD data
             static populateFormWithPODData(pod) {
                 try {
                     // Basic Information
@@ -784,6 +873,8 @@
                 }
             }
         }
+
+        
 
         // Validation Class
         class PODValidator {
@@ -1059,7 +1150,7 @@
             $('#addTableModal').modal('show');
         }
 
-        function addSingleValue() {
+                 function addSingleValue() {
             const fieldName = $('#singleFieldName').val().trim();
             const description = $('#singleDescription').val().trim();
 
@@ -1068,11 +1159,13 @@
                 return;
             }
 
+            // This is where single values should be added to podData.singleValues
             podData.singleValues[fieldName] = {
                 description: description,
                 value: "(input)"
             };
 
+            // Add to UI
             const singleHtml = `
                 <div class="single-entry" data-key="${fieldName}">
                     <div>
@@ -1089,6 +1182,9 @@
             $('#no-single-values').hide();
             $('#addSingleModal').modal('hide');
             updateJsonPreview();
+
+            // DEBUG: Check what's in podData after adding
+            console.log('After adding single value:', podData);
         }
 
         function addTable() {
@@ -1400,35 +1496,22 @@
 
             loadFromJson(sampleData);
         }
-
+        // Clean loading function - your format only
         function loadFromJson(jsonData) {
-            podData = { singleValues: {}, tables: {} };
-            $('#single-values-container').empty();
-            $('#tables-container').empty();
-            $('#no-single-values').show();
-            $('#no-tables').show();
-
             if (!Array.isArray(jsonData)) return;
 
-            jsonData.forEach(item => {
-                if (typeof item === 'string') {
-                    addSingleValueFromData(item);
-                } else if (typeof item === 'object') {
-                    Object.keys(item).forEach(tableName => {
-                        addTableFromData(tableName, item[tableName]);
-                    });
-                }
-            });
-
-            updateJsonPreview();
+            PODDataManager.loadFromNewFormat(jsonData);
         }
+        
 
-        function addSingleValueFromData(fieldName) {
+       function addSingleValueFromData(fieldName) {
+            // This should add to podData.singleValues
             podData.singleValues[fieldName] = {
                 description: '',
                 value: "(input)"
             };
 
+            // Add to UI
             const singleHtml = `
                 <div class="single-entry" data-key="${fieldName}">
                     <div>
@@ -1443,6 +1526,9 @@
 
             $('#single-values-container').append(singleHtml);
             $('#no-single-values').hide();
+
+            // DEBUG: Check what's in podData after loading
+            console.log('After loading single value from server:', podData);
         }
 
         function cancelEdit() {
