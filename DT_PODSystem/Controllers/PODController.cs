@@ -35,12 +35,33 @@ namespace DT_PODSystem.Controllers
         /// Save POD - handles JavaScript savePOD() function call
         /// </summary>
         [HttpPost]
-        
         public async Task<IActionResult> SavePOD(int id, [FromBody] PODUpdateDto updateData)
         {
             try
             {
-                _logger.LogInformation("Saving POD with ID: {PODId}", id);
+                _logger.LogInformation("SavePOD called with ID: {PODId}", id);
+                _logger.LogInformation("Request data: {@UpdateData}", updateData);
+
+                // Check ModelState for validation errors
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(x => x.Value.Errors.Count > 0)
+                        .Select(x => new {
+                            Field = x.Key,
+                            Errors = x.Value.Errors.Select(e => e.ErrorMessage)
+                        })
+                        .ToList();
+
+                    _logger.LogWarning("ModelState validation failed: {@Errors}", errors);
+
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Validation failed",
+                        errors = errors
+                    });
+                }
 
                 // Basic validation
                 if (string.IsNullOrWhiteSpace(updateData.Name))
@@ -65,15 +86,10 @@ namespace DT_PODSystem.Controllers
                     return Json(new { success = false, message = "POD not found or could not be updated." });
                 }
             }
-            catch (ArgumentException ex)
-            {
-                _logger.LogWarning(ex, "Validation error saving POD with ID: {PODId}", id);
-                return Json(new { success = false, message = ex.Message });
-            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving POD with ID: {PODId}", id);
-                return Json(new { success = false, message = "An error occurred while saving the POD." });
+                _logger.LogError(ex, "Error saving POD with ID: {PODId}. Request data: {@UpdateData}", id, updateData);
+                return Json(new { success = false, message = ex.Message });
             }
         }
 

@@ -31,6 +31,272 @@ namespace DT_PODSystem.Services.Implementation
         }
 
         /// <summary>
+        /// Get POD with entries formatted for JavaScript consumption - FIXED table data loading
+        /// </summary>
+        public async Task<PODResponseDto?> GetPODForEditAsync(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Getting POD for edit with ID: {PODId}", id);
+
+                var pod = await _context.PODs
+                    .Include(p => p.Category)
+                    .Include(p => p.Department)
+                        .ThenInclude(d => d.GeneralDirectorate)
+                    .Include(p => p.Vendor)
+                    .Include(p => p.Entries.Where(e => e.IsActive))
+                    .FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
+
+                if (pod == null)
+                {
+                    _logger.LogWarning("POD not found with ID: {PODId}", id);
+                    return new PODResponseDto { Success = false, Message = "POD not found" };
+                }
+
+                // Format entries for JavaScript loadFromJson function
+                var jsEntries = new List<object>();
+                var orderedEntries = pod.Entries.OrderBy(e => e.EntryOrder).ToList();
+
+                foreach (var entry in orderedEntries)
+                {
+                    _logger.LogInformation("Processing entry: Type={Type}, Data={Data}", entry.EntryType, entry.EntryData);
+
+                    if (entry.EntryType == "single")
+                    {
+                        // Extract single value name
+                        try
+                        {
+                            var entryData = JsonSerializer.Deserialize<Dictionary<string, object>>(entry.EntryData);
+                            if (entryData != null && entryData.ContainsKey("key"))
+                            {
+                                jsEntries.Add(entryData["key"].ToString() ?? entry.EntryName ?? "Unknown");
+                            }
+                            else
+                            {
+                                jsEntries.Add(entry.EntryName ?? "Unknown");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to parse single entry data for entry: {EntryId}", entry.Id);
+                            jsEntries.Add(entry.EntryName ?? "Unknown");
+                        }
+                    }
+                    else if (entry.EntryType == "table")
+                    {
+                        // FIXED: Parse table data properly
+                        try
+                        {
+                            // The EntryData is already a JSON string of the table data
+                            var tableName = entry.EntryName ?? "Unknown";
+
+                            // Parse the table data JSON
+                            var tableDataElement = JsonSerializer.Deserialize<JsonElement>(entry.EntryData);
+
+                            // Convert JsonElement to object for proper serialization
+                            var tableDataObject = JsonElementToObject(tableDataElement);
+
+                            var tableObject = new Dictionary<string, object>
+                            {
+                                [tableName] = tableDataObject
+                            };
+
+                            jsEntries.Add(tableObject);
+                            _logger.LogInformation("Successfully loaded table entry: {Name}", tableName);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to parse table data for entry: {EntryId}, Data: {Data}",
+                                entry.Id, entry.EntryData);
+                        }
+                    }
+                }
+
+                return new PODResponseDto
+                {
+                    Success = true,
+                    Message = "POD loaded successfully",
+                    Pod = new PODDataDto
+                    {
+                        // Basic fields matching JavaScript form names
+                        Name = pod.Name,
+                        PodCode = pod.PODCode,
+                        Description = pod.Description,
+                        PoNumber = pod.PONumber,
+                        ContractNumber = pod.ContractNumber,
+                        CategoryId = pod.CategoryId,
+                        DepartmentId = pod.DepartmentId,
+                        VendorId = pod.VendorId,
+                        AutomationStatus = pod.AutomationStatus.ToString(),
+                        ProcessingFrequency = pod.Frequency.ToString(),
+                        ProcessingPriority = pod.ProcessingPriority,
+                        VendorSPOC = pod.VendorSPOCUsername,
+                        GovernorSPOC = pod.GovernorSPOCUsername,
+                        FinanceSPOC = pod.FinanceSPOCUsername,
+                        RequiresApproval = pod.RequiresApproval,
+                        ContainsFinancialData = pod.IsFinancialData,
+
+                        // Display names for UI
+                        CategoryName = pod.Category?.Name,
+                        DepartmentName = pod.Department?.Name,
+                        VendorName = pod.Vendor?.Name,
+
+                        // Entries in JavaScript format
+                        Entries = jsEntries
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting POD for edit with ID: {PODId}", id);
+                return new PODResponseDto { Success = false, Message = "Error loading POD data" };
+            }
+        }
+
+        /// <summary>
+        /// Convert JsonElement to proper object for JavaScript consumption
+        /// </summary>
+        private static object JsonElementToObject(JsonElement element)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    var dictionary = new Dictionary<string, object>();
+                    foreach (var property in element.EnumerateObject())
+                    {
+                        dictionary[property.Name] = JsonElementToObject(property.Value);
+                    }
+                    return dictionary;
+
+                case JsonValueKind.Array:
+                    var list = new List<object>();
+                    foreach (var item in element.EnumerateArray())
+                    {
+                        list.Add(JsonElementToObject(item));
+                    }
+                    return list;
+
+                case JsonValueKind.String:
+                    return element.GetString() ?? "";
+
+                case JsonValueKind.Number:
+                    if (element.TryGetInt32(out int intValue))
+                        return intValue;
+                    if (element.TryGetDouble(out double doubleValue))
+                        return doubleValue;
+                    return element.GetDecimal();
+
+                case JsonValueKind.True:
+                    return true;
+
+                case JsonValueKind.False:
+                    return false;
+
+                case JsonValueKind.Null:
+                    return null;
+
+                default:
+                    return element.ToString();
+            }
+        }
+
+        // <summary>
+        /// Update POD Entries from JavaScript format - FIXED JSON parsing
+        /// Handles: strings for single values, objects for tables
+        /// </summary>
+        private async Task UpdatePODEntriesAsync(POD pod, List<object> jsEntries)
+        {
+            try
+            {
+                _logger.LogInformation("Updating POD entries for POD ID: {PODId}", pod.Id);
+
+                // Clear existing entries
+                var existingEntries = pod.Entries.ToList();
+                foreach (var entry in existingEntries)
+                {
+                    _context.PODEntries.Remove(entry);
+                }
+
+                // Process JavaScript entries
+                int order = 0;
+                foreach (var jsEntry in jsEntries)
+                {
+                    order++;
+
+                    if (jsEntry is string singleValue)
+                    {
+                        // Single value entry: "Test 1"
+                        var singleEntry = new PODEntry
+                        {
+                            PODId = pod.Id,
+                            EntryType = "single",
+                            EntryOrder = order,
+                            EntryData = JsonSerializer.Serialize(new { key = singleValue, value = "(input)" }),
+                            EntryName = singleValue,
+                            IsActive = true,
+                            CreatedBy = "system",
+                            CreatedDate = DateTime.UtcNow
+                        };
+
+                        _context.PODEntries.Add(singleEntry);
+                        _logger.LogInformation("Created single entry: {Name}", singleValue);
+                    }
+                    else if (jsEntry != null)
+                    {
+                        // FIXED: Handle object entries properly
+                        try
+                        {
+                            // Convert object to JSON string first
+                            var jsonString = JsonSerializer.Serialize(jsEntry);
+                            _logger.LogInformation("Processing table entry JSON: {Json}", jsonString);
+
+                            // Parse as JsonElement to handle different object types
+                            var jsonElement = JsonSerializer.Deserialize<JsonElement>(jsonString);
+
+                            if (jsonElement.ValueKind == JsonValueKind.Object)
+                            {
+                                foreach (var property in jsonElement.EnumerateObject())
+                                {
+                                    var tableName = property.Name;
+                                    var tableDataJson = property.Value.GetRawText();
+
+                                    var tableEntry = new PODEntry
+                                    {
+                                        PODId = pod.Id,
+                                        EntryType = "table",
+                                        EntryOrder = order,
+                                        EntryData = tableDataJson,
+                                        EntryName = tableName,
+                                        Category = "table",
+                                        IsActive = true,
+                                        CreatedBy = "system",
+                                        CreatedDate = DateTime.UtcNow
+                                    };
+
+                                    _context.PODEntries.Add(tableEntry);
+                                    _logger.LogInformation("Created table entry: {Name}", tableName);
+                                }
+                            }
+                        }
+                        catch (Exception parseEx)
+                        {
+                            _logger.LogError(parseEx, "Error parsing entry object: {@Entry}", jsEntry);
+                            // Skip this entry if parsing fails
+                            continue;
+                        }
+                    }
+                }
+
+                _logger.LogInformation("Successfully processed {Count} POD entries", jsEntries.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating POD entries for POD ID: {PODId}", pod.Id);
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Update existing POD with entries - Enhanced version
         /// </summary>
         public async Task<bool> UpdatePODAsync(int id, PODUpdateDto podData)
@@ -53,7 +319,7 @@ namespace DT_PODSystem.Services.Implementation
                 // Update POD basic fields (matching JavaScript form field names)
                 pod.Name = podData.Name;
                 pod.Description = podData.Description;
-                pod.PONumber = podData.PoNumber;
+                pod.PONumber = podData.PONumber;
                 pod.ContractNumber = podData.ContractNumber;
 
 
@@ -100,220 +366,7 @@ namespace DT_PODSystem.Services.Implementation
             }
         }
 
-        /// <summary>
-        /// Update POD Entries from JavaScript format
-        /// Handles: strings for single values, objects for tables
-        /// </summary>
-        private async Task UpdatePODEntriesAsync(POD pod, List<object> jsEntries)
-        {
-            try
-            {
-                _logger.LogInformation("Updating POD entries for POD ID: {PODId}", pod.Id);
-
-                // Clear existing entries
-                var existingEntries = pod.Entries.ToList();
-                foreach (var entry in existingEntries)
-                {
-                    _context.PODEntries.Remove(entry);
-                }
-
-                // Process JavaScript entries
-                int order = 0;
-                foreach (var jsEntry in jsEntries)
-                {
-                    order++;
-
-                    if (jsEntry is string singleValue)
-                    {
-                        // Single value entry: "Test 1"
-                        var singleEntry = new PODEntry
-                        {
-                            PODId = pod.Id,
-                            EntryType = "single",
-                            EntryOrder = order,
-                            EntryData = JsonSerializer.Serialize(new { key = singleValue, value = "(input)" }),
-                            EntryName = singleValue,
-                            IsActive = true,
-                            CreatedBy = "system", // TODO: Get from user context
-                            CreatedDate = DateTime.UtcNow
-                        };
-
-                        _context.PODEntries.Add(singleEntry);
-                        _logger.LogInformation("Created single entry: {Name}", singleValue);
-                    }
-                    else if (jsEntry is JObject tableObject)
-                    {
-                        // Table entry: { "Test table": { "Keys": [...], "Target": [...] } }
-                        foreach (var tableProperty in tableObject.Properties())
-                        {
-                            var tableName = tableProperty.Name;
-                            var tableData = tableProperty.Value;
-
-                            var tableEntry = new PODEntry
-                            {
-                                PODId = pod.Id,
-                                EntryType = "table",
-                                EntryOrder = order,
-                                EntryData = tableData.ToString(),
-                                EntryName = tableName,
-                                Category = "table",
-                                IsActive = true,
-                                CreatedBy = "system", // TODO: Get from user context
-                                CreatedDate = DateTime.UtcNow
-                            };
-
-                            _context.PODEntries.Add(tableEntry);
-                            _logger.LogInformation("Created table entry: {Name}", tableName);
-                        }
-                    }
-                    else if (jsEntry != null)
-                    {
-                        // Handle other object types by converting to JSON
-                        var jsonString = JsonSerializer.Serialize(jsEntry);
-                        var jObject = JObject.Parse(jsonString);
-
-                        foreach (var property in jObject.Properties())
-                        {
-                            var tableName = property.Name;
-                            var tableData = property.Value;
-
-                            var tableEntry = new PODEntry
-                            {
-                                PODId = pod.Id,
-                                EntryType = "table",
-                                EntryOrder = order,
-                                EntryData = tableData.ToString(),
-                                EntryName = tableName,
-                                Category = "table",
-                                IsActive = true,
-                                CreatedBy = "system", // TODO: Get from user context
-                                CreatedDate = DateTime.UtcNow
-                            };
-
-                            _context.PODEntries.Add(tableEntry);
-                            _logger.LogInformation("Created object entry: {Name}", tableName);
-                        }
-                    }
-                }
-
-                _logger.LogInformation("Successfully processed {Count} POD entries", jsEntries.Count);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating POD entries for POD ID: {PODId}", pod.Id);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Get POD with entries formatted for JavaScript consumption
-        /// </summary>
-        public async Task<PODResponseDto?> GetPODForEditAsync(int id)
-        {
-            try
-            {
-                _logger.LogInformation("Getting POD for edit with ID: {PODId}", id);
-
-                var pod = await _context.PODs
-                    .Include(p => p.Category)
-                    .Include(p => p.Department)
-                        .ThenInclude(d => d.GeneralDirectorate)
-                    .Include(p => p.Vendor)
-                    .Include(p => p.Entries.Where(e => e.IsActive))
-                    .FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
-
-                if (pod == null)
-                {
-                    _logger.LogWarning("POD not found with ID: {PODId}", id);
-                    return new PODResponseDto { Success = false, Message = "POD not found" };
-                }
-
-                // Format entries for JavaScript loadFromJson function
-                var jsEntries = new List<object>();
-                var orderedEntries = pod.Entries.OrderBy(e => e.EntryOrder).ToList();
-
-                foreach (var entry in orderedEntries)
-                {
-                    if (entry.EntryType == "single")
-                    {
-                        // Extract single value name
-                        try
-                        {
-                            var entryData = JsonSerializer.Deserialize<Dictionary<string, object>>(entry.EntryData);
-                            if (entryData != null && entryData.ContainsKey("key"))
-                            {
-                                jsEntries.Add(entryData["key"].ToString() ?? entry.EntryName ?? "Unknown");
-                            }
-                            else
-                            {
-                                jsEntries.Add(entry.EntryName ?? "Unknown");
-                            }
-                        }
-                        catch
-                        {
-                            jsEntries.Add(entry.EntryName ?? "Unknown");
-                        }
-                    }
-                    else if (entry.EntryType == "table")
-                    {
-                        // Parse table data
-                        try
-                        {
-                            var tableData = JObject.Parse(entry.EntryData);
-                            var tableObject = new Dictionary<string, object>
-                            {
-                                [entry.EntryName ?? "Unknown"] = tableData
-                            };
-                            jsEntries.Add(tableObject);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "Failed to parse table data for entry: {EntryId}", entry.Id);
-                        }
-                    }
-                }
-
-                return new PODResponseDto
-                {
-                    Success = true,
-                    Message = "POD loaded successfully",
-                    Pod = new PODDataDto
-                    {
-                        // Basic fields matching JavaScript form names
-                        Name = pod.Name,
-                        PodCode = pod.PODCode,
-                        Description = pod.Description,
-                        PoNumber = pod.PONumber,
-                        ContractNumber = pod.ContractNumber,
-                        CategoryId = pod.CategoryId,
-                        DepartmentId = pod.DepartmentId,
-                        VendorId = pod.VendorId,
-                        AutomationStatus = pod.AutomationStatus.ToString(),
-                        ProcessingFrequency = pod.Frequency.ToString(),
-                        ProcessingPriority = pod.ProcessingPriority,
-                        VendorSPOC = pod.VendorSPOCUsername,
-                        GovernorSPOC = pod.GovernorSPOCUsername,
-                        FinanceSPOC = pod.FinanceSPOCUsername,
-                        RequiresApproval = pod.RequiresApproval,
-                        ContainsFinancialData = pod.IsFinancialData,
-
-                        // Display names for UI
-                        CategoryName = pod.Category?.Name,
-                        DepartmentName = pod.Department?.Name,
-                        VendorName = pod.Vendor?.Name,
-
-                        // Entries in JavaScript format
-                        Entries = jsEntries
-                    }
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting POD for edit with ID: {PODId}", id);
-                return new PODResponseDto { Success = false, Message = "Error loading POD data" };
-            }
-        }
-
+          
 
         #region Basic CRUD Operations
 

@@ -25,9 +25,10 @@ namespace DT_PODSystem.Models.DTOs
         public string? Description { get; set; }
 
         // Business References
-        [StringLength(100)]
-        public string? PoNumber { get; set; }
-        public string PONumber { get; internal set; }
+        [StringLength(100)]        
+        public string? PONumber { get; internal set; }
+
+
         [StringLength(100)]
         public string? ContractNumber { get; set; }
 
