@@ -35,7 +35,7 @@ namespace DT_PODSystem.Controllers
         /// Save POD - handles JavaScript savePOD() function call
         /// </summary>
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        
         public async Task<IActionResult> SavePOD(int id, [FromBody] PODUpdateDto updateData)
         {
             try
@@ -199,7 +199,7 @@ namespace DT_PODSystem.Controllers
 
         // POST: POD/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+      
         public async Task<IActionResult> Create(PODCreateEditViewModel model)
         {
             try

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace DT_PODSystem.Migrations
+namespace DT_PODSystem.Migrations.SecurityDb
 {
     /// <inheritdoc />
     public partial class SecurityInitialCreate : Migration

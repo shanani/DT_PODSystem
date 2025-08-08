@@ -25,7 +25,7 @@ namespace DT_PODSystem.Models.Entities
         public string EntryData { get; set; } = string.Empty; // JSON for individual entry
 
         [StringLength(200)]
-        public string? DisplayName { get; set; }
+        public string? EntryName { get; set; }
 
         [StringLength(500)]
         public string? Description { get; set; }

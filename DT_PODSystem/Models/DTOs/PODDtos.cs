@@ -137,7 +137,7 @@ namespace DT_PODSystem.Models.DTOs
         public string EntryType { get; set; } = string.Empty;
         public int EntryOrder { get; set; }
         public string EntryData { get; set; } = string.Empty;
-        public string? DisplayName { get; set; }
+        public string? EntryName { get; set; }
         public string? Description { get; set; }
         public string? Category { get; set; }
         public bool IsRequired { get; set; }
@@ -155,7 +155,7 @@ namespace DT_PODSystem.Models.DTOs
         public string EntryType { get; set; } = "single"; // 'single' or 'table'
         public int EntryOrder { get; set; } = 0;
         public string EntryData { get; set; } = string.Empty; // JSON data
-        public string? DisplayName { get; set; }
+        public string? EntryName { get; set; }
         public string? Description { get; set; }
         public string? Category { get; set; }
         public bool IsRequired { get; set; } = false;

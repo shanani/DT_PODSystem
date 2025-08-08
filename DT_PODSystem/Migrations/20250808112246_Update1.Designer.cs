@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace DT_PODSystem.Migrations.ApplicationDb
+namespace DT_PODSystem.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250806225628_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250808112246_Update1")]
+    partial class Update1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -251,7 +251,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             Id = 1,
                             ColorCode = "#A54EE1",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9786),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9360),
                             Description = "Financial and accounting related documents",
                             DisplayOrder = 1,
                             IconClass = "fa fa-dollar-sign",
@@ -263,7 +263,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             Id = 2,
                             ColorCode = "#4F008C",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9789),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9365),
                             Description = "Legal contracts and agreements",
                             DisplayOrder = 2,
                             IconClass = "fa fa-balance-scale",
@@ -275,7 +275,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             Id = 3,
                             ColorCode = "#00C48C",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9791),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9369),
                             Description = "Human resources and personnel documents",
                             DisplayOrder = 3,
                             IconClass = "fa fa-users",
@@ -287,7 +287,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             Id = 4,
                             ColorCode = "#FF6B6B",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9792),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9373),
                             Description = "Legal contracts, agreements, and compliance documents",
                             DisplayOrder = 4,
                             IconClass = "fa fa-gavel",
@@ -299,7 +299,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             Id = 5,
                             ColorCode = "#4ECDC4",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 745, DateTimeKind.Utc).AddTicks(9794),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9377),
                             Description = "Purchase orders, contracts, and procurement related documents",
                             DisplayOrder = 5,
                             IconClass = "fa fa-shopping-cart",
@@ -391,7 +391,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactEmail = "ahmed.rashid@company.sa",
                             ContactPhone = "+966-11-1234567",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(130),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9696),
                             Description = "Application development and maintenance",
                             DisplayOrder = 1,
                             GeneralDirectorateId = 1,
@@ -405,7 +405,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactEmail = "sara.mahmoud@company.sa",
                             ContactPhone = "+966-11-1234568",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(132),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9702),
                             Description = "IT infrastructure, networking, and security",
                             DisplayOrder = 2,
                             GeneralDirectorateId = 1,
@@ -419,7 +419,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactEmail = "omar.fahad@company.sa",
                             ContactPhone = "+966-11-1234569",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(134),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9706),
                             Description = "Business intelligence and data analysis",
                             DisplayOrder = 3,
                             GeneralDirectorateId = 1,
@@ -433,7 +433,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactEmail = "fatima.zahra@company.sa",
                             ContactPhone = "+966-11-1234570",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(136),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9710),
                             Description = "Budget planning and financial forecasting",
                             DisplayOrder = 1,
                             GeneralDirectorateId = 2,
@@ -447,7 +447,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactEmail = "khalid.otaibi@company.sa",
                             ContactPhone = "+966-11-1234571",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(137),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9713),
                             Description = "Vendor payments and expense management",
                             DisplayOrder = 2,
                             GeneralDirectorateId = 2,
@@ -461,7 +461,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactEmail = "noura.saud@company.sa",
                             ContactPhone = "+966-11-1234572",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(139),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9717),
                             Description = "Cash management and financial investments",
                             DisplayOrder = 3,
                             GeneralDirectorateId = 2,
@@ -475,7 +475,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactEmail = "maha.ghamdi@company.sa",
                             ContactPhone = "+966-11-1234573",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(141),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9721),
                             Description = "Recruitment and onboarding",
                             DisplayOrder = 1,
                             GeneralDirectorateId = 3,
@@ -489,7 +489,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactEmail = "ibrahim.harbi@company.sa",
                             ContactPhone = "+966-11-1234574",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(142),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9724),
                             Description = "Training and professional development",
                             DisplayOrder = 2,
                             GeneralDirectorateId = 3,
@@ -503,7 +503,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactEmail = "abdullah.mutairi@company.sa",
                             ContactPhone = "+966-11-1234575",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(144),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9728),
                             Description = "Building maintenance and facility operations",
                             DisplayOrder = 1,
                             GeneralDirectorateId = 4,
@@ -517,7 +517,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactEmail = "reem.johani@company.sa",
                             ContactPhone = "+966-11-1234576",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(146),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9732),
                             Description = "Physical and information security",
                             DisplayOrder = 2,
                             GeneralDirectorateId = 4,
@@ -531,7 +531,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactEmail = "yousef.dosari@company.sa",
                             ContactPhone = "+966-11-1234577",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(149),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9736),
                             Description = "Contract negotiation and management",
                             DisplayOrder = 1,
                             GeneralDirectorateId = 5,
@@ -545,7 +545,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactEmail = "layla.shammari@company.sa",
                             ContactPhone = "+966-11-1234578",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(151),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9739),
                             Description = "Regulatory compliance and auditing",
                             DisplayOrder = 2,
                             GeneralDirectorateId = 5,
@@ -885,7 +885,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         {
                             Id = 1,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(94),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9628),
                             Description = "IT systems, software, and technology services",
                             DisplayOrder = 1,
                             IsActive = true,
@@ -895,7 +895,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         {
                             Id = 2,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(96),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9632),
                             Description = "Financial operations, budgeting, and administrative services",
                             DisplayOrder = 2,
                             IsActive = true,
@@ -905,7 +905,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         {
                             Id = 3,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(97),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9635),
                             Description = "Personnel management, training, and development",
                             DisplayOrder = 3,
                             IsActive = true,
@@ -915,7 +915,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         {
                             Id = 4,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(99),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9638),
                             Description = "Operational activities and facility maintenance",
                             DisplayOrder = 4,
                             IsActive = true,
@@ -925,7 +925,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         {
                             Id = 5,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(100),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9641),
                             Description = "Legal affairs, regulatory compliance, and risk management",
                             DisplayOrder = 5,
                             IsActive = true,
@@ -1099,13 +1099,13 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         new
                         {
                             Id = 1,
-                            ApprovalDate = new DateTime(2025, 7, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(497),
+                            ApprovalDate = new DateTime(2025, 7, 9, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(38),
                             ApprovedBy = "IT Director",
                             AutomationStatus = 3,
                             CategoryId = 1,
                             ContractNumber = "CTR-ERP-2025",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 6, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(506),
+                            CreatedDate = new DateTime(2025, 6, 8, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(51),
                             DepartmentId = 1,
                             Description = "Complete ERP system implementation for financial and operational modules",
                             FinanceSPOCUsername = "fatima.finance",
@@ -1113,7 +1113,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             GovernorSPOCUsername = "sara.governor",
                             IsActive = true,
                             IsFinancialData = true,
-                            LastProcessedDate = new DateTime(2025, 8, 1, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(505),
+                            LastProcessedDate = new DateTime(2025, 8, 3, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(50),
                             Name = "ERP System Implementation",
                             PODCode = "POD-ERP-2025-001",
                             PONumber = "PO-2025-IT-001",
@@ -1128,13 +1128,13 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         new
                         {
                             Id = 2,
-                            ApprovalDate = new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(513),
+                            ApprovalDate = new DateTime(2025, 6, 24, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(67),
                             ApprovedBy = "Finance Director",
                             AutomationStatus = 1,
                             CategoryId = 2,
                             ContractNumber = "CTR-FIN-2025-A",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 5, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(516),
+                            CreatedDate = new DateTime(2025, 5, 8, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(73),
                             DepartmentId = 4,
                             Description = "Automated processing of monthly financial reports and compliance documents",
                             FinanceSPOCUsername = "noura.finance",
@@ -1142,7 +1142,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             GovernorSPOCUsername = "khalid.governor",
                             IsActive = true,
                             IsFinancialData = true,
-                            LastProcessedDate = new DateTime(2025, 8, 4, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(515),
+                            LastProcessedDate = new DateTime(2025, 8, 6, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(72),
                             Name = "Financial Reporting Automation",
                             PODCode = "POD-FIN-2025-002",
                             PONumber = "PO-2025-FIN-002",
@@ -1160,7 +1160,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             AutomationStatus = 2,
                             CategoryId = 3,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(521),
+                            CreatedDate = new DateTime(2025, 7, 24, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(85),
                             DepartmentId = 7,
                             Description = "Employee performance reviews and development tracking system",
                             FinanceSPOCUsername = "fatima.finance",
@@ -1185,7 +1185,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             CategoryId = 5,
                             ContractNumber = "CTR-MAINT-2025",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 7, 30, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(530),
+                            CreatedDate = new DateTime(2025, 8, 1, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(104),
                             DepartmentId = 9,
                             Description = "Processing of facility maintenance requests and contract compliance",
                             FinanceSPOCUsername = "khalid.finance",
@@ -1205,12 +1205,12 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         new
                         {
                             Id = 5,
-                            ApprovalDate = new DateTime(2025, 7, 17, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(540),
+                            ApprovalDate = new DateTime(2025, 7, 19, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(123),
                             ApprovedBy = "Legal Director",
                             AutomationStatus = 3,
                             CategoryId = 4,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 7, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(542),
+                            CreatedDate = new DateTime(2025, 7, 8, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(129),
                             DepartmentId = 12,
                             Description = "Regulatory compliance reports and legal documentation processing",
                             FinanceSPOCUsername = "noura.finance",
@@ -1218,7 +1218,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             GovernorSPOCUsername = "layla.governor",
                             IsActive = true,
                             IsFinancialData = true,
-                            LastProcessedDate = new DateTime(2025, 7, 27, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(542),
+                            LastProcessedDate = new DateTime(2025, 7, 29, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(128),
                             Name = "Legal Compliance Reporting",
                             PODCode = "POD-LEG-2025-005",
                             ProcessedCount = 3,
@@ -1368,14 +1368,14 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         new
                         {
                             Id = 1,
-                            ApprovalDate = new DateTime(2025, 6, 9, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(623),
+                            ApprovalDate = new DateTime(2025, 6, 11, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(255),
                             ApprovedBy = "Legal Director",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 6, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(624),
+                            CreatedDate = new DateTime(2025, 6, 9, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(258),
                             Description = "Primary contract document for ERP system implementation",
                             DisplayName = "Main ERP Implementation Contract",
                             DisplayOrder = 1,
-                            DocumentDate = new DateTime(2025, 6, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(621),
+                            DocumentDate = new DateTime(2025, 6, 9, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(252),
                             DocumentNumber = "CTR-ERP-2025-001",
                             DocumentStatus = "Active",
                             DocumentVersion = "1.0",
@@ -1391,11 +1391,11 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         {
                             Id = 2,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(628),
+                            CreatedDate = new DateTime(2025, 7, 24, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(266),
                             Description = "Standard operating procedures for HR performance management",
                             DisplayName = "HR Policy and Procedures",
                             DisplayOrder = 1,
-                            DocumentDate = new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(626),
+                            DocumentDate = new DateTime(2025, 7, 24, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(263),
                             DocumentNumber = "SOP-HR-2025-001",
                             DocumentStatus = "Active",
                             DocumentVersion = "2.1",
@@ -1407,6 +1407,96 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             Type = 3,
                             UploadedFileId = 3
                         });
+                });
+
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.PODEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("EntryData")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntryName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("EntryOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("EntryType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("single");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PODId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("CreatedDate")
+                        .HasDatabaseName("IX_PODEntry_CreatedDate");
+
+                    b.HasIndex("EntryOrder");
+
+                    b.HasIndex("EntryType");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("IX_PODEntry_IsActive");
+
+                    b.HasIndex("PODId");
+
+                    b.ToTable("PODEntries");
                 });
 
             modelBuilder.Entity("DT_PODSystem.Models.Entities.PdfTemplate", b =>
@@ -1499,6 +1589,11 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<int?>("VendorId")
                         .HasColumnType("int");
 
@@ -1532,48 +1627,50 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         new
                         {
                             Id = 1,
-                            ApprovalDate = new DateTime(2025, 7, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(661),
+                            ApprovalDate = new DateTime(2025, 7, 9, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(314),
                             ApprovedBy = "IT Director",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 7, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(663),
+                            CreatedDate = new DateTime(2025, 7, 9, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(320),
                             ExpectedPageCount = 3,
                             ExpectedPdfVersion = "1.7",
                             HasFormFields = false,
                             IsActive = true,
-                            LastProcessedDate = new DateTime(2025, 8, 1, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(662),
+                            LastProcessedDate = new DateTime(2025, 8, 3, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(316),
                             NamingConvention = "ERP_INV_{YYYYMM}",
                             PODId = 1,
                             ProcessedCount = 15,
                             ProcessingPriority = 8,
                             Status = 2,
                             TechnicalNotes = "Requires OCR preprocessing for invoice amounts",
+                            Title = "Untitled Template",
                             Version = "1.2"
                         },
                         new
                         {
                             Id = 2,
-                            ApprovalDate = new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(665),
+                            ApprovalDate = new DateTime(2025, 6, 24, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(325),
                             ApprovedBy = "Finance Director",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(667),
+                            CreatedDate = new DateTime(2025, 6, 24, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(330),
                             ExpectedPageCount = 5,
                             ExpectedPdfVersion = "1.6",
                             HasFormFields = true,
                             IsActive = true,
-                            LastProcessedDate = new DateTime(2025, 8, 4, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(666),
+                            LastProcessedDate = new DateTime(2025, 8, 6, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(327),
                             NamingConvention = "FIN_RPT_{YYYYMM}_{DD}",
                             PODId = 2,
                             ProcessedCount = 8,
                             ProcessingPriority = 9,
                             Status = 2,
                             TechnicalNotes = "Multi-page template with dynamic table extraction",
+                            Title = "Untitled Template",
                             Version = "2.0"
                         },
                         new
                         {
                             Id = 3,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 7, 27, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(670),
+                            CreatedDate = new DateTime(2025, 7, 29, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(335),
                             ExpectedPageCount = 8,
                             ExpectedPdfVersion = "1.7",
                             HasFormFields = true,
@@ -1584,6 +1681,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ProcessingPriority = 7,
                             Status = 0,
                             TechnicalNotes = "Quarterly compliance template with signature verification",
+                            Title = "Untitled Template",
                             Version = "1.0"
                         });
                 });
@@ -2579,7 +2677,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         {
                             Id = 1,
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(706),
+                            CreatedDate = new DateTime(2025, 6, 24, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(389),
                             Description = "Primary template for monthly financial report processing",
                             DisplayName = "Monthly Financial Report Template",
                             DisplayOrder = 1,
@@ -2711,7 +2809,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             Id = 1,
                             ContentType = "application/pdf",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 6, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(588),
+                            CreatedDate = new DateTime(2025, 6, 9, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(190),
                             FileHash = "sha256_erp_contract_hash_001",
                             FilePath = "/uploads/documents/2025/01/erp_contract_20250101_001.pdf",
                             FileSize = 2456789L,
@@ -2720,7 +2818,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             MimeType = "application/pdf",
                             OriginalFileName = "ERP_Contract_Main.pdf",
                             ProcessedBy = "System",
-                            ProcessedDate = new DateTime(2025, 6, 7, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(586),
+                            ProcessedDate = new DateTime(2025, 6, 9, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(187),
                             SavedFileName = "erp_contract_20250101_001.pdf",
                             UploadSource = "POD"
                         },
@@ -2729,7 +2827,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             Id = 2,
                             ContentType = "application/pdf",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(592),
+                            CreatedDate = new DateTime(2025, 6, 24, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(198),
                             FileHash = "sha256_fin_template_hash_001",
                             FilePath = "/uploads/templates/2025/01/fin_report_template_20250102_001.pdf",
                             FileSize = 1234567L,
@@ -2738,7 +2836,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             MimeType = "application/pdf",
                             OriginalFileName = "Financial_Report_Template.pdf",
                             ProcessedBy = "System",
-                            ProcessedDate = new DateTime(2025, 6, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(591),
+                            ProcessedDate = new DateTime(2025, 6, 24, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(196),
                             SavedFileName = "fin_report_template_20250102_001.pdf",
                             UploadSource = "Wizard"
                         },
@@ -2747,7 +2845,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             Id = 3,
                             ContentType = "application/pdf",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(595),
+                            CreatedDate = new DateTime(2025, 7, 24, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(205),
                             FileHash = "sha256_hr_policy_hash_001",
                             FilePath = "/uploads/documents/2025/01/hr_policy_20250103_001.pdf",
                             FileSize = 987654L,
@@ -2756,7 +2854,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             MimeType = "application/pdf",
                             OriginalFileName = "HR_Policy_Document.pdf",
                             ProcessedBy = "System",
-                            ProcessedDate = new DateTime(2025, 7, 22, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(594),
+                            ProcessedDate = new DateTime(2025, 7, 24, 11, 22, 45, 180, DateTimeKind.Utc).AddTicks(203),
                             SavedFileName = "hr_policy_20250103_001.pdf",
                             UploadSource = "POD"
                         });
@@ -2865,7 +2963,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         {
                             Id = 1,
                             Address = "King Fahd Road, Riyadh 12345, Saudi Arabia",
-                            ApprovalDate = new DateTime(2025, 2, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(209),
+                            ApprovalDate = new DateTime(2025, 2, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9804),
                             ApprovedBy = "System Admin",
                             CommercialRegister = "1010123456",
                             CompanyName = "STS Co. Ltd.",
@@ -2873,7 +2971,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactPerson = "Ahmad Al-Riyadh",
                             ContactPhone = "+966-11-2345678",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(222),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9821),
                             IsActive = true,
                             IsApproved = true,
                             Name = "Saudi Technology Solutions",
@@ -2883,7 +2981,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         {
                             Id = 2,
                             Address = "Olaya District, Riyadh 11564, Saudi Arabia",
-                            ApprovalDate = new DateTime(2025, 4, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(224),
+                            ApprovalDate = new DateTime(2025, 4, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9827),
                             ApprovedBy = "Procurement Manager",
                             CommercialRegister = "1010234567",
                             CompanyName = "GCG International",
@@ -2891,7 +2989,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactPerson = "Mariam Al-Khalil",
                             ContactPhone = "+966-11-3456789",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(226),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9829),
                             IsActive = true,
                             IsApproved = true,
                             Name = "Gulf Consulting Group",
@@ -2901,7 +2999,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         {
                             Id = 3,
                             Address = "King Abdullah Financial District, Riyadh 13519, Saudi Arabia",
-                            ApprovalDate = new DateTime(2025, 6, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(227),
+                            ApprovalDate = new DateTime(2025, 6, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9833),
                             ApprovedBy = "IT Director",
                             CommercialRegister = "1010345678",
                             CompanyName = "DTP Solutions LLC",
@@ -2909,7 +3007,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactPerson = "Mohammed Al-Faisal",
                             ContactPhone = "+966-11-4567890",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(228),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9835),
                             IsActive = true,
                             IsApproved = true,
                             Name = "Digital Transformation Partners",
@@ -2925,7 +3023,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactPerson = "Aisha Al-Mutairi",
                             ContactPhone = "+966-11-5678901",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(230),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9840),
                             IsActive = true,
                             IsApproved = false,
                             Name = "Arabian Business Services",
@@ -2935,7 +3033,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                         {
                             Id = 5,
                             Address = "Diplomatic Quarter, Riyadh 11693, Saudi Arabia",
-                            ApprovalDate = new DateTime(2025, 7, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(232),
+                            ApprovalDate = new DateTime(2025, 7, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9844),
                             ApprovedBy = "Finance Director",
                             CommercialRegister = "1010567890",
                             CompanyName = "AAC Saudi Arabia",
@@ -2943,7 +3041,7 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                             ContactPerson = "Hassan Al-Zahrani",
                             ContactPhone = "+966-11-6789012",
                             CreatedBy = "System",
-                            CreatedDate = new DateTime(2025, 8, 6, 22, 56, 26, 746, DateTimeKind.Utc).AddTicks(233),
+                            CreatedDate = new DateTime(2025, 8, 8, 11, 22, 45, 179, DateTimeKind.Utc).AddTicks(9846),
                             IsActive = true,
                             IsApproved = true,
                             Name = "Advanced Analytics Corp",
@@ -3027,6 +3125,17 @@ namespace DT_PODSystem.Migrations.ApplicationDb
                     b.Navigation("POD");
 
                     b.Navigation("UploadedFile");
+                });
+
+            modelBuilder.Entity("DT_PODSystem.Models.Entities.PODEntry", b =>
+                {
+                    b.HasOne("DT_PODSystem.Models.Entities.POD", "POD")
+                        .WithMany("Entries")
+                        .HasForeignKey("PODId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("POD");
                 });
 
             modelBuilder.Entity("DT_PODSystem.Models.Entities.PdfTemplate", b =>
@@ -3194,6 +3303,8 @@ namespace DT_PODSystem.Migrations.ApplicationDb
             modelBuilder.Entity("DT_PODSystem.Models.Entities.POD", b =>
                 {
                     b.Navigation("Attachments");
+
+                    b.Navigation("Entries");
 
                     b.Navigation("Templates");
                 });

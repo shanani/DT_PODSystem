@@ -132,7 +132,7 @@ namespace DT_PODSystem.Services.Implementation
                             EntryType = "single",
                             EntryOrder = order,
                             EntryData = JsonSerializer.Serialize(new { key = singleValue, value = "(input)" }),
-                            DisplayName = singleValue,
+                            EntryName = singleValue,
                             IsActive = true,
                             CreatedBy = "system", // TODO: Get from user context
                             CreatedDate = DateTime.UtcNow
@@ -155,7 +155,7 @@ namespace DT_PODSystem.Services.Implementation
                                 EntryType = "table",
                                 EntryOrder = order,
                                 EntryData = tableData.ToString(),
-                                DisplayName = tableName,
+                                EntryName = tableName,
                                 Category = "table",
                                 IsActive = true,
                                 CreatedBy = "system", // TODO: Get from user context
@@ -183,7 +183,7 @@ namespace DT_PODSystem.Services.Implementation
                                 EntryType = "table",
                                 EntryOrder = order,
                                 EntryData = tableData.ToString(),
-                                DisplayName = tableName,
+                                EntryName = tableName,
                                 Category = "table",
                                 IsActive = true,
                                 CreatedBy = "system", // TODO: Get from user context
@@ -242,16 +242,16 @@ namespace DT_PODSystem.Services.Implementation
                             var entryData = JsonSerializer.Deserialize<Dictionary<string, object>>(entry.EntryData);
                             if (entryData != null && entryData.ContainsKey("key"))
                             {
-                                jsEntries.Add(entryData["key"].ToString() ?? entry.DisplayName ?? "Unknown");
+                                jsEntries.Add(entryData["key"].ToString() ?? entry.EntryName ?? "Unknown");
                             }
                             else
                             {
-                                jsEntries.Add(entry.DisplayName ?? "Unknown");
+                                jsEntries.Add(entry.EntryName ?? "Unknown");
                             }
                         }
                         catch
                         {
-                            jsEntries.Add(entry.DisplayName ?? "Unknown");
+                            jsEntries.Add(entry.EntryName ?? "Unknown");
                         }
                     }
                     else if (entry.EntryType == "table")
@@ -262,7 +262,7 @@ namespace DT_PODSystem.Services.Implementation
                             var tableData = JObject.Parse(entry.EntryData);
                             var tableObject = new Dictionary<string, object>
                             {
-                                [entry.DisplayName ?? "Unknown"] = tableData
+                                [entry.EntryName ?? "Unknown"] = tableData
                             };
                             jsEntries.Add(tableObject);
                         }

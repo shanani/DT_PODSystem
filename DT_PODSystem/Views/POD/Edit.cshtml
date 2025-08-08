@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "POD Edit";
 }
 
@@ -422,7 +422,7 @@
                         </div>
                         <div>
                             <div class="fw-bold text-dark">pod-specification.pdf</div>
-                            <small class="text-muted">2.1 MB � Uploaded 2 hours ago</small>
+                            <small class="text-muted">2.1 MB • Uploaded 2 hours ago</small>
                         </div>
                     </div>
                     <div class="btn-group">
@@ -442,7 +442,7 @@
                         </div>
                         <div>
                             <div class="fw-bold text-dark">financial-template.xlsx</div>
-                            <small class="text-muted">1.8 MB � Uploaded 1 hour ago</small>
+                            <small class="text-muted">1.8 MB • Uploaded 1 hour ago</small>
                         </div>
                     </div>
                     <div class="btn-group">
@@ -693,7 +693,7 @@
                 const files = [];
                 $('#filesContainer .uploaded-file').each(function() {
                     const fileName = $(this).find('.fw-bold').text();
-                    const fileSize = $(this).find('.text-muted').text().split(' � ')[0];
+                    const fileSize = $(this).find('.text-muted').text().split(' • ')[0];
                     files.push({
                         name: fileName,
                         size: fileSize,
@@ -701,6 +701,87 @@
                     });
                 });
                 return files;
+            }
+
+            // ✅ NEW: Load POD data from server
+            static async loadPODFromServer() {
+                const podId = getPODIdFromUrl();
+                if (!podId) {
+                    console.warn('No POD ID found for loading');
+                    return false;
+                }
+
+                try {
+                    console.log('🔄 Loading POD data from server...');
+
+                    const response = await fetch(`/POD/LoadPODForEdit/${podId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.populateFormWithPODData(result.pod);
+
+                        // Load entries using existing loadFromJson function
+                        if (result.pod.entries && result.pod.entries.length > 0) {
+                            loadFromJson(result.pod.entries);
+                        }
+
+                        console.log('✅ POD data loaded successfully from server');
+                        return true;
+                    } else {
+                        throw new Error(result.message || 'Failed to load POD data');
+                    }
+                } catch (error) {
+                    console.error('❌ Error loading POD data:', error);
+                    alert.error('Error loading POD data: ' + error.message, {popup: false});
+                    return false;
+                }
+            }
+
+            // ✅ NEW: Populate form fields with POD data
+            static populateFormWithPODData(pod) {
+                try {
+                    // Basic Information
+                    setFormValue('podName', pod.name);
+                    setFormValue('podCode', pod.podCode);
+                    setFormValue('description', pod.description);
+
+                    // Business References
+                    setFormValue('poNumber', pod.poNumber);
+                    setFormValue('contractNumber', pod.contractNumber);
+
+                    // Organizational
+                    setFormValue('categoryId', pod.categoryId);
+                    setFormValue('departmentId', pod.departmentId);
+                    setFormValue('vendorId', pod.vendorId || '');
+
+                    // Processing Configuration
+                    setFormValue('automationStatus', pod.automationStatus);
+                    setFormValue('processingFrequency', pod.processingFrequency);
+                    setFormValue('processingPriority', pod.processingPriority);
+
+                    // SPOC
+                    setFormValue('vendorSPOC', pod.vendorSPOC);
+                    setFormValue('governorSPOC', pod.governorSPOC);
+                    setFormValue('financeSPOC', pod.financeSPOC);
+
+                    // Business Rules
+                    setCheckboxValue('requiresApproval', pod.requiresApproval);
+                    setCheckboxValue('containsFinancialData', pod.containsFinancialData);
+
+                    console.log('✅ Form populated with POD data');
+                } catch (error) {
+                    console.error('❌ Error populating form:', error);
+                }
             }
         }
 
@@ -723,20 +804,22 @@
             }
         }
 
-        // API Service Class
+        // ✅ UPDATED: API Service Class with real server integration
         class PODService {
             static async save(podData) {
                 try {
-                    // Simulate API call
-                    console.log('Saving POD data:', podData);
+                    const podId = getPODIdFromUrl();
+                    if (!podId) {
+                        throw new Error('No POD ID found for saving');
+                    }
 
-                    // In real implementation, this would be:
-                    /*
-                    const response = await fetch('/api/pods', {
+                    console.log('💾 Saving POD data to server...', podData);
+
+                    const response = await fetch(`/POD/SavePOD/${podId}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
                         },
                         body: JSON.stringify(podData)
                     });
@@ -745,34 +828,30 @@
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
 
-                    return await response.json();
-                    */
+                    const result = await response.json();
 
-                    // Demo simulation
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
-                    return {
-                        id: 12345,
-                        success: true,
-                        message: 'POD saved successfully',
-                        lastModified: new Date().toISOString()
-                    };
+                    if (!result.success) {
+                        throw new Error(result.message || 'Failed to save POD');
+                    }
+
+                    return result;
                 } catch (error) {
-                    console.error('Error saving POD:', error);
+                    console.error('❌ Error saving POD:', error);
                     throw error;
                 }
             }
         }
 
-        // Main save function
+        // ✅ UPDATED: Main save function with real server integration
         async function savePOD() {
             try {
-                // Collect form data
+                // Collect form data using existing method
                 const podFormData = PODDataManager.collectFormData();
 
-                // Validate
+                // Validate using existing validator
                 const validation = PODValidator.validate(podFormData);
                 if (!validation.isValid) {
-                    alert.error('Please fix the following errors:\n\n' + validation.errors.join('\n'),{popup : false});
+                    alert.error('Please fix the following errors:\n\n' + validation.errors.join('\n'), {popup: false});
                     return;
                 }
 
@@ -787,22 +866,61 @@
                 saveBtn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i>Saving...';
                 saveBtn.disabled = true;
 
-                // Save to server
+                // Save to server using real API
                 const result = await PODService.save(podFormData);
 
                 // Success feedback
-                alert.success('POD saved successfully!',{popup : false});
+                alert.success('POD saved successfully!', {popup: false});
+                console.log('✅ POD saved successfully:', result);
 
-                // Optionally redirect or update UI
-                // window.location.href = `/pods/${result.id}`;
+                // Update last modified display if exists
+                updateLastModifiedDisplay(result.lastModified);
 
             } catch (error) {
-                alert.error('Error saving POD: ' + error.message);
+                console.error('❌ Error in savePOD:', error);
+                alert.error('Error saving POD: ' + error.message, {popup: false});
             } finally {
                 // Reset button
                 const saveBtn = document.querySelector('button[onclick="savePOD()"]');
-                saveBtn.innerHTML = '<i class="fa fa-save me-1"></i>Save Changes';
-                saveBtn.disabled = false;
+                if (saveBtn) {
+                    saveBtn.innerHTML = '<i class="fa fa-save me-1"></i>Save Changes';
+                    saveBtn.disabled = false;
+                }
+            }
+        }
+
+        // =====================================================
+        // HELPER FUNCTIONS
+        // =====================================================
+
+        // Get POD ID from URL
+        function getPODIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const pathParts = window.location.pathname.split('/');
+            return urlParams.get('id') || pathParts[pathParts.indexOf('Edit') + 1] || null;
+        }
+
+        // Set form field value
+        function setFormValue(name, value) {
+            const element = document.querySelector(`[name="${name}"]`);
+            if (element) {
+                element.value = value || '';
+            }
+        }
+
+        // Set checkbox value
+        function setCheckboxValue(name, checked) {
+            const element = document.querySelector(`[name="${name}"]`);
+            if (element) {
+                element.checked = !!checked;
+            }
+        }
+
+        // Update last modified display
+        function updateLastModifiedDisplay(lastModified) {
+            const lastModifiedElement = document.getElementById('last-modified');
+            if (lastModifiedElement && lastModified) {
+                lastModifiedElement.textContent = `Last modified: ${lastModified}`;
             }
         }
 
@@ -859,7 +977,7 @@
                     </div>
                     <div>
                         <div class="fw-bold text-dark">${file.name}</div>
-                        <small class="text-muted">${fileSize} � Just uploaded</small>
+                        <small class="text-muted">${fileSize} • Just uploaded</small>
                     </div>
                 </div>
                 <div class="btn-group">
@@ -933,7 +1051,7 @@
             const description = $('#singleDescription').val().trim();
 
             if (!fieldName) {
-                alert.warning('Please enter a field name',{popup : false});
+                alert.warning('Please enter a field name', {popup: false});
                 return;
             }
 
@@ -1320,9 +1438,26 @@
             }
         }
 
-        // Initialize
-        $(document).ready(function() {
+        // ✅ UPDATED: Initialize with server loading
+        $(document).ready(async function() {
+            console.log('🟢 Initializing POD Edit Page');
+
+            // Load POD data from server if in edit mode
+            const podId = getPODIdFromUrl();
+            if (podId) {
+                console.log('📥 Edit mode detected, loading POD data...');
+                const loaded = await PODDataManager.loadPODFromServer();
+                if (!loaded) {
+                    console.warn('⚠️ Failed to load POD data from server, using empty form');
+                }
+            } else {
+                console.log('➕ Create mode detected, using empty form');
+            }
+
+            // Initialize JSON preview
             updateJsonPreview();
+
+            console.log('✅ POD Edit Page initialized successfully');
         });
     </script>
 
