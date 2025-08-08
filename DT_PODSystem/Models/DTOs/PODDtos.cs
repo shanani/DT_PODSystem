@@ -27,19 +27,19 @@ namespace DT_PODSystem.Models.DTOs
         // Business References
         [StringLength(100)]
         public string? PoNumber { get; set; }
-
+        public string PONumber { get; internal set; }
         [StringLength(100)]
         public string? ContractNumber { get; set; }
 
         // Organizational - handled as nullable integers per JS logic
-        public int? CategoryId { get; set; }
-        public int? DepartmentId { get; set; }
+        public int CategoryId { get; set; }
+        public int DepartmentId { get; set; }
         public int? VendorId { get; set; }
 
         // Processing Configuration
-        public string? AutomationStatus { get; set; }
+       
         public string? ProcessingFrequency { get; set; }
-        public int? ProcessingPriority { get; set; }
+        public int ProcessingPriority { get; set; }
 
         // SPOC fields
         [StringLength(100)]
@@ -60,6 +60,12 @@ namespace DT_PODSystem.Models.DTOs
 
         // Attachments - matches getUploadedFilesList() output format  
         public List<AttachmentDto> Attachments { get; set; } = new List<AttachmentDto>();
+        public ProcessingFrequency Frequency { get;  set; }
+        public string VendorSPOCUsername { get;  set; }
+        public string GovernorSPOCUsername { get;  set; }
+        public string FinanceSPOCUsername { get;  set; }
+        public bool IsFinancialData { get;  set; }
+        public string AutomationStatus { get;   set; }
     }
 
     /// <summary>
@@ -194,7 +200,7 @@ namespace DT_PODSystem.Models.DTOs
 
         [Required]
         [Display(Name = "Automation Status")]
-        public AutomationStatus AutomationStatus { get; set; } = AutomationStatus.PDF;
+        public string AutomationStatus { get; set; } = string.Empty;
 
         [Required]
         [Display(Name = "Processing Frequency")]

@@ -29,65 +29,77 @@ namespace DT_PODSystem.Controllers
             _lookupsService = lookupsService;
             _logger = logger;
         }
-         
+
+
         /// <summary>
-        /// AJAX endpoint to save POD entries only
+        /// Save POD - handles JavaScript savePOD() function call
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SavePODEntries(int id, [FromBody] dynamic entriesData)
+        public async Task<IActionResult> SavePOD(int id, [FromBody] PODUpdateDto updateData)
         {
             try
             {
-                _logger.LogInformation("Saving POD entries for ID: {PODId}", id);
+                _logger.LogInformation("Saving POD with ID: {PODId}", id);
 
-                var success = await _podService.SavePODEntriesFromJsonAsync(id, entriesData);
+                // Basic validation
+                if (string.IsNullOrWhiteSpace(updateData.Name))
+                {
+                    return Json(new { success = false, message = "POD Name is required" });
+                }
+
+                var success = await _podService.UpdatePODAsync(id, updateData);
 
                 if (success)
                 {
-                    return Json(new { success = true, message = "POD entries saved successfully." });
+                    return Json(new
+                    {
+                        success = true,
+                        message = "POD saved successfully!",
+                        id = id,
+                        lastModified = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+                    });
                 }
                 else
                 {
                     return Json(new { success = false, message = "POD not found or could not be updated." });
                 }
             }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Validation error saving POD with ID: {PODId}", id);
+                return Json(new { success = false, message = ex.Message });
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving POD entries for ID: {PODId}", id);
-                return Json(new { success = false, message = "An error occurred while saving POD entries." });
+                _logger.LogError(ex, "Error saving POD with ID: {PODId}", id);
+                return Json(new { success = false, message = "An error occurred while saving the POD." });
             }
         }
 
         /// <summary>
-        /// Get POD data with entries for editing (AJAX)
+        /// Load POD data for JavaScript editing
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetPODWithEntries(int id)
+        public async Task<IActionResult> LoadPODForEdit(int id)
         {
             try
             {
-                var pod = await _podService.GetPODWithEntriesAsync(id);
+                var result = await _podService.GetPODForEditAsync(id);
 
-                if (pod == null)
+                if (result == null)
                 {
                     return Json(new { success = false, message = "POD not found." });
                 }
 
-                return Json(new
-                {
-                    success = true,
-                    pod = pod,
-                    message = "POD loaded successfully."
-                });
+                return Json(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting POD with entries for ID: {PODId}", id);
+                _logger.LogError(ex, "Error loading POD for edit with ID: {PODId}", id);
                 return Json(new { success = false, message = "Error loading POD data." });
             }
-        }    
-
+        }
 
         #region Index and List
 
@@ -164,7 +176,7 @@ namespace DT_PODSystem.Controllers
                 {
                     POD = new PODCreationDto
                     {
-                        AutomationStatus = AutomationStatus.PDF,
+                        AutomationStatus = AutomationStatus.PDF.ToString(),
                         Frequency = ProcessingFrequency.Monthly,
                         ProcessingPriority = 5,
                         RequiresApproval = false,
@@ -245,7 +257,7 @@ namespace DT_PODSystem.Controllers
                         CategoryId = pod.CategoryId,
                         DepartmentId = pod.DepartmentId,
                         VendorId = pod.VendorId,
-                        AutomationStatus = pod.AutomationStatus,
+                        AutomationStatus = pod.AutomationStatus.ToString(),
                         Frequency = pod.Frequency,
                         VendorSPOCUsername = pod.VendorSPOCUsername,
                         GovernorSPOCUsername = pod.GovernorSPOCUsername,

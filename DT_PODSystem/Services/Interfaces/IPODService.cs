@@ -25,10 +25,7 @@ namespace DT_PODSystem.Services.Interfaces
         /// </summary>
         Task<POD?> GetPODAsync(int id);
 
-        /// <summary>
-        /// Update existing POD
-        /// </summary>
-        Task<bool> UpdatePODAsync(int id, PODUpdateDto podData);
+        
 
         /// <summary>
         /// Delete POD (soft delete - sets IsActive = false)
@@ -67,10 +64,15 @@ namespace DT_PODSystem.Services.Interfaces
         /// Get POD display name with code
         /// </summary>
         string GetPODDisplayName(POD pod);
-        Task<PODDto?> GetPODWithEntriesAsync(int id);
-
-        Task<bool> SavePODEntriesFromJsonAsync(int podId, dynamic entriesJson);
+        
 
         #endregion
+         
+
+        Task<bool> UpdatePODAsync(int id, PODUpdateDto podData);
+
+        Task<PODResponseDto?> GetPODForEditAsync(int id);
+
+
     }
 }
