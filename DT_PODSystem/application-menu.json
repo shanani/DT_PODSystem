@@ -8,6 +8,24 @@
       "area": ""
     },
     {
+      "text": "PODs",
+      "icon": "fas fa-file-alt",
+      "children": [
+        {
+          "controller": "POD",
+          "action": "Index",
+          "text": "POD List",
+          "area": ""
+        },
+        {
+          "controller": "POD",
+          "action": "Create",
+          "text": "Create POD",
+          "area": ""
+        } 
+      ]
+    },
+    {
       "text": "Monthly Results",
       "icon": "fas fa-cogs",
       "children": [
