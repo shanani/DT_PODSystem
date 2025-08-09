@@ -20,7 +20,7 @@
 <h1 class="page-header"> POD File Automation <small>Manage document templates</small>
     @if (Model.CanCreate)
     {
-        <a href="@Url.Action("Wizard", "Template")" class="btn btn-green float-end">
+        <a href="@Url.Action("Create", "Template")" class="btn btn-green float-end">
             <i class="fa fa-plus"></i> Create Automation
         </a>
     }
@@ -151,7 +151,7 @@
                                             </a>
                                             @if (Model.CanEdit)
                                             {
-                                                <a href="@Url.Action("Wizard", "Template", new { Id = template.Id })" class="btn btn-outline-success btn-xs" title="Edit">
+                                                <a href="@Url.Action("Edit", "Template", new { Id = template.Id })" class="btn btn-outline-success btn-xs" title="Edit">
                                                     <i class="fa fa-edit"></i>
                                                 </a>
                                             }

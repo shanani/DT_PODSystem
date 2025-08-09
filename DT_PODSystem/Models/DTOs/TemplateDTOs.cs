@@ -7,7 +7,45 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace DT_PODSystem.Models.DTOs
 {
+    /// <summary>
+    /// Request model for creating template via Job page - Maps to existing Step1DataDto
+    /// </summary>
+    public class CreateTemplateRequest
+    {
+        [Required]
+        public int PODId { get; set; }
 
+        [Required]
+        [StringLength(200)]
+        public string Title { get; set; } = "";
+
+        [StringLength(500)]
+        public string? Description { get; set; }
+
+        [Required]
+        [StringLength(100)]
+        public string NamingConvention { get; set; } = "DOC_POD";
+
+        [StringLength(500)]
+        public string? TechnicalNotes { get; set; }
+
+        [Range(1, 10)]
+        public int ProcessingPriority { get; set; } = 5;
+
+        public bool HasFormFields { get; set; } = false;
+
+        [StringLength(10)]
+        public string Version { get; set; } = "1.0";
+    }
+
+    /// <summary>
+    /// Request model for updating template via Job page - Extends CreateTemplateRequest
+    /// </summary>
+    public class UpdateTemplateRequest : CreateTemplateRequest
+    {
+        [Required]
+        public int TemplateId { get; set; }
+    }
     public class Step1DataDto
     {
         // ✅ ALL PDFTEMPLATE ENTITY FIELDS (from PdfTemplate.cs)

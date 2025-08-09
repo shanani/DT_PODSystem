@@ -35,6 +35,162 @@ namespace DT_PODSystem.Controllers
             _logger = logger;
         }
 
+
+        // TemplateController.cs - Add these simple actions that reuse existing infrastructure
+
+        /// <summary>
+        /// GET: Create new template (Job page) - Reuses wizard Step1 model
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Create(int? podId = null)
+        {
+            try
+            {
+                // Reuse existing wizard infrastructure for Step 1
+                var wizardModel = await _templateService.GetWizardStateAsync(step: 1, templateId: null);
+
+                // Pre-select POD if provided
+                if (podId.HasValue && podId.Value > 0)
+                {
+                    wizardModel.Step1.PODId = podId.Value;
+                }
+
+                return View("CreateEdit", wizardModel.Step1);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error opening job page for new template");
+                TempData.Error("An error occurred. Please try again.", popup: false);
+                return RedirectToAction("Index");
+            }
+        }
+
+        /// <summary>
+        /// GET: Edit existing template (Job page) - Reuses wizard Step1 model
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            try
+            {
+                // Reuse existing wizard infrastructure for Step 1 with template ID
+                var wizardModel = await _templateService.GetWizardStateAsync(step: 1, templateId: id);
+
+                if (wizardModel?.Step1 == null)
+                {
+                    _logger.LogWarning("Template {TemplateId} not found", id);
+                    TempData.Error("Template not found.", popup: false);
+                    return RedirectToAction("Index");
+                }
+
+                return View("CreateEdit", wizardModel.Step1);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error opening job page for editing template {TemplateId}", id);
+                TempData.Error("An error occurred. Please try again.", popup: false);
+                return RedirectToAction("Index");
+            }
+        }
+
+        /// <summary>
+        /// POST: Create new template - Reuses existing CreateTemplateAfterStep1 logic
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CreateTemplate([FromBody] CreateTemplateRequest request)
+        {
+            try
+            {
+                if (request?.PODId == null || request.PODId <= 0)
+                {
+                    return Json(new { success = false, message = "POD selection is required" });
+                }
+
+                _logger.LogInformation("Creating new template for POD {PODId}", request.PODId);
+
+                // Reuse existing template creation logic
+                var template = await _templateService.CreateTemplateForPODAsync(request.PODId, request.NamingConvention ?? "DOC_POD");
+
+                if (template == null)
+                {
+                    return Json(new { success = false, message = "Failed to create template" });
+                }
+
+                // Save Step 1 data using existing service method
+                var step1Data = new Step1DataDto
+                {
+                    Title = request.Title,                    
+                    NamingConvention = request.NamingConvention ?? "DOC_POD",
+                    TechnicalNotes = request.TechnicalNotes,
+                    ProcessingPriority = request.ProcessingPriority,
+                    HasFormFields = request.HasFormFields,
+                    Version = request.Version ?? "1.0",
+                    Status = TemplateStatus.Draft,
+                    IsActive = true
+                };
+
+                var saveSuccess = await _templateService.SaveStep1DataAsync(template.Id, step1Data);
+
+                if (!saveSuccess)
+                {
+                    return Json(new { success = false, message = "Failed to save template data" });
+                }
+
+                _logger.LogInformation("Template {TemplateId} created successfully", template.Id);
+                return Json(new { success = true, templateId = template.Id, message = "Template created successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating template for POD {PODId}", request?.PODId);
+                return Json(new { success = false, message = "An error occurred while creating the template" });
+            }
+        }
+
+        /// <summary>
+        /// POST: Update existing template - Reuses existing SaveStep1Data logic  
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> UpdateTemplate([FromBody] UpdateTemplateRequest request)
+        {
+            try
+            {
+                if (request?.TemplateId == null || request.TemplateId <= 0)
+                {
+                    return Json(new { success = false, message = "Invalid template ID" });
+                }
+
+                _logger.LogInformation("Updating template {TemplateId}", request.TemplateId);
+
+                // Reuse existing Step 1 save logic
+                var step1Data = new Step1DataDto
+                {
+                    Title = request.Title,                     
+                    NamingConvention = request.NamingConvention ?? "DOC_POD",
+                    TechnicalNotes = request.TechnicalNotes,
+                    ProcessingPriority = request.ProcessingPriority,
+                    HasFormFields = request.HasFormFields,
+                    Version = request.Version ?? "1.0",
+                    Status = TemplateStatus.Draft,
+                    IsActive = true
+                };
+
+                var saveSuccess = await _templateService.SaveStep1DataAsync(request.TemplateId, step1Data);
+
+                if (!saveSuccess)
+                {
+                    return Json(new { success = false, message = "Failed to update template" });
+                }
+
+                _logger.LogInformation("Template {TemplateId} updated successfully", request.TemplateId);
+                return Json(new { success = true, templateId = request.TemplateId, message = "Template updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating template {TemplateId}", request?.TemplateId);
+                return Json(new { success = false, message = "An error occurred while updating the template" });
+            }
+        }
+
         // Add this method to your TemplateController.cs
 
         [HttpPost]

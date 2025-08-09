@@ -1,0 +1,759 @@
+﻿@model DT_PODSystem.Models.ViewModels.Step1TemplateDetailsViewModel
+@{
+    ViewData["Title"] = Model.TemplateId > 0 ? "Edit Template" : "Create Template";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .form-section h5 {
+            color: #4F008C;
+            margin-bottom: 1rem;
+        }
+
+        .required::after {
+            content: " *";
+            color: #dc3545;
+        }
+
+        .validation-item {
+            padding: 0.25rem 0;
+        }
+
+        .template-preview {
+            font-size: 0.9rem;
+        }
+
+        .template-preview strong {
+            color: #333;
+        }
+
+        #preview-convention {
+            background-color: #f8f9fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* POD Details Box Styling */
+        .pod-readonly-input {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            font-size: 1rem;
+            color: #495057;
+            min-height: 38px;
+            position: relative;
+        }
+
+        .pod-readonly-input::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 3px;
+            background-color: #4F008C;
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+
+        .pod-readonly-input i {
+            flex-shrink: 0;
+            width: 20px;
+        }
+
+        /* Hover effect for better UX */
+        .pod-readonly-input:hover {
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        /* Focus-like state for accessibility */
+        .pod-readonly-input:focus-within {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
+}
+
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb float-xl-end">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Template")">Automation</a></li>
+    <li class="breadcrumb-item active">@(Model.TemplateId > 0 ? "Edit" : "Create")</li>
+</ol>
+<!-- END breadcrumb -->
+
+<!-- BEGIN page-header -->
+<h1 class="page-header">
+    @(Model.TemplateId > 0 ? "Edit Template" : "Create Template") 
+    <small>@(Model.TemplateId > 0 ? "Update template configuration" : "Configure new template settings")</small>
+</h1>
+<!-- END page-header -->
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Template Configuration Form -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-cog me-2"></i>Template Configuration
+                </h4>
+            </div>
+            <div class="panel-body">
+                <form id="job-form">
+                    @Html.AntiForgeryToken()
+
+                    <!-- POD Selection/Display - Dynamic based on edit mode -->
+                    <div class="form-section">
+                        <h5><i class="fa fa-folder me-2"></i>Parent POD @(Model.TemplateId > 0 ? "Assignment" : "Selection")</h5>
+                        
+                        @if (Model.TemplateId > 0 && Model.PODId > 0)
+                        {
+                            <!-- Edit Mode: Show POD details in read-only box -->
+                            <div class="alert alert-info mb-3">
+                                <i class="fa fa-info-circle me-2"></i>
+                                <strong>Note:</strong> POD assignment cannot be changed for existing templates.
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Assigned POD</label>
+                                <div class="pod-readonly-input">
+                                    <i class="fa fa-folder me-2 text-primary"></i>
+                                    @Model.SelectedPOD.Name
+                                </div>
+                                <small class="form-text text-muted">
+                                    @{
+                                        var details = new List<string>();
+                                        if (Model.SelectedPOD.Vendor?.Name != null) details.Add($"Vendor: {Model.SelectedPOD.Vendor.Name}");
+                                        if (Model.SelectedPOD.Category?.Name != null) details.Add($"Category: {Model.SelectedPOD.Category.Name}");
+                                        if (Model.SelectedPOD.Department?.Name != null) details.Add($"Department: {Model.SelectedPOD.Department.Name}");
+                                    }
+                                    @(details.Any() ? string.Join(" • ", details) : "No additional details available")
+                                </small>
+                            </div>
+
+                            <!-- Hidden field to maintain POD ID -->
+                            <input type="hidden" id="pod-id" name="PODId" asp-for="PODId" value="@Model.PODId" />
+                        }
+                        else
+                        {
+                            <!-- Create Mode: Show dropdown selection -->
+                            <p class="text-muted small mb-3">
+                                Templates must belong to a POD (Point of Data). Select the POD that will own this template.
+                            </p>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label for="pod-id" class="form-label required">Parent POD</label>
+                                        <select id="pod-id" name="PODId" class="form-control" asp-for="PODId" required>
+                                            <option value="">Search and select a POD</option>
+                                            @foreach (var pod in Model.PODs)
+                                            {
+                                                <option value="@pod.Value" selected="@(pod.Value == Model.PODId.ToString())">
+                                                    @pod.Text
+                                                </option>
+                                            }
+                                        </select>
+                                        <span asp-validation-for="PODId" class="text-danger"></span>
+                                        <small class="form-text text-muted">
+                                            The template will inherit settings from the selected POD
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Template Technical Details -->
+                    <div class="form-section">
+                        <h5><i class="fa fa-file-alt me-2"></i>Template Details</h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="template-title" class="form-label required">Template Title</label>
+                                    <input type="text" id="template-title" name="Title" class="form-control"
+                                           asp-for="Title" placeholder="Enter template name"
+                                           maxlength="200" required />
+                                    <span asp-validation-for="Title" class="text-danger"></span>
+                                    <small class="form-text text-muted">Descriptive title for the template</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="naming-convention" class="form-label required">File Prefix Name</label>
+                                    <input type="text" id="naming-convention" name="NamingConvention" class="form-control"
+                                           asp-for="NamingConvention" placeholder="DOC_POD"
+                                           maxlength="100" required />
+                                    <span asp-validation-for="NamingConvention" class="text-danger"></span>
+                                    <small class="form-text text-muted">File prefix Name</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ADD: Description field that was missing -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="template-description" class="form-label">Description</label>
+                                    <textarea id="template-description" name="Description" class="form-control"
+                                              asp-for="Description" rows="3" maxlength="500"
+                                              placeholder="Optional description of the template purpose and usage"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                    <small class="form-text text-muted">Brief description of template purpose</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Processing Configuration -->
+                    <div class="form-section">
+                        <h5><i class="fa fa-settings me-2"></i>Processing Configuration</h5>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="processing-priority" class="form-label">Processing Priority</label>
+                                    <select id="processing-priority" name="ProcessingPriority" class="form-control" asp-for="ProcessingPriority">
+                                        <option value="1">1 - Critical</option>
+                                        <option value="2">2 - High</option>
+                                        <option value="3">3 - High</option>
+                                        <option value="4">4 - Medium-High</option>
+                                        <option value="5" selected>5 - Medium</option>
+                                        <option value="6">6 - Medium</option>
+                                        <option value="7">7 - Medium-Low</option>
+                                        <option value="8">8 - Low</option>
+                                        <option value="9">9 - Low</option>
+                                        <option value="10">10 - Very Low</option>
+                                    </select>
+                                    <small class="form-text text-muted">Processing queue priority (1 = highest)</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="version" class="form-label">Version</label>
+                                    <input type="text" id="version" name="Version" class="form-control"
+                                           asp-for="Version" value="1.0" maxlength="10" />
+                                    <small class="form-text text-muted">Template version number</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <div class="form-check mt-4">
+                                        <input type="checkbox" id="has-form-fields" name="HasFormFields"
+                                               class="form-check-input" asp-for="HasFormFields" />
+                                        <label class="form-check-label" for="has-form-fields">
+                                            <strong>Has Form Fields</strong>
+                                            <br>
+                                            <small class="text-muted">PDF contains interactive form fields</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="technical-notes" class="form-label">Technical Notes</label>
+                                    <textarea id="technical-notes" name="TechnicalNotes" class="form-control"
+                                              asp-for="TechnicalNotes" rows="2" maxlength="500"
+                                              placeholder="Optional technical notes for developers"></textarea>
+                                    <span asp-validation-for="TechnicalNotes" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="panel-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="@Url.Action("Index", "Template")" class="btn btn-outline-secondary">
+                            <i class="fa fa-arrow-left me-2"></i>Back to Templates
+                        </a>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success" id="save-btn">
+                            <i class="fa fa-save me-2"></i>@(Model.TemplateId > 0 ? "Update Template" : "Save Template")
+                        </button>
+                        
+                        <button type="button" class="btn btn-primary" id="save-and-map-btn">
+                            <i class="fa fa-map me-2"></i>Save & Map Fields
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Template Preview -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-eye me-2"></i>Template Preview
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div class="template-preview">
+                    <div class="mb-3">
+                        <strong>Assigned To POD:</strong><br>
+                        <span id="preview-pod" class="text-primary">
+                            @if (Model.SelectedPOD != null)
+                            {
+                                @Model.SelectedPOD.Name
+                            }
+                            else
+                            {
+                                @(Model.PODs?.FirstOrDefault(p => p.Value == Model.PODId.ToString())?.Text ?? "Not Selected")
+                            }
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Template Name:</strong><br>
+                        <span id="preview-name" class="text-primary">
+                            @(string.IsNullOrEmpty(Model.Title) ? "Template Name" : Model.Title)
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>File Naming Pattern:</strong><br>
+                        <code id="preview-convention">DOC_POD_202501_001.pdf</code>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Description:</strong><br>
+                        <span id="preview-description" class="text-muted">
+                            @(string.IsNullOrEmpty(Model.Description) ? "No description provided" : Model.Description)
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Priority:</strong><br>
+                        <span id="preview-priority" class="badge bg-info">Medium</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Version:</strong><br>
+                        <span id="preview-version" class="text-muted">
+                            @(string.IsNullOrEmpty(Model.Version) ? "1.0" : Model.Version)
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Form Fields:</strong><br>
+                        <span id="preview-form-fields" class="text-muted">
+                            @(Model.HasFormFields ? "Yes" : "No")
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Status:</strong><br>
+                        <span class="badge bg-warning">Draft</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Validation Status -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-check-circle me-2"></i>Validation Status
+                </h4>
+            </div>
+            <div class="panel-body">
+                <div id="validation-status">
+                    <div class="validation-item" data-field="pod">
+                        <i class="fa fa-circle text-muted me-2"></i>Parent POD Selection
+                    </div>
+                    <div class="validation-item" data-field="name">
+                        <i class="fa fa-circle text-muted me-2"></i>Template Name
+                    </div>
+                    <div class="validation-item" data-field="convention">
+                        <i class="fa fa-circle text-muted me-2"></i>Naming Convention
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fa fa-info-circle me-1"></i>
+                        Complete all required fields to save the template
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/select2/dist/js/select2.min.js"></script>
+    
+    <script>
+        // ✅ Standalone Job Page JavaScript - Adapted from wizard-step1.js
+        // =====================================================================
+
+        let jobData = @Html.Raw(Json.Serialize(Model));
+        let isSaving = false;
+
+        $(document).ready(function () {
+            initializeJobPage();
+        });
+
+        function initializeJobPage() {
+            console.log('🟢 Initializing Job Page: Template Configuration');
+
+            // Setup event handlers
+            setupJobEventHandlers();
+
+            // Update preview displays
+            updateAllPreviews();
+
+            // Initialize Select2 for POD selection
+            initializePODSelection();
+        }
+
+        function initializePODSelection() {
+            $('#pod-id').select2({
+                placeholder: 'Search and select a POD',
+                allowClear: true,
+                width: '100%'
+            });
+
+            // Auto-select POD if PODId is provided
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlPodId = urlParams.get('podId');
+            const modelPodId = jobData?.PODId;
+
+            const podIdToSelect = urlPodId || modelPodId;
+
+            if (podIdToSelect && podIdToSelect !== '0') {
+                $('#pod-id').val(podIdToSelect).trigger('change');
+                console.log('🎯 Auto-selected POD:', podIdToSelect);
+            }
+
+            // Update preview when POD changes
+            $('#pod-id').on('change', function () {
+                const selectedText = $(this).find('option:selected').text();
+                $('#preview-pod').text(selectedText || 'Not Selected');
+                updateValidationStatus('pod', $(this).val() !== '');
+
+                // Update technical notes when POD is selected
+                updateTechnicalNotesFromPOD();
+            });
+
+            // Initialize validation status
+            updateValidationStatus('pod', $('#pod-id').val() !== '');
+        }
+
+        function setupJobEventHandlers() {
+            // Template title updates
+            $('#template-title').on('input', function () {
+                const value = $(this).val();
+                $('#preview-name').text(value || 'Template Name');
+                updateValidationStatus('name', value.length >= 3);
+                updatePreviewConvention();
+            });
+
+            // Naming convention updates
+            $('#naming-convention').on('input', function () {
+                const value = $(this).val();
+                updateValidationStatus('convention', value.length >= 3 && /^[A-Z][A-Z0-9_]*$/.test(value));
+                updatePreviewConvention();
+            });
+
+            // Description updates
+            $('#template-description').on('input', function () {
+                const value = $(this).val();
+                $('#preview-description').text(value || 'No description provided');
+            });
+
+            // Processing priority updates
+            $('#processing-priority').on('change', function () {
+                const value = parseInt($(this).val());
+                const priorityText = getPriorityText(value);
+                $('#preview-priority').text(priorityText).attr('class', `badge ${getPriorityClass(value)}`);
+            });
+
+            // Form field detection checkbox
+            $('#has-form-fields').on('change', function () {
+                const hasFields = $(this).is(':checked');
+                $('#preview-form-fields').text(hasFields ? 'Yes' : 'No');
+            });
+
+            // Version input
+            $('#version').on('input', function () {
+                const value = $(this).val();
+                $('#preview-version').text(value || '1.0');
+            });
+
+            // Save button
+            $('#save-btn').on('click', function () {
+                saveTemplate(false);
+            });
+
+            // Save & Map Fields button
+            $('#save-and-map-btn').on('click', function () {
+                saveTemplate(true);
+            });
+
+            console.log('✅ Job page event handlers setup complete');
+        }
+
+        function updateAllPreviews() {
+            const templateName = $('#template-title').val();
+            $('#preview-name').text(templateName || 'Template Name');
+
+            const description = $('#template-description').val();
+            $('#preview-description').text(description || 'No description provided');
+
+            const priority = parseInt($('#processing-priority').val());
+            if (!isNaN(priority)) {
+                $('#preview-priority').text(getPriorityText(priority)).attr('class', `badge ${getPriorityClass(priority)}`);
+            }
+
+            updatePreviewConvention();
+
+            const hasFormFields = $('#has-form-fields').is(':checked');
+            $('#preview-form-fields').text(hasFormFields ? 'Yes' : 'No');
+
+            const version = $('#version').val();
+            $('#preview-version').text(version || '1.0');
+
+            console.log('🖼️ All previews updated');
+        }
+
+        function updatePreviewConvention() {
+            const convention = $('#naming-convention').val() || 'DOC_POD';
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+
+            const example = `${convention}_${year}${month}_001.pdf`;
+            $('#preview-convention').text(example);
+        }
+
+        function updateTechnicalNotesFromPOD() {
+            const podId = $('#pod-id').val();
+            const podText = $('#pod-id').find('option:selected').text();
+
+            if (podId && podText !== 'Search and select a POD') {
+                const currentNotes = $('#technical-notes').val();
+                if (!currentNotes) {
+                    $('#technical-notes').val(`Template created for ${podText} processing`);
+                }
+            }
+        }
+
+        function getPriorityText(priority) {
+            const priorityMap = {
+                1: 'Critical', 2: 'High', 3: 'High',
+                4: 'Medium-High', 5: 'Medium', 6: 'Medium',
+                7: 'Medium-Low', 8: 'Low', 9: 'Low', 10: 'Very Low'
+            };
+            return priorityMap[priority] || 'Medium';
+        }
+
+        function getPriorityClass(priority) {
+            if (priority <= 2) return 'bg-danger';
+            if (priority <= 4) return 'bg-warning';
+            if (priority <= 6) return 'bg-info';
+            return 'bg-secondary';
+        }
+
+        function updateValidationStatus(field, isValid) {
+            const item = $(`.validation-item[data-field="${field}"]`);
+            const icon = item.find('i');
+
+            if (isValid) {
+                icon.removeClass('text-muted text-danger fa-circle')
+                    .addClass('text-success fa-check-circle');
+            } else {
+                icon.removeClass('text-success text-danger fa-check-circle')
+                    .addClass('text-muted fa-circle');
+            }
+        }
+
+        function validateJobForm() {
+            const podId = $('#pod-id').val();
+            const templateName = $('#template-title').val()?.trim() || '';
+            const namingConvention = $('#naming-convention').val()?.trim() || '';
+
+            // Clear previous validation styles
+            $('#pod-id, #template-title, #naming-convention').removeClass('is-invalid');
+
+            let isValid = true;
+            const errors = [];
+
+            // POD selection validation
+            if (!podId || podId <= 0) {
+                errors.push('Please select a POD. Templates must belong to a POD.');
+                $('#pod-id').addClass('is-invalid').focus();
+                isValid = false;
+            }
+
+            // Template name validation
+            if (!templateName || templateName.length < 3) {
+                errors.push('Template name must be at least 3 characters');
+                $('#template-title').addClass('is-invalid');
+                if (isValid) $('#template-title').focus();
+                isValid = false;
+            } else if (templateName.length > 200) {
+                errors.push('Template name cannot exceed 200 characters');
+                $('#template-title').addClass('is-invalid');
+                if (isValid) $('#template-title').focus();
+                isValid = false;
+            }
+
+            // Naming convention validation
+            if (!namingConvention || namingConvention.length < 3) {
+                errors.push('Naming convention must be at least 3 characters');
+                $('#naming-convention').addClass('is-invalid');
+                if (isValid) $('#naming-convention').focus();
+                isValid = false;
+            }
+
+            if (!isValid) {
+                const errorMessage = errors.length === 1 ?
+                    errors[0] :
+                    `Please fix the following issues:\n• ${errors.join('\n• ')}`;
+                
+                // Using basic alert since we don't have the alert.js from wizard
+                alert(errorMessage);
+            }
+
+            return isValid;
+        }
+
+        function getJobFormData() {
+            const safeGetValue = (selector) => {
+                const element = $(selector);
+                return element.length > 0 ? (element.val() || '') : '';
+            };
+
+            const safeGetInt = (selector, defaultValue = null) => {
+                const value = safeGetValue(selector);
+                const parsed = parseInt(value);
+                return !isNaN(parsed) ? parsed : defaultValue;
+            };
+
+            console.log('🔍 [DEBUG] Collecting Job form data...');
+
+            const formData = {
+                TemplateId: jobData.TemplateId || 0,
+                PODId: safeGetInt('#pod-id'),
+                Title: safeGetValue('#template-title').trim(),
+                Description: safeGetValue('#template-description').trim(),
+                NamingConvention: safeGetValue('#naming-convention').trim() || 'DOC_POD',
+                TechnicalNotes: safeGetValue('#technical-notes').trim(),
+                ProcessingPriority: safeGetInt('#processing-priority', 5),
+                HasFormFields: $('#has-form-fields').is(':checked'),
+                Version: safeGetValue('#version').trim() || '1.0'
+            };
+
+            console.log('🔍 [DEBUG] Collected form data:', formData);
+            return formData;
+        }
+
+        async function saveTemplate(navigateToMapping = false) {
+            if (isSaving) {
+                console.log('⏳ Already saving, ignoring click');
+                return;
+            }
+
+            try {
+                // 1. Validate form
+                const isValid = validateJobForm();
+                if (!isValid) {
+                    console.log('❌ Validation failed - canceling save');
+                    return;
+                }
+
+                isSaving = true;
+                
+                // Update button states
+                const saveBtn = $('#save-btn');
+                const saveMapBtn = $('#save-and-map-btn');
+                
+                saveBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-2"></i>Saving...');
+                saveMapBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin me-2"></i>Saving...');
+
+                // 2. Get form data
+                const formData = getJobFormData();
+
+                // 3. Determine endpoint based on whether this is create or edit
+                const isEdit = formData.TemplateId > 0;
+                const endpoint = isEdit ? '/Template/UpdateTemplate' : '/Template/CreateTemplate';
+                
+                console.log(`💾 ${isEdit ? 'Updating' : 'Creating'} template...`);
+
+                // 4. Submit form data
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log(`✅ Template ${isEdit ? 'updated' : 'created'} successfully`);
+                    
+                    // Show success message
+                    alert(`Template ${isEdit ? 'updated' : 'created'} successfully!`);
+                    
+                    if (navigateToMapping) {
+                        // Navigate to field mapping page
+                        const templateId = result.templateId || formData.TemplateId;
+                        window.location.href = `/Template/Mapping/${templateId}`;
+                    } else {
+                        // Navigate back to templates list
+                        window.location.href = '/Template';
+                    }
+                } else {
+                    console.error(`❌ Failed to ${isEdit ? 'update' : 'create'} template:`, result.message);
+                    alert(result.message || `Failed to ${isEdit ? 'update' : 'create'} template`);
+                }
+
+            } catch (error) {
+                console.error(`❌ Error ${formData.TemplateId > 0 ? 'updating' : 'creating'} template:`, error);
+                alert(`An error occurred while ${formData.TemplateId > 0 ? 'updating' : 'creating'} the template`);
+            } finally {
+                isSaving = false;
+                
+                // Reset button states
+                $('#save-btn').prop('disabled', false).html('<i class="fa fa-save me-2"></i>' + (jobData.TemplateId > 0 ? 'Update Template' : 'Save Template'));
+                $('#save-and-map-btn').prop('disabled', false).html('<i class="fa fa-map me-2"></i>Save & Map Fields');
+            }
+        }
+    </script>
+}
