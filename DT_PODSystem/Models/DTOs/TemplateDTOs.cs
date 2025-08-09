@@ -367,10 +367,20 @@ namespace DT_PODSystem.Models.DTOs
      
 
     public class FileUploadDto
-    {
+    { 
+        public List<string> ValidationErrors { get; set; } = new();
+
+        public string UploadUrl { get; set; } = "/Upload/UploadPdf";
+        public string DeleteUrl { get; set; } = "/Upload/DeleteFile";
+        public string ValidateUrl { get; set; } = "/Upload/ValidatePdf";
+
+        public List<string> AcceptedTypes { get; set; } = new List<string> { ".pdf" };
+        public int MaxFiles { get; set; } = 5;
+        public long MaxFileSize { get; set; } = 10485760;
+        public bool AllowMultiple { get; set; } = true;
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
-        public List<string> ValidationErrors { get; set; } = new List<string>();
+       
 
         // File Information
         public string OriginalFileName { get; set; } = string.Empty;
@@ -391,6 +401,9 @@ namespace DT_PODSystem.Models.DTOs
         public bool HasFormFields { get; set; }
         public bool IsPrimary { get; set; }
         public DateTime UploadDate { get; internal set; }
+
+
+
     }
 
     public class FileUploadRequest

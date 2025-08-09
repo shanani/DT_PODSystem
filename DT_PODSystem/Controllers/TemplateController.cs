@@ -47,15 +47,15 @@ namespace DT_PODSystem.Controllers
             try
             {
                 // Reuse existing wizard infrastructure for Step 1
-                var wizardModel = await _templateService.GetWizardStateAsync(step: 1, templateId: null);
+                var wizardModel = await _templateService.GetTemplateDetailsAsync(templateId: null);
 
                 // Pre-select POD if provided
                 if (podId.HasValue && podId.Value > 0)
                 {
-                    wizardModel.Step1.PODId = podId.Value;
+                    wizardModel.PODId = podId.Value;
                 }
 
-                return View("CreateEdit", wizardModel.Step1);
+                return View("CreateEdit", wizardModel);
             }
             catch (Exception ex)
             {
@@ -74,16 +74,9 @@ namespace DT_PODSystem.Controllers
             try
             {
                 // Reuse existing wizard infrastructure for Step 1 with template ID
-                var wizardModel = await _templateService.GetWizardStateAsync(step: 1, templateId: id);
-
-                if (wizardModel?.Step1 == null)
-                {
-                    _logger.LogWarning("Template {TemplateId} not found", id);
-                    TempData.Error("Template not found.", popup: false);
-                    return RedirectToAction("Index");
-                }
-
-                return View("CreateEdit", wizardModel.Step1);
+                var model = await _templateService.GetTemplateDetailsAsync(templateId: id);
+                   
+                return View("CreateEdit", model);
             }
             catch (Exception ex)
             {
@@ -191,7 +184,7 @@ namespace DT_PODSystem.Controllers
             }
         }
 
-        // Add this method to your TemplateController.cs
+       
 
         [HttpPost]
         public async Task<IActionResult> CreateTemplateForPOD([FromBody] CreateTemplateForPODRequest request)
@@ -261,52 +254,24 @@ namespace DT_PODSystem.Controllers
         }
 
         
-        // Wizard method - Updated to open with empty model, no auto template creation
-        public async Task<IActionResult> Wizard(int step = 1, int? id = null)
+       
+        public async Task<IActionResult> Mapping(int id)
         {
             try
-            {
-                // ✅ REMOVED: Auto-creation of draft template
-                // ✅ NEW: If no ID provided, open with empty wizard model
-                if (id == null)
-                {
-                    _logger.LogInformation("Opening wizard with empty model for new POD creation, step {Step}", step);
-
-                    // Create empty wizard model for new POD creation
-                    var emptyModel = await _templateService.GetWizardStateAsync(step, null);
-                    emptyModel.CurrentStep = step;
-                    emptyModel.TotalSteps = 3;
-                    emptyModel.PODId = 0; // New POD
-                    emptyModel.TemplateId = 0; // New Template
-
-                    return View(emptyModel);
-                }
-
-                // Validate step range - 3 steps only
-                if (step < 1 || step > 3)
-                {
-                    _logger.LogWarning("Invalid wizard step {Step} for ID {Id}", step, id);
-                    return Redirect($"/Template/Wizard?step=1&id={id}");
-                }
-
+            { 
                 // Load existing wizard state (could be POD or Template)
-                var model = await _templateService.GetWizardStateAsync(step, id);
+                var model = await _templateService.GetTemplateMappingDataAsync(id);
                 if (model == null)
-                {
-                    _logger.LogError("Failed to load wizard state for ID {Id}, step {Step}", id.Value, step);
+                { 
                     TempData.Error("Failed to load wizard. Please try again.", popup: false);
                     return RedirectToAction("Index");
                 }
-
-                // ✅ ENSURE these are set correctly for 3-step wizard
-                model.CurrentStep = step;
-                model.TotalSteps = 3;
+                 
 
                 return View(model);
             }
             catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in wizard for ID {Id}, step {Step}", id, step);
+            { 
                 TempData.Error("An error occurred. Please try again.", popup: false);
                 return RedirectToAction("Index");
             }

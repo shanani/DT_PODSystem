@@ -1,0 +1,287 @@
+﻿@model TemplateViewModel
+@{
+    ViewData["Title"] = "Fields Mapping";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/dropzone/dist/min/dropzone.min.css" rel="stylesheet" />
+    <link href="~/site/template-mapping.css" rel="stylesheet" />
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-map me-2"></i>PDF Field Mapping
+                </h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>
+            </div>
+
+            <div class="panel-body">
+                <!-- ✅ TOP TOOLBAR -->
+                <div class="mapping-toolbar mb-3 p-2 bg-light rounded d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Mode Toggle -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-primary active mode-field-btn">
+                                <i class="fa fa-square-o me-1"></i>Fields
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary mode-anchor-btn">
+                                <i class="fa fa-anchor me-1"></i>Anchors
+                            </button>
+                        </div>
+
+                        <!-- Page Navigation -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-info nav-prev-btn" title="Previous Page">
+                                <i class="fa fa-arrow-left"></i>
+                            </button>
+                            <span class="btn btn-outline-secondary disabled btn-sm page-info-display">Page 1 of 1</span>
+                            <button type="button" class="btn btn-outline-info nav-next-btn" title="Next Page">
+                                <i class="fa fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <!-- Zoom Controls -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary zoom-in-btn" title="Zoom In">
+                                <i class="fa fa-search-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary zoom-out-btn" title="Zoom Out">
+                                <i class="fa fa-search-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary zoom-fit-btn" title="Fit to Width">
+                                <i class="fa fa-expand-arrows-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mode Indicator -->
+                    <span class="badge bg-primary px-3 py-2 mode-indicator">
+                        <i class="fa fa-square-o me-1"></i>Drawing Fields
+                    </span>
+                </div>
+
+                <div id="pdf-viewer-container" class="border rounded position-relative" style="min-height: 600px; background: #f8f9fa; overflow: auto;">
+                    <div class="text-center p-5" id="pdf-loading">
+                        <i class="fa fa-file-pdf fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">PDF Viewer</h5>
+                        <p class="text-muted">Loading PDF.js viewer...</p>
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <canvas id="pdf-canvas" style="display: none; cursor: crosshair;"></canvas>
+                    <div id="field-overlays" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
+                    <div id="selection-box" style="position: absolute; border: 2px dashed #A54EE1; background: rgba(165,78,225,0.1); display: none; pointer-events: none;"></div>
+                </div>
+
+                <!-- ✅ BOTTOM TOOLBAR -->
+                <div class="mapping-toolbar mt-3 p-2 bg-light rounded d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Mode Toggle -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-primary active mode-field-btn">
+                                <i class="fa fa-square-o me-1"></i>Fields
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary mode-anchor-btn">
+                                <i class="fa fa-anchor me-1"></i>Anchors
+                            </button>
+                        </div>
+
+                        <!-- Page Navigation -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-info nav-prev-btn" title="Previous Page">
+                                <i class="fa fa-arrow-left"></i>
+                            </button>
+                            <span class="btn btn-outline-secondary disabled btn-sm page-info-display">Page 1 of 1</span>
+                            <button type="button" class="btn btn-outline-info nav-next-btn" title="Next Page">
+                                <i class="fa fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <!-- Zoom Controls -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary zoom-in-btn" title="Zoom In">
+                                <i class="fa fa-search-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary zoom-out-btn" title="Zoom Out">
+                                <i class="fa fa-search-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary zoom-fit-btn" title="Fit to Width">
+                                <i class="fa fa-expand-arrows-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mode Indicator -->
+                    <span class="badge bg-primary px-3 py-2 mode-indicator">
+                        <i class="fa fa-square-o me-1"></i>Drawing Fields
+                    </span>
+                </div>
+
+                <div class="mt-2">
+                    <small class="text-muted">
+                        Zoom: <span id="zoom-level">100</span>% |
+                        Page: <span id="current-page">1</span> of <span id="total-pages">1</span> |
+                        <span id="field-mode-info">Fields: <span id="mapped-fields-count">0</span></span>
+                        <span id="anchor-mode-info" style="display: none;">Anchors: <span id="anchor-count-display">0</span></span>
+                    </small>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- ✅ ANCHOR POINTS PANEL (TOP) -->
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-anchor me-2 text-success"></i>
+                    Anchor Points
+                    <span class="badge bg-success ms-1" id="anchor-count-display-tab">0</span>
+                </h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <!-- Anchor Actions -->
+                <div class="mb-3 p-2 bg-light rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-warning" id="toggle-anchor-visibility" title="Show/Hide Anchors">
+                                <i class="fa fa-eye me-1"></i>Show
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" id="clear-anchors" title="Clear All Anchors">
+                                <i class="fa fa-trash"></i> Delete All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Anchors Table -->
+                <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                    <table class="table table-striped table-sm mb-0" id="anchor-points-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th width="45">Page</th>
+                                <th width="60">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- No Anchors Message -->
+                <div class="text-center p-3 text-muted" id="no-anchors-message">
+                    <i class="fa fa-anchor fa-2x mb-2"></i>
+                    <p class="mb-0">No anchor points set</p>
+                    <small>Switch to Anchors mode and draw on PDF</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✅ FIELD MAPPINGS PANEL (FULL HEIGHT) -->
+        <div class="panel panel-inverse mt-3 h-100">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <i class="fa fa-square-o me-2 text-primary"></i>
+                    Field Mappings
+                    <span class="badge bg-primary ms-1" id="field-count-display">0</span>
+                </h4>
+                <div class="panel-heading-btn">
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>
+            </div>
+            <div class="panel-body d-flex flex-column h-100">
+                <!-- Field Actions -->
+                <div class="mb-3 p-2 bg-light rounded">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-sm me-2" id="add-bulk-fields" onclick="toggleBulkFieldsMode()" title="Auto-create fields from table">
+                                <i class="fa fa-table me-1"></i>Add Bulk Fields
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="clear-selections">
+                                <i class="fa fa-trash me-1"></i>Delete All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fields Table (Flexible Height) -->
+                <div class="table-responsive flex-grow-1" style="overflow-y: auto; min-height: 0;">
+                    <table class="table table-striped table-sm mb-0" id="mapped-fields-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Field Name</th>
+                                <th width="45">Page</th>
+                                <th width="60">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- No Fields Message -->
+                <div class="text-center p-3 text-muted" id="no-fields-message">
+                    <i class="fa fa-crosshairs fa-2x mb-2"></i>
+                    <p class="mb-0">No fields mapped yet</p>
+                    <small>Switch to Fields mode and draw on PDF</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<partial name="_MappingModals" model="Model.FieldMapping" />
+
+
+@section Scripts {
+
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/dropzone/dist/min/dropzone.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- Pass server data to JavaScript -->
+    <script>
+        // Pass server data to JavaScript with explicit values
+        window.serverWizardData = @Html.Raw(Json.Serialize(Model));
+
+        // ✅ FIX: Explicitly set critical values that might not serialize
+        if (window.serverWizardData) { 
+
+            // ✅ KEEP THIS FIX: Ensure step2Data structure exists with files
+            window.serverWizardData.step2Data = window.serverWizardData.step2Data || {};
+            window.serverWizardData.step2Data.uploadedFiles = window.serverWizardData.step2?.uploadedFiles || [];
+            window.serverWizardData.step2Data.primaryFileName = window.serverWizardData.step2?.primaryFileName || null;
+        }
+
+          if (window.serverWizardData) {
+              window.serverWizardData.Step3 = window.serverWizardData.Step3 || {};
+              window.serverWizardData.Step3.FieldMappings = @Html.Raw(Json.Serialize(Model.FieldMapping.FieldMappings));
+              window.serverWizardData.Step3.TemplateAnchors = @Html.Raw(Json.Serialize(Model.FieldMapping.TemplateAnchors));
+          }
+
+    </script>
+
+    <!-- Core wizard JavaScript files -->
+    <script src="~/site/wizard-changes-detection.js"></script>
+    <script src="~/site/wizard-shared.js"></script>
+
+
+    <script src="~/site/wizard-step2.js"></script>
+
+    <script src="~/site/wizard-step3-bullk-add.js"></script>
+    <script src="~/site/wizard-step3-multiselect.js"></script>
+    <script src="~/site/wizard-step3.js"></script>
+}

@@ -9,155 +9,117 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace DT_PODSystem.Models.ViewModels
 {
- 
-    public class TemplateWizardViewModel
-    {
-        public int CurrentStep { get; set; } = 1;
-        public int TotalSteps { get; set; } = 3; // Only 3 steps now
-        public int TemplateId { get; set; }
-        public bool IsEditMode { get; set; } = false;
-
-        // Only 3 steps      
-        public Step1TemplateDetailsViewModel Step1 { get; set; } = new();
-        public Step2UploadViewModel Step2 { get; set; } = new();
-        public Step3MappingViewModel Step3 { get; set; } = new();
-
-        // Navigation properties
-        public List<WizardStepViewModel> Steps { get; set; } = new();
-        public bool CanNavigateBack { get; set; }
-        public bool CanNavigateForward { get; set; }
-        public bool CanSaveAndExit { get; set; }
-        public bool CanFinalize { get; set; }
-
-        // Template status
-        public TemplateStatus? Status { get; set; }
-        public string? StatusDisplayName { get; set; }
-        public string? StatusBadgeClass { get; set; }
-
-        // Progress tracking
-        public double ProgressPercentage => ((double)CurrentStep / TotalSteps) * 100;
-        public bool IsFirstStep => CurrentStep == 1;
-        public bool IsLastStep => CurrentStep == TotalSteps; // This is now step 3
-        public bool HasCompletedSteps => CurrentStep > 1;
-        public bool IsComplete => Status == TemplateStatus.Active || Status == TemplateStatus.Testing;
-
-        public int PODId { get; internal set; }
-
-        // Helper methods
-        public string GetStepTitle(int stepNumber)
-        {
-            return stepNumber switch
-            {
-                1 => "Upload PDF",
-                2 => "Template Details",
-                3 => "Map Fields & Finalize", // Updated title
-                _ => $"Step {stepNumber}"
-            };
-        }
-
-        public string GetStepDescription(int stepNumber)
-        {
-            return stepNumber switch
-            {
-                1 => "Upload your PDF document",
-                2 => "Configure template settings",
-                3 => "Map fields and create template", // Updated description
-                _ => ""
-            };
-        }
-
-        public string GetStepIcon(int stepNumber)
-        {
-            return stepNumber switch
-            {
-                1 => "fa-upload",
-                2 => "fa-cog",
-                3 => "fa-check-circle", // Changed from mapping to completion icon
-                _ => "fa-circle"
-            };
-        }
+    public class TemplateViewModel
+    {  
+        public TemplateDetailsViewModel TemplateDetails { get; set; } = new TemplateDetailsViewModel();
+         
+        public TemplateFieldMappingViewModel FieldMapping { get; set; } = new TemplateFieldMappingViewModel();
     }
 
-    // ✅ UPDATED: Step1PODDefinitionViewModel - Was Step1TemplateDefinitionViewModel
-    public class Step1PODDefinitionViewModel
+    public class  TemplateDetailsViewModel
     {
-        // ✅ POD BUSINESS FIELDS:
-        public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public string? PONumber { get; set; }
-        public string? ContractNumber { get; set; }
+        public bool IsEditMode { get; set; } = false;
+        public int TemplateId { get; set; }
 
-        // Organizational relationships
-        public int CategoryId { get; set; }
-        public int DepartmentId { get; set; }
-        public int? VendorId { get; set; }
+        [Required(ErrorMessage = "POD is required")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a POD")]
+        public int PODId { get; set; }
+       
+        // Available PODs for selection
+        public List<SelectListItem> PODs { get; set; } = new List<SelectListItem>();
 
-        // ✅ NEW POD CONFIGURATION:
-        public AutomationStatus AutomationStatus { get; set; } = AutomationStatus.PDF;
-        public ProcessingFrequency Frequency { get; set; } = ProcessingFrequency.Monthly;
-        public string? VendorSPOCUsername { get; set; }
-        public string? GovernorSPOCUsername { get; set; }
-        public string? FinanceSPOCUsername { get; set; }
+        // Selected POD object (populated when POD is selected)
+        public POD? SelectedPOD { get; set; } 
 
-        // Business configuration
-        public bool RequiresApproval { get; set; }
-        public bool IsFinancialData { get; set; }
-        public int ProcessingPriority { get; set; } = 5;
-        public PODStatus Status { get; set; } = PODStatus.Draft;
+        // Template Technical Configuration
+        [Required(ErrorMessage = "Template title is required")]
+        [StringLength(200, ErrorMessage = "Title cannot exceed 200 characters")]
+        public string Title { get; set; } = string.Empty;
 
-        // ✅ TEMPLATE TECHNICAL FIELDS:
+        [Required(ErrorMessage = "Naming convention is required")]
+        [StringLength(100, ErrorMessage = "Naming convention cannot exceed 100 characters")]
         public string NamingConvention { get; set; } = "DOC_POD";
+
+        [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
+        public string? Description { get; set; }
+
+        [StringLength(500, ErrorMessage = "Technical notes cannot exceed 500 characters")]
         public string? TechnicalNotes { get; set; }
+
+        // Template Status and Version
+        public TemplateStatus Status { get; set; } = TemplateStatus.Draft;
+        public string? Version { get; set; } = "1.0";
+
+        // PDF Processing Configuration
         public bool HasFormFields { get; set; } = false;
         public string? ExpectedPdfVersion { get; set; }
         public int? ExpectedPageCount { get; set; }
 
-        // UI Support - Dropdown options
-        public List<SelectListItem> Categories { get; set; } = new();
-        public List<SelectListItem> Departments { get; set; } = new();
-        public List<SelectListItem> Vendors { get; set; } = new();
-        public List<SelectListItem> AutomationStatusOptions { get; set; } = new();
-        public List<SelectListItem> FrequencyOptions { get; set; } = new();
+        // Processing Priority (can override POD priority)
+        [Range(1, 10, ErrorMessage = "Processing priority must be between 1 and 10")]
+        public int ProcessingPriority { get; set; } = 5;
 
-        // Validation support
-        public bool IsValid => !string.IsNullOrEmpty(Name) && CategoryId > 0 && DepartmentId > 0;
-        public List<string> ValidationErrors { get; set; } = new();
+        // Legacy properties - These should come from the selected POD
+        // Kept for backward compatibility but will be populated from SelectedPOD
+        public int CategoryId => SelectedPOD?.CategoryId ?? 0;
+        public int DepartmentId => SelectedPOD?.DepartmentId ?? 0;
+        public int? VendorId => SelectedPOD?.VendorId;
+        public bool RequiresApproval => SelectedPOD?.RequiresApproval ?? false;
+        public bool IsFinancialData => SelectedPOD?.IsFinancialData ?? false;
+
+        // Legacy dropdown lists - These should come from POD
+        public List<SelectListItem> Categories => SelectedPOD != null ?
+            new List<SelectListItem> { new SelectListItem { Value = SelectedPOD.CategoryId.ToString(), Text = SelectedPOD.Category?.Name ?? "Unknown" } } :
+            new List<SelectListItem>();
+
+        public List<SelectListItem> Departments => SelectedPOD != null ?
+            new List<SelectListItem> { new SelectListItem { Value = SelectedPOD.DepartmentId.ToString(), Text = SelectedPOD.Department?.Name ?? "Unknown" } } :
+            new List<SelectListItem>();
+
+        public List<SelectListItem> Vendors => SelectedPOD?.Vendor != null ?
+            new List<SelectListItem> { new SelectListItem { Value = SelectedPOD.VendorId.ToString(), Text = SelectedPOD.Vendor.Name } } :
+            new List<SelectListItem>();
+
+        // Validation and Preview Properties
+        public string NamePreview { get; set; } = string.Empty;
+        public bool IsNameValid { get; set; } = true;
+        public string? ValidationErrors { get; set; }
+
+        // Helper Methods
+        public string GetPODDisplayName()
+        {
+            return SelectedPOD != null ? $"{SelectedPOD.Name} ({SelectedPOD.PODCode})" : "No POD Selected";
+        }
+
+        public string GetOrganizationalSummary()
+        {
+            if (SelectedPOD == null) return "No organizational information";
+
+            var parts = new List<string>();
+            if (SelectedPOD.Category != null) parts.Add($"Category: {SelectedPOD.Category.Name}");
+            if (SelectedPOD.Department != null) parts.Add($"Department: {SelectedPOD.Department.Name}");
+            if (SelectedPOD.Vendor != null) parts.Add($"Vendor: {SelectedPOD.Vendor.Name}");
+
+            return string.Join(" | ", parts);
+        }
+
+        public string GetInheritedPriority()
+        {
+            return SelectedPOD != null ?
+                $"POD Priority: {SelectedPOD.ProcessingPriority}, Template Priority: {ProcessingPriority}" :
+                $"Template Priority: {ProcessingPriority}";
+        }
     }
-
-    // ✅ UNCHANGED: Step2UploadViewModel remains the same
-    public class Step2UploadViewModel
-    {
-        public List<FileUploadDto> UploadedFiles { get; set; } = new();
-        public string? PrimaryFileName { get; set; }
-        public int? PrimaryFileId { get; set; }
-        public bool HasFiles => UploadedFiles.Any();
-        public int FileCount => UploadedFiles.Count;
-        public bool HasPrimaryFile => !string.IsNullOrEmpty(PrimaryFileName);
-        public string? ErrorMessage { get; set; }
-        public List<string> ValidationErrors { get; set; } = new();
-
-        public string UploadUrl { get; set; } = "/Upload/UploadPdf";
-        public string DeleteUrl { get; set; } = "/Upload/DeleteFile";
-        public string ValidateUrl { get; set; } = "/Upload/ValidatePdf";
-
-        public List<string> AcceptedTypes { get; set; } = new List<string> { ".pdf" };
-        public int MaxFiles { get; set; } = 5;
-        public long MaxFileSize { get; set; } = 10485760;
-        public bool AllowMultiple { get; set; } = true; 
-        public bool HasValidFiles => UploadedFiles.Any(f => f.ContentType == "application/pdf");
-        public int TotalFiles => UploadedFiles.Count;
-        public long TotalSize => UploadedFiles.Sum(f => f.FileSize);
-
-       
-
-
-    }
+     
 
     // ✅ UNCHANGED: Step3MappingViewModel remains the same
-    public class Step3MappingViewModel
+    public class TemplateFieldMappingViewModel
     {
         public List<FieldMappingDto> FieldMappings { get; set; } = new List<FieldMappingDto>();
         public List<TemplateAnchorDto> TemplateAnchors { get; set; } = new List<TemplateAnchorDto>();
+
+        public FileUploadDto UploadedFile { get; set; } = new();
+       
         public string? PdfViewerUrl { get; set; }
         public int TotalPages { get; set; }
         public int CurrentPage { get; set; } = 1;
@@ -449,103 +411,6 @@ namespace DT_PODSystem.Models.ViewModels
      
 
 
-    // Step 1 - Template Details & Configuration (POD Architecture)
-    public class Step1TemplateDetailsViewModel
-    {
-
-
-        // POD Relationship - Templates belong to ONE POD
-        [Required(ErrorMessage = "POD is required")]
-        [Range(1, int.MaxValue, ErrorMessage = "Please select a POD")]
-        public int PODId { get; set; }
-
-        // Available PODs for selection
-        public List<SelectListItem> PODs { get; set; } = new List<SelectListItem>();
-
-        // Selected POD object (populated when POD is selected)
-        public POD? SelectedPOD { get; set; }
-         
-        public int TemplateId { get; set; }
-
-        // Template Technical Configuration
-        [Required(ErrorMessage = "Template title is required")]
-        [StringLength(200, ErrorMessage = "Title cannot exceed 200 characters")]
-        public string Title { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Naming convention is required")]
-        [StringLength(100, ErrorMessage = "Naming convention cannot exceed 100 characters")]
-        public string NamingConvention { get; set; } = "DOC_POD";
-
-        [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
-        public string? Description { get; set; }
-
-        [StringLength(500, ErrorMessage = "Technical notes cannot exceed 500 characters")]
-        public string? TechnicalNotes { get; set; }
-
-        // Template Status and Version
-        public TemplateStatus Status { get; set; } = TemplateStatus.Draft;
-        public string? Version { get; set; } = "1.0";
-
-        // PDF Processing Configuration
-        public bool HasFormFields { get; set; } = false;
-        public string? ExpectedPdfVersion { get; set; }
-        public int? ExpectedPageCount { get; set; }
-
-        // Processing Priority (can override POD priority)
-        [Range(1, 10, ErrorMessage = "Processing priority must be between 1 and 10")]
-        public int ProcessingPriority { get; set; } = 5;
-
-        // Legacy properties - These should come from the selected POD
-        // Kept for backward compatibility but will be populated from SelectedPOD
-        public int CategoryId => SelectedPOD?.CategoryId ?? 0;
-        public int DepartmentId => SelectedPOD?.DepartmentId ?? 0;
-        public int? VendorId => SelectedPOD?.VendorId;
-        public bool RequiresApproval => SelectedPOD?.RequiresApproval ?? false;
-        public bool IsFinancialData => SelectedPOD?.IsFinancialData ?? false;
-
-        // Legacy dropdown lists - These should come from POD
-        public List<SelectListItem> Categories => SelectedPOD != null ?
-            new List<SelectListItem> { new SelectListItem { Value = SelectedPOD.CategoryId.ToString(), Text = SelectedPOD.Category?.Name ?? "Unknown" } } :
-            new List<SelectListItem>();
-
-        public List<SelectListItem> Departments => SelectedPOD != null ?
-            new List<SelectListItem> { new SelectListItem { Value = SelectedPOD.DepartmentId.ToString(), Text = SelectedPOD.Department?.Name ?? "Unknown" } } :
-            new List<SelectListItem>();
-
-        public List<SelectListItem> Vendors => SelectedPOD?.Vendor != null ?
-            new List<SelectListItem> { new SelectListItem { Value = SelectedPOD.VendorId.ToString(), Text = SelectedPOD.Vendor.Name } } :
-            new List<SelectListItem>();
-
-        // Validation and Preview Properties
-        public string NamePreview { get; set; } = string.Empty;
-        public bool IsNameValid { get; set; } = true;
-        public string? ValidationErrors { get; set; }
-
-        // Helper Methods
-        public string GetPODDisplayName()
-        {
-            return SelectedPOD != null ? $"{SelectedPOD.Name} ({SelectedPOD.PODCode})" : "No POD Selected";
-        }
-
-        public string GetOrganizationalSummary()
-        {
-            if (SelectedPOD == null) return "No organizational information";
-
-            var parts = new List<string>();
-            if (SelectedPOD.Category != null) parts.Add($"Category: {SelectedPOD.Category.Name}");
-            if (SelectedPOD.Department != null) parts.Add($"Department: {SelectedPOD.Department.Name}");
-            if (SelectedPOD.Vendor != null) parts.Add($"Vendor: {SelectedPOD.Vendor.Name}");
-
-            return string.Join(" | ", parts);
-        }
-
-        public string GetInheritedPriority()
-        {
-            return SelectedPOD != null ?
-                $"POD Priority: {SelectedPOD.ProcessingPriority}, Template Priority: {ProcessingPriority}" :
-                $"Template Priority: {ProcessingPriority}";
-        }
-    }
-
+    
 
 }

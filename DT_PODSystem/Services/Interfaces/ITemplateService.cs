@@ -29,7 +29,9 @@ namespace DT_PODSystem.Services.Interfaces
         /// </summary>
         Task<bool> SaveStep1DataAsync(int templateId, Step1DataDto stepData);
 
-        
+        Task<TemplateDetailsViewModel> GetTemplateDetailsAsync(int? templateId = null);
+
+        Task<TemplateViewModel> GetTemplateMappingDataAsync(int? templateId = null);
 
         // Template lifecycle methods (unchanged)
         Task<bool> FinalizeTemplateAsync(int templateId);
@@ -43,13 +45,7 @@ namespace DT_PODSystem.Services.Interfaces
         Task<TemplateValidationResult> ValidateAndActivateTemplateAsync(int templateId, FinalizeTemplateRequest request);
         Task<TemplateValidationResult> ValidateTemplateCompletenessAsync(int templateId);
 
-        // ✅ UPDATED: Wizard state management for POD architecture
-        /// <summary>
-        /// Get wizard state - now works with POD parent-child relationship
-        /// </summary>
-        Task<TemplateWizardViewModel> GetWizardStateAsync(int step = 1, int? templateId = null);
-
-        // Core template CRUD operations
+       
         Task<PdfTemplate> CreateTemplateAsync(TemplateDefinitionDto definition);
         Task<PdfTemplate?> GetTemplateAsync(int id);
         Task<TemplateListViewModel> GetTemplateListAsync(TemplateFiltersViewModel filters);

@@ -1,4 +1,4 @@
-﻿@model DT_PODSystem.Models.ViewModels.Step1TemplateDetailsViewModel
+﻿@model DT_PODSystem.Models.ViewModels.TemplateDetailsViewModel
 @{
     ViewData["Title"] = Model.TemplateId > 0 ? "Edit Template" : "Create Template";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -652,34 +652,41 @@
         }
 
         function getJobFormData() {
-            const safeGetValue = (selector) => {
-                const element = $(selector);
-                return element.length > 0 ? (element.val() || '') : '';
-            };
+    const safeGetValue = (selector) => {
+        const element = $(selector);
+        return element.length > 0 ? (element.val() || '') : '';
+    };
 
-            const safeGetInt = (selector, defaultValue = null) => {
-                const value = safeGetValue(selector);
-                const parsed = parseInt(value);
-                return !isNaN(parsed) ? parsed : defaultValue;
-            };
+    const safeGetInt = (selector, defaultValue = null) => {
+        const value = safeGetValue(selector);
+        const parsed = parseInt(value);
+        return !isNaN(parsed) ? parsed : defaultValue;
+    };
 
-            console.log('🔍 [DEBUG] Collecting Job form data...');
+    console.log('🔍 [DEBUG] Collecting Job form data...');
 
-            const formData = {
-                TemplateId: jobData.TemplateId || 0,
-                PODId: safeGetInt('#pod-id'),
-                Title: safeGetValue('#template-title').trim(),
-                Description: safeGetValue('#template-description').trim(),
-                NamingConvention: safeGetValue('#naming-convention').trim() || 'DOC_POD',
-                TechnicalNotes: safeGetValue('#technical-notes').trim(),
-                ProcessingPriority: safeGetInt('#processing-priority', 5),
-                HasFormFields: $('#has-form-fields').is(':checked'),
-                Version: safeGetValue('#version').trim() || '1.0'
-            };
+    // ✅ FIX: Get template ID from URL route parameter instead of jobData
+    const urlPath = window.location.pathname;
+    const urlParts = urlPath.split('/');
+    const routeTemplateId = urlParts[urlParts.length - 1]; // Get last part of URL
+    const templateId = /^\d+$/.test(routeTemplateId) ? parseInt(routeTemplateId) : 0;
 
-            console.log('🔍 [DEBUG] Collected form data:', formData);
-            return formData;
-        }
+    const formData = {
+        TemplateId: templateId, // ✅ FIXED: Use route parameter instead of jobData.TemplateId
+        PODId: safeGetInt('#pod-id'),
+        Title: safeGetValue('#template-title').trim(),
+        Description: safeGetValue('#template-description').trim(),
+        NamingConvention: safeGetValue('#naming-convention').trim() || 'DOC_POD',
+        TechnicalNotes: safeGetValue('#technical-notes').trim(),
+        ProcessingPriority: safeGetInt('#processing-priority', 5),
+        HasFormFields: $('#has-form-fields').is(':checked'),
+        Version: safeGetValue('#version').trim() || '1.0'
+    };
+
+    console.log('🔍 [DEBUG] Collected form data:', formData);
+    console.log('🔍 [DEBUG] Template ID from URL:', templateId);
+    return formData;
+}
 
         async function saveTemplate(navigateToMapping = false) {
             if (isSaving) {
