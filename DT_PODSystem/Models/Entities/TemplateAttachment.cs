@@ -50,6 +50,11 @@ namespace DT_PODSystem.Models.Entities
 
         [ForeignKey("UploadedFileId")]
         public virtual UploadedFile UploadedFile { get; set; } = null!;
+        public string OriginalFileName { get; internal set; }
+        public string FilePath { get; internal set; }
+        public string SavedFileName { get; internal set; }
+        public long FileSize { get; internal set; }
+        public string ContentType { get; internal set; }
 
         // ✅ File information accessed via: UploadedFile.OriginalFileName, UploadedFile.SavedFileName, UploadedFile.FilePath
     }

@@ -64,6 +64,9 @@ namespace DT_PODSystem.Services.Implementation
                             .ThenInclude(p => p.Department)
                         .Include(t => t.POD)
                             .ThenInclude(p => p.Vendor)
+                        .Include(t => t.Attachments) // ← FIX: Load attachments for Step 2
+                        .Include(t => t.FieldMappings) // For Step 3
+                        .Include(t => t.TemplateAnchors) // For Step 3
                         .FirstOrDefaultAsync(t => t.Id == templateId.Value);
 
                     if (template != null)
@@ -121,6 +124,31 @@ namespace DT_PODSystem.Services.Implementation
                                     // Templates = null (don't set this)
                                 };
                             }
+                        }
+
+                        // ✅ FIX: Populate Step 2 with uploaded files from database
+                        if (template.Attachments != null && template.Attachments.Any())
+                        {
+                            model.Step2.UploadedFiles = template.Attachments.Select(att => new FileUploadDto
+                            {
+                                OriginalFileName = att.OriginalFileName,
+                                SavedFileName = att.SavedFileName,
+                                FilePath = att.FilePath,
+                                FileSize = att.FileSize,
+                                ContentType = att.ContentType,
+                                PageCount = att.PageCount ?? 0,
+                                UploadDate = att.CreatedDate
+                            }).ToList();
+
+                            // Set primary file
+                            var primaryAttachment = template.Attachments.FirstOrDefault(a => a.IsPrimary);
+                            if (primaryAttachment != null)
+                            {
+                                model.Step2.PrimaryFileName = primaryAttachment.SavedFileName;
+                                model.Step2.PrimaryFileId = primaryAttachment.Id;
+                                
+                            }
+                             
                         }
                     }
                 }

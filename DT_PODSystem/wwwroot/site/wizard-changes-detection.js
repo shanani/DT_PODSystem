@@ -35,26 +35,16 @@ function initializeChangeDetection() {
 // Capture initial state of all form data
 function captureInitialState() {
     originalData = {
-        step1: captureStep1Data(),
-        step2: captureStep2Data(),
+        step1: captureStep1Data(),        
         step3: captureStep3Data(),
-        step4: captureStep4Data()
+         
     };
 
     console.log('📸 Initial state captured:', originalData);
 }
+ 
 
-// Step-specific data capture functions
 function captureStep1Data() {
-    return {
-        uploadedFiles: $('#uploaded-files-list .file-item').length,
-        fileNames: $('#uploaded-files-list .file-item').map(function () {
-            return $(this).find('.file-name').text();
-        }).get()
-    };
-}
-
-function captureStep2Data() {
     return {
         name: $('#Name').val() || '',
         description: $('#Description').val() || '',
@@ -115,10 +105,9 @@ function setupChangeListeners() {
 // Check if current data differs from original
 function checkForChanges() {
     const currentData = {
+        
         step1: captureStep1Data(),
-        step2: captureStep2Data(),
-        step3: captureStep3Data(),
-        step4: captureStep4Data()
+        step3: captureStep3Data(),       
     };
 
     // Compare current data with original

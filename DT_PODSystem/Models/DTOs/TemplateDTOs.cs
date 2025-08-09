@@ -352,6 +352,7 @@ namespace DT_PODSystem.Models.DTOs
         public string PdfVersion { get; set; } = string.Empty;
         public bool HasFormFields { get; set; }
         public bool IsPrimary { get; set; }
+        public DateTime UploadDate { get; internal set; }
     }
 
     public class FileUploadRequest
