@@ -186,3 +186,33 @@
     
     
 }
+
+
+/* The exact wrapper that exists */
+/* Just use this - it's foolproof */
+.dataTables_info,
+.dt-info {
+    display: inline-block !important;
+    float: left !important;
+    width: auto !important;
+    margin: 0 !important;
+    margin-top: 1.1rem !important;  
+    font-size: 0.775rem !important;  
+    
+}
+
+.dt-paging {
+    display: inline-block !important;
+    float: right !important;
+    width: auto !important;
+    margin: 0 !important;
+    margin-top: 0.8rem !important;  
+}
+
+/* Clear floats */
+.dataTables_wrapper .row:last-child,
+.dataTables_wrapper > div:last-child {
+    overflow: hidden;
+    padding-top: 1rem; 
+    border-top: 1px solid #dee2e6;  
+}

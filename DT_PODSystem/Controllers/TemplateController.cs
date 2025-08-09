@@ -739,9 +739,7 @@ namespace DT_PODSystem.Controllers
                 return Json(new { success = false, message = "Failed to get field mapping" });
             }
         }
-
-        
-
+         
         // ✅ FIX: Add null check in SaveStep1 controller method
         // Replace the SaveStep1 method in TemplateController.cs
 
