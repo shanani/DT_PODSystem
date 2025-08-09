@@ -31,7 +31,7 @@ namespace DT_PODSystem.Services.Interfaces
 
         Task<TemplateDetailsViewModel> GetTemplateDetailsAsync(int? templateId = null);
 
-        Task<TemplateViewModel> GetTemplateMappingDataAsync(int? templateId = null);
+        Task<TemplateFieldMappingViewModel> GetTemplateMappingDataAsync(int? templateId = null);
 
         // Template lifecycle methods (unchanged)
         Task<bool> FinalizeTemplateAsync(int templateId);
