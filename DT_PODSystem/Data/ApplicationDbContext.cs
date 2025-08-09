@@ -266,8 +266,7 @@ namespace DT_PODSystem.Data
                 entity.HasIndex(e => e.OriginalFileName);
                 entity.HasIndex(e => e.SavedFileName).IsUnique(); // Ensure unique saved file names
                 entity.HasIndex(e => e.IsTemporary);
-                entity.HasIndex(e => e.CreatedDate);
-                entity.HasIndex(e => e.FileHash).IsUnique(); // Prevent duplicate file uploads
+                entity.HasIndex(e => e.CreatedDate);                 
                 entity.HasIndex(e => e.ExpiryDate);
                 entity.HasIndex(e => e.UploadSource);
 

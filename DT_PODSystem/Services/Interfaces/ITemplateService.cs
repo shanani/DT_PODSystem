@@ -29,10 +29,7 @@ namespace DT_PODSystem.Services.Interfaces
         /// </summary>
         Task<bool> SaveStep1DataAsync(int templateId, Step1DataDto stepData);
 
-        /// <summary>
-        /// Step 2: Save PDF file uploads and attachments
-        /// </summary>
-        Task<bool> SaveStep2DataAsync(int templateId, Step2DataDto stepData);
+        
 
         // Template lifecycle methods (unchanged)
         Task<bool> FinalizeTemplateAsync(int templateId);
