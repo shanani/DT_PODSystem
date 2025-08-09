@@ -124,6 +124,7 @@
             // ✅ KEEP THIS FIX: Ensure step2Data structure exists with files
             window.serverWizardData.step2Data = window.serverWizardData.step2Data || {};
             window.serverWizardData.step2Data.uploadedFiles = window.serverWizardData.step2?.uploadedFiles || [];
+            window.serverWizardData.step2Data.primaryFileName = window.serverWizardData.step2?.primaryFileName || null;
         }
 
         @if (Model.CurrentStep == 3)

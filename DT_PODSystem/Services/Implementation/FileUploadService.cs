@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -49,8 +49,6 @@ namespace DT_PODSystem.Services.Implementation
 
 
 
-
-
         public async Task<DeleteFileResult> DeleteFileWithAttachmentsAsync(string fileName)
         {
             var result = new DeleteFileResult();
@@ -59,6 +57,9 @@ namespace DT_PODSystem.Services.Implementation
             {
                 var uploadedFile = await _context.UploadedFiles
                     .Include(f => f.TemplateAttachments)
+                        .ThenInclude(ta => ta.Template) // Load template to handle primary file logic
+                    .Include(f => f.PODAttachments) // ← CRITICAL: Also load POD attachments
+                        .ThenInclude(pa => pa.POD) // Load POD for primary file logic
                     .FirstOrDefaultAsync(f => f.SavedFileName == fileName && f.IsActive);
 
                 if (uploadedFile == null)
@@ -67,15 +68,72 @@ namespace DT_PODSystem.Services.Implementation
                     return result;
                 }
 
-                // Delete associated TemplateAttachments first
-                var attachmentsToDelete = uploadedFile.TemplateAttachments.ToList();
-                var attachmentsCount = attachmentsToDelete.Count;
+                // Get all attachments to delete
+                var templateAttachmentsToDelete = uploadedFile.TemplateAttachments.ToList();
+                var podAttachmentsToDelete = uploadedFile.PODAttachments.ToList();
+                var totalAttachmentsCount = templateAttachmentsToDelete.Count + podAttachmentsToDelete.Count;
 
-                if (attachmentsToDelete.Any())
+                _logger.LogInformation("Deleting file {FileName} with {TemplateAttachments} template attachments and {PODAttachments} POD attachments",
+                    fileName, templateAttachmentsToDelete.Count, podAttachmentsToDelete.Count);
+
+                // ✅ Handle Template Attachments
+                if (templateAttachmentsToDelete.Any())
                 {
-                    _context.TemplateAttachments.RemoveRange(attachmentsToDelete);
-                    _logger.LogInformation("Deleting {Count} template attachments for file {FileName}",
-                        attachmentsCount, fileName);
+                    foreach (var attachment in templateAttachmentsToDelete)
+                    {
+                        if (attachment.IsPrimary && attachment.Template != null)
+                        {
+                            _logger.LogInformation("Removing primary file designation from template {TemplateId}", attachment.TemplateId);
+
+                            // Find another attachment to make primary (if any exist)
+                            var otherTemplateAttachments = await _context.TemplateAttachments
+                                .Where(ta => ta.TemplateId == attachment.TemplateId && ta.Id != attachment.Id)
+                                .ToListAsync();
+
+                            if (otherTemplateAttachments.Any())
+                            {
+                                // Make the first remaining attachment primary
+                                var newPrimary = otherTemplateAttachments.First();
+                                newPrimary.IsPrimary = true;
+                                _context.TemplateAttachments.Update(newPrimary);
+                                _logger.LogInformation("Set template attachment {AttachmentId} as new primary for template {TemplateId}",
+                                    newPrimary.Id, attachment.TemplateId);
+                            }
+                        }
+                    }
+
+                    // Remove template attachments
+                    _context.TemplateAttachments.RemoveRange(templateAttachmentsToDelete);
+                }
+
+                // ✅ Handle POD Attachments
+                if (podAttachmentsToDelete.Any())
+                {
+                    foreach (var attachment in podAttachmentsToDelete)
+                    {
+                        if (attachment.IsPrimary && attachment.POD != null)
+                        {
+                            _logger.LogInformation("Removing primary file designation from POD {PODId}", attachment.PODId);
+
+                            // Find another attachment to make primary (if any exist)
+                            var otherPODAttachments = await _context.PODAttachments
+                                .Where(pa => pa.PODId == attachment.PODId && pa.Id != attachment.Id)
+                                .ToListAsync();
+
+                            if (otherPODAttachments.Any())
+                            {
+                                // Make the first remaining attachment primary
+                                var newPrimary = otherPODAttachments.First();
+                                newPrimary.IsPrimary = true;
+                                _context.PODAttachments.Update(newPrimary);
+                                _logger.LogInformation("Set POD attachment {AttachmentId} as new primary for POD {PODId}",
+                                    newPrimary.Id, attachment.PODId);
+                            }
+                        }
+                    }
+
+                    // Remove POD attachments
+                    _context.PODAttachments.RemoveRange(podAttachmentsToDelete);
                 }
 
                 // Delete physical file
@@ -92,22 +150,27 @@ namespace DT_PODSystem.Services.Implementation
                 // Delete UploadedFile record
                 _context.UploadedFiles.Remove(uploadedFile);
 
-                // Save all changes
+                // Save all changes in single transaction
                 await _context.SaveChangesAsync();
 
                 result.Success = true;
-                result.Message = $"File deleted successfully. Removed {attachmentsCount} template attachments.";
-                result.AttachmentsDeleted = attachmentsCount;
+                result.Message = $"File deleted successfully. Removed {totalAttachmentsCount} attachments ({templateAttachmentsToDelete.Count} template, {podAttachmentsToDelete.Count} POD).";
+                result.AttachmentsDeleted = totalAttachmentsCount;
 
-                _logger.LogInformation("Successfully deleted file {FileName} with {AttachmentsCount} attachments",
-                    fileName, attachmentsCount);
+                _logger.LogInformation("Successfully deleted file {FileName} with {AttachmentsCount} total attachments",
+                    fileName, totalAttachmentsCount);
 
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting file {FileName}", fileName);
+                _logger.LogError(ex, "Error deleting file {FileName}. Inner Exception: {InnerException}",
+                    fileName, ex.InnerException?.Message);
                 result.Message = $"Error deleting file: {ex.Message}";
+                if (ex.InnerException != null)
+                {
+                    result.Message += $" Inner: {ex.InnerException.Message}";
+                }
                 return result;
             }
         }

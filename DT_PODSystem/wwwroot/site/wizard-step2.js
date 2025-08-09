@@ -24,20 +24,28 @@ function loadExistingFiles() {
     console.log('🟢 [STEP2] Loading existing files from server...');
     console.log('🟢 [STEP2] Full server data:', window.serverWizardData);
 
+    // Clear existing data first
+    wizardData.step2Data.uploadedFiles = [];
+    wizardData.step2Data.primaryFile = null;
+
     if (window.serverWizardData) {
         // Try multiple possible locations for the files
         let serverFiles = null;
         let primaryFileName = null;
 
-        // Check different possible locations
-        if (window.serverWizardData.uploadedFiles && window.serverWizardData.uploadedFiles.length > 0) {
-            serverFiles = window.serverWizardData.uploadedFiles;
-            primaryFileName = window.serverWizardData.primaryFileName;
-            console.log('🟢 [STEP2] Found files in root uploadedFiles:', serverFiles);
+        // Check different possible locations based on your actual data structure
+        if (window.serverWizardData.step2 && window.serverWizardData.step2.uploadedFiles && window.serverWizardData.step2.uploadedFiles.length > 0) {
+            serverFiles = window.serverWizardData.step2.uploadedFiles;
+            primaryFileName = window.serverWizardData.step2.primaryFileName;
+            console.log('🟢 [STEP2] Found files in step2.uploadedFiles:', serverFiles);
         } else if (window.serverWizardData.step2Data && window.serverWizardData.step2Data.uploadedFiles && window.serverWizardData.step2Data.uploadedFiles.length > 0) {
             serverFiles = window.serverWizardData.step2Data.uploadedFiles;
             primaryFileName = window.serverWizardData.step2Data.primaryFileName;
             console.log('🟢 [STEP2] Found files in step2Data.uploadedFiles:', serverFiles);
+        } else if (window.serverWizardData.uploadedFiles && window.serverWizardData.uploadedFiles.length > 0) {
+            serverFiles = window.serverWizardData.uploadedFiles;
+            primaryFileName = window.serverWizardData.primaryFileName;
+            console.log('🟢 [STEP2] Found files in root uploadedFiles:', serverFiles);
         } else if (window.serverWizardData.Step2 && window.serverWizardData.Step2.UploadedFiles && window.serverWizardData.Step2.UploadedFiles.length > 0) {
             serverFiles = window.serverWizardData.Step2.UploadedFiles;
             primaryFileName = window.serverWizardData.Step2.PrimaryFileName;
@@ -48,61 +56,61 @@ function loadExistingFiles() {
             console.log('🟢 [STEP2] Loading', serverFiles.length, 'files');
             console.log('🟢 [STEP2] Primary file should be:', primaryFileName);
 
-            // Clear and repopulate wizard data
-            wizardData.step2Data.uploadedFiles = [];
+            // Clear table body first
+            const tbody = $('#uploaded-files-table tbody');
+            tbody.empty();
 
-            // Display each file in table
-            serverFiles.forEach((fileData, index) => {
-                console.log('🟢 [STEP2] Adding file to table:', fileData);
-
-                // Normalize file data format and ensure uploadedAt is included
+            // Process each file and add to local data and UI
+            serverFiles.forEach((serverFile, index) => {
+                // Normalize file data structure (handle different property names)
                 const normalizedFile = {
-                    originalFileName: fileData.originalFileName || fileData.OriginalFileName || 'Unknown',
-                    savedFileName: fileData.savedFileName || fileData.SavedFileName || 'unknown',
-                    filePath: fileData.filePath || fileData.FilePath || '',
-                    contentType: fileData.contentType || fileData.ContentType || 'application/pdf',
-                    fileSize: fileData.fileSize || fileData.FileSize || 0,
-                    pageCount: fileData.pageCount || fileData.PageCount || 0,
-                    uploadedAt: fileData.uploadedAt || fileData.UploadedAt || new Date().toISOString(),
+                    originalFileName: serverFile.originalFileName || serverFile.OriginalFileName || 'Unknown',
+                    savedFileName: serverFile.savedFileName || serverFile.SavedFileName || serverFile.fileName || 'Unknown',
+                    filePath: serverFile.filePath || serverFile.FilePath || '',
+                    contentType: serverFile.contentType || serverFile.ContentType || 'application/pdf',
+                    fileSize: serverFile.fileSize || serverFile.FileSize || 0,
+                    pageCount: serverFile.pageCount || serverFile.PageCount || 0,
+                    uploadDate: serverFile.uploadDate || serverFile.UploadDate || null,
                     success: true
                 };
 
+                console.log(`🟢 [STEP2] Processing file ${index + 1}:`, normalizedFile);
+
+                // Add to local wizard data
                 wizardData.step2Data.uploadedFiles.push(normalizedFile);
 
-                // Check if this file should be primary
-                const shouldBePrimary = primaryFileName ?
-                    (normalizedFile.savedFileName === primaryFileName) :
-                    (index === 0);
+                // Add to UI table
+                const isPrimary = normalizedFile.savedFileName === primaryFileName;
+                addFileToTable(normalizedFile, isPrimary);
 
-                addFileToTable(normalizedFile, shouldBePrimary);
+                // Set primary file radio button if this is the primary file
+                if (isPrimary) {
+                    console.log('🟢 [STEP2] Setting primary file radio:', normalizedFile.savedFileName);
+                    $(`input[name="primaryFile"][value="${normalizedFile.savedFileName}"]`).prop('checked', true);
+                    wizardData.step2Data.primaryFile = normalizedFile.savedFileName;
+                }
             });
 
-            // Set correct primary selection if specified
-            if (primaryFileName) {
-                setTimeout(() => {
-                    const radioBtn = $(`input[name="primaryFile"][value="${primaryFileName}"]`);
-                    if (radioBtn.length > 0) {
-                        radioBtn.prop('checked', true);
-                        console.log('🟢 [STEP2] Primary file restored:', primaryFileName);
-                    } else {
-                        console.warn('🟢 [STEP2] Primary file not found in table:', primaryFileName);
-                        // If specified primary not found, select first file
-                        $('#uploaded-files-table tbody tr:first input[type="radio"]').prop('checked', true);
-                    }
-                }, 100);
-            } else {
-                console.log('🟢 [STEP2] No primary file specified, using first file');
-            }
-
+            // Update UI state
             updateFilesCount();
             $('#no-files-message').hide();
+            $('.upload-success-message').show();
+            $('.upload-validation-error').hide();
+
+            console.log('✅ [STEP2] Files loaded successfully. Local data:', wizardData.step2Data);
         } else {
-            console.log('🟢 [STEP2] No files found in any location');
+            console.log('🟡 [STEP2] No files found on server');
+            // Show empty state
             $('#no-files-message').show();
+            $('.upload-success-message').hide();
+            $('.upload-validation-error').show();
         }
     } else {
-        console.log('🟢 [STEP2] No server wizard data found');
+        console.log('🟡 [STEP2] No server data available');
+        // Show empty state
         $('#no-files-message').show();
+        $('.upload-success-message').hide();
+        $('.upload-validation-error').show();
     }
 }
 

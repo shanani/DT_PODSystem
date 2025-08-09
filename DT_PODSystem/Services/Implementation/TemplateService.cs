@@ -64,7 +64,8 @@ namespace DT_PODSystem.Services.Implementation
                             .ThenInclude(p => p.Department)
                         .Include(t => t.POD)
                             .ThenInclude(p => p.Vendor)
-                        .Include(t => t.Attachments) // ← FIX: Load attachments for Step 2
+                        .Include(t => t.Attachments) // ← Load attachments
+                            .ThenInclude(a => a.UploadedFile) // ← CRITICAL: Load the actual file data
                         .Include(t => t.FieldMappings) // For Step 3
                         .Include(t => t.TemplateAnchors) // For Step 3
                         .FirstOrDefaultAsync(t => t.Id == templateId.Value);
@@ -101,7 +102,6 @@ namespace DT_PODSystem.Services.Implementation
                                     IsFinancialData = template.POD.IsFinancialData,
                                     ProcessingPriority = template.POD.ProcessingPriority,
 
-                                    // ✅ CRITICAL: Create simple objects for related entities without circular references
                                     Category = template.POD.Category != null ? new Category
                                     {
                                         Id = template.POD.Category.Id,
@@ -119,35 +119,35 @@ namespace DT_PODSystem.Services.Implementation
                                         Id = template.POD.Vendor.Id,
                                         Name = template.POD.Vendor.Name
                                     } : null
-
-                                    // ✅ NO navigation collections that cause cycles
-                                    // Templates = null (don't set this)
                                 };
                             }
                         }
 
-                        // ✅ FIX: Populate Step 2 with uploaded files from database
+                        // ✅ FIX: Populate Step 2 with files via navigation property
                         if (template.Attachments != null && template.Attachments.Any())
                         {
-                            model.Step2.UploadedFiles = template.Attachments.Select(att => new FileUploadDto
-                            {
-                                OriginalFileName = att.OriginalFileName,
-                                SavedFileName = att.SavedFileName,
-                                FilePath = att.FilePath,
-                                FileSize = att.FileSize,
-                                ContentType = att.ContentType,
-                                PageCount = att.PageCount ?? 0,
-                                UploadDate = att.CreatedDate
-                            }).ToList();
+                            model.Step2.UploadedFiles = template.Attachments
+                                .Where(att => att.UploadedFile != null) // Ensure UploadedFile is loaded
+                                .Select(att => new FileUploadDto
+                                {
+                                    OriginalFileName = att.UploadedFile.OriginalFileName,
+                                    SavedFileName = att.UploadedFile.SavedFileName,
+                                    FilePath = att.UploadedFile.FilePath,
+                                    FileSize = att.UploadedFile.FileSize,
+                                    ContentType = att.UploadedFile.ContentType,
+                                    PageCount = att.PageCount ?? 0, // From TemplateAttachment
+                                    UploadDate = att.UploadedFile.CreatedDate
+                                }).ToList();
 
                             // Set primary file
                             var primaryAttachment = template.Attachments.FirstOrDefault(a => a.IsPrimary);
-                            if (primaryAttachment != null)
+                            if (primaryAttachment?.UploadedFile != null)
                             {
-                                model.Step2.PrimaryFileName = primaryAttachment.SavedFileName;
+                                model.Step2.PrimaryFileName = primaryAttachment.UploadedFile.SavedFileName;
                                 model.Step2.PrimaryFileId = primaryAttachment.Id;
-                                
+                               
                             }
+
                              
                         }
                     }
