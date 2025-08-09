@@ -1,125 +1,173 @@
-@model DT_PODSystem.Models.ViewModels.TemplateListViewModel
+@model TemplateListViewModel
 @{
-    ViewData["Title"] = "Template Management";
+    ViewData["Title"] = "Templates";
 }
 
 @section Styles {
     <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
-    
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css" rel="stylesheet" />
+    <link href="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css" rel="stylesheet" />
 }
 
-<div id="content" >
-    <div class="d-flex align-items-center mb-3">
-        <div>
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">Home</a></li>
-                <li class="breadcrumb-item active">Templates</li>
-            </ol>
-            <h1 class="page-header mb-0">Template Management</h1>
-        </div>
-        <div class="ms-auto">
-            @if (Model.CanCreate)
-            {
-                <a href="@Url.Action("Wizard", "Template")" class="btn btn-green btn-lg">
-                    <i class="fa fa-plus fa-fw me-1"></i> Create Template
-                </a>
-            }
-        </div>
-    </div>
+<!-- BEGIN breadcrumb -->
+<ol class="breadcrumb float-xl-end">
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Dashboard</a></li>
+    <li class="breadcrumb-item active">Templates</li>
+</ol>
+<!-- END breadcrumb -->
+<!-- BEGIN page-header -->
+<h1 class="page-header">Templates <small>Manage document templates</small></h1>
+<!-- END page-header -->
 
-    <div class="row">
-        <div class="col-xl-12">
-            <div class="panel panel-inverse">
-                <div class="panel-heading">
-                    <h4 class="panel-title">Templates <span class="badge bg-primary ms-2">@Model.Templates.Count</span></h4>
-                    <div class="panel-heading-btn">
-                        <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
-                        <a href="javascript:;" class="btn btn-xs btn-icon btn-green" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+<div class="row">
+    <div class="col-xl-12">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">Templates Management</h4>
+                <div class="panel-heading-btn">
+                    @if (Model.CanCreate)
+                    {
+                        <a href="@Url.Action("Wizard", "Template")" class="btn btn-xs btn-success me-2">
+                            <i class="fa fa-plus"></i> Create Template
+                        </a>
+                    }
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-default" data-toggle="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-success" data-toggle="panel-reload"><i class="fa fa-redo"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-warning" data-toggle="panel-collapse"><i class="fa fa-minus"></i></a>
+                </div>
+            </div>
+            <div class="panel-body">
+                <!-- FIRST ROW: Search and Filters -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="global-search" placeholder="Search templates...">
+                            <button class="btn btn-outline-secondary" type="button" id="clear-search">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <select id="category-filter" class="form-select">
+                            <option value="">All Categories</option>
+                            @foreach (var category in Model.Filters.CategoryOptions)
+                            {
+                                <option value="@category.Value">@category.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select id="department-filter" class="form-select">
+                            <option value="">All Departments</option>
+                            @foreach (var dept in Model.Filters.DepartmentOptions)
+                            {
+                                <option value="@dept.Value">@dept.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select id="status-filter" class="form-select">
+                            <option value="">All Status</option>
+                            @foreach (var status in Model.Filters.StatusOptions)
+                            {
+                                <option value="@status.Value">@status.Text</option>
+                            }
+                        </select>
                     </div>
                 </div>
 
-                <div class="panel-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="bulk-activate" disabled>
-                                    <i class="fa fa-play me-1"></i> Activate
+                <!-- SECOND ROW: Controls - Group Actions + Page Length | Export Buttons -->
+                <div class="row mb-4 align-items-center">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <!-- Group Actions Dropdown -->
+                            <div class="dropdown me-3">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                                    <i class="fa fa-cog me-1"></i> Actions
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="bulk-deactivate" disabled>
-                                    <i class="fa fa-pause me-1"></i> Deactivate
-                                </button>
-                                <button type="button" class="btn btn-outline-danger btn-sm" id="bulk-delete" disabled>
-                                    <i class="fa fa-trash me-1"></i> Delete
-                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="actionsDropdown">
+                                    <li><a class="dropdown-item" href="#" id="bulk-activate"><i class="fa fa-play me-2 text-success"></i>Activate Selected</a></li>
+                                    <li><a class="dropdown-item" href="#" id="bulk-deactivate"><i class="fa fa-pause me-2 text-warning"></i>Deactivate Selected</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#" id="bulk-delete"><i class="fa fa-trash me-2"></i>Delete Selected</a></li>
+                                </ul>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="global-search" placeholder="Search templates...">
-                                <button class="btn btn-outline-secondary" type="button" id="clear-search">
-                                    <i class="fa fa-times"></i>
-                                </button>
+                            <!-- Page Length -->
+                            <div class="d-flex align-items-center">
+                                <label class="form-label me-2 mb-0">Show:</label>
+                                <select id="page-length-select" class="form-select form-select-sm" style="width: auto;">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                                <span class="ms-2 text-muted">entries</span>
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-6">
+                        <!-- Export Buttons - DataTables will insert here -->
+                        <div id="datatable-buttons-container" class="text-end"></div>
+                    </div>
+                </div>
 
-                    <div class="table-responsive">
-                        <table id="templates-table" class="table table-striped table-bordered align-middle text-nowrap w-100">
-                            <thead>
-                                <tr>
-                                    <th width="30"><input type="checkbox" id="select-all"></th>
-                                    <th>Template Name</th>
-                                    <th>Category</th>
-                                    <th>Department</th>
-                                    <th>Status</th>
-                                    <th>Fields</th>
-                                    <th>Created</th>
-                                    <th>Modified</th>
-                                    <th width="120">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var template in Model.Templates)
-                                {
-                                    <tr>
-                                        <td><input type="checkbox" class="row-select" data-id="@template.Id"></td>
-                                        <td>
-                                            <div class="fw-bold">@template.Name</div>
-                                            @if (!string.IsNullOrEmpty(template.Description))
+                <!-- DATA TABLE -->
+                <div class="table-responsive">
+                    <table id="templates-table" class="table table-striped table-bordered align-middle text-nowrap w-100">
+                        <thead>
+                            <tr>
+                                <th width="30"><input type="checkbox" id="select-all"></th>
+                                <th>Template Name</th>
+                                <th>Category</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th>Fields</th>
+                                <th>Created</th>
+                                <th>Modified</th>
+                                <th width="120">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var template in Model.Templates)
+                            {
+                                <tr data-template-id="@template.Id">
+                                    <td><input type="checkbox" class="row-select" data-id="@template.Id"></td>
+                                    <td>
+                                        <div class="fw-bold">@template.PODName</div>
+                                        @if (!string.IsNullOrEmpty(template.Description))
+                                        {
+                                            <small class="text-muted">@template.Description</small>
+                                        }
+                                    </td>
+                                    <td class="text-nowrap">@template.CategoryName</td>
+                                    <td class="text-nowrap">@template.DepartmentName</td>
+                                    <td><span class="badge @template.StatusBadgeClass">@template.StatusDisplayName</span></td>
+                                    <td class="text-center"><span class="badge bg-info">@template.FieldMappingCount</span></td>
+                                    <td>@template.CreatedDate.ToString("dd/MM/yyyy")</td>
+                                    <td>@template.ModifiedDate.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="@Url.Action("Details", "Template", new { id = template.Id })" class="btn btn-outline-primary btn-xs" title="View">
+                                                <i class="fa fa-eye"></i>
+                                            </a>
+                                            @if (Model.CanEdit)
                                             {
-                                                <small class="text-muted">@template.Description</small>
-                                            }
-                                        </td>
-                                        <td class="text-nowrap">@template.CategoryName</td>
-                                        <td class="text-nowrap">@template.DepartmentName</td>
-                                        <td><span class="badge @template.StatusBadgeClass">@template.StatusDisplayName</span></td>
-                                        <td class="text-center"><span class="badge bg-info">@template.FieldMappingCount</span></td>
-                                        <td>@template.CreatedDate.ToString("dd/MM/yyyy")</td>
-                                        <td>@template.ModifiedDate.ToString("dd/MM/yyyy")</td>
-                                        <td class="text-center">
-                                            <div class="btn-group btn-group-sm">
-                                                <a href="@Url.Action("Details", "Template", new { id = template.Id })" class="btn btn-outline-primary btn-xs" title="View">
-                                                    <i class="fa fa-eye"></i>
+                                                <a href="@Url.Action("Wizard", "Template", new { Id = template.Id })" class="btn btn-outline-success btn-xs" title="Edit">
+                                                    <i class="fa fa-edit"></i>
                                                 </a>
-                                                @if (Model.CanEdit)
-                                                {
-                                                    <a href="@Url.Action("Wizard", "Template", new { Id = template.Id })" class="btn btn-outline-success btn-xs" title="Edit">
-                                                        <i class="fa fa-edit"></i>
-                                                    </a>
-                                                }
-                                                @if (Model.CanDelete)
-                                                {
-                                                    <button onclick="deleteTemplate(@template.Id)" class="btn btn-outline-danger btn-xs" title="Delete">
-                                                        <i class="fa fa-trash"></i>
-                                                    </button>
-                                                }
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                                            }
+                                            @if (Model.CanDelete)
+                                            {
+                                                <button onclick="deleteTemplate(@template.Id)" class="btn btn-outline-danger btn-xs" title="Delete">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -127,11 +175,45 @@
 </div>
 
 @section Scripts {
+    <!-- DataTables Core -->
     <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net/js/dataTables.min.js"></script>
     <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- Responsive -->
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+
+    <!-- Buttons -->
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-buttons-bs5/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-buttons/js/buttons.colVis.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/datatables.net-buttons/js/buttons.print.min.js"></script>
+
+    <!-- Export dependencies -->
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/pdfmake/build/pdfmake.min.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/pdfmake/build/vfs_fonts.js"></script>
+    <script src="https://ops_cdn.stc.com.sa/ca/plugins/jszip/dist/jszip.min.js"></script>
+
     <script>
+        // ============================================================================
+        // TEMPLATE INDEX - DATA TABLE MANAGEMENT (BASED ON YOUR LATEST CODE)
+        // ============================================================================
+
+        let table = null;
+        let selectedIds = [];
+
         $(document).ready(function() {
-            var table = $('#templates-table').DataTable({
+            initializeDataTable();
+            setupEventHandlers();
+        });
+
+        // ============================================================================
+        // DATA TABLE INITIALIZATION (UPDATED FROM YOUR ORIGINAL)
+        // ============================================================================
+
+        function initializeDataTable() {
+            table = $('#templates-table').DataTable({
                 responsive: true,
                 pageLength: 25,
                 lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
@@ -140,161 +222,339 @@
                     { targets: 0, orderable: false, searchable: false },
                     { targets: -1, orderable: false, searchable: false }
                 ],
+                dom: 'Brtip',
+                stateSave: true,
+                stateDuration: 60 * 60 * 24 * 7, // Save state for 7 days
                 language: {
                     emptyTable: 'No templates found',
                     info: 'Showing _START_ to _END_ of _TOTAL_ templates',
                     infoEmpty: 'No templates available',
                     infoFiltered: '(filtered from _MAX_ total templates)',
-                    lengthMenu: 'Show _MENU_ templates per page',
-                    search: 'Search:',
-                    paginate: { first: 'First', last: 'Last', next: 'Next', previous: 'Previous' }
+                    search: '',
+                    searchPlaceholder: 'Search templates...',
+                    paginate: {
+                        first: 'First',
+                        last: 'Last',
+                        next: 'Next',
+                        previous: 'Previous'
+                    }
                 },
-                drawCallback: function() {
-                    updateBulkActions();
+                buttons: [
+                    {
+                        extend: 'pageLength',
+                        className: 'btn-dark d-none' // Hide it since we have custom
+                    },
+                    {
+                        extend: 'colvis',
+                        className: 'btn-purple',
+                        text: '<i class="fa fa-columns"></i>'
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn-success',
+                        text: '<i class="fa fa-file-excel"></i>'
+                    },
+                    {
+                        text: '<i class="fa fa-undo"></i>',
+                        className: 'btn-warning',
+                        titleAttr: 'Reset Table State',
+                        action: function (e, dt, node, config) {
+                            // Clear saved state
+                            dt.state.clear();
+                            // Reset filters
+                            $('#global-search').val('');
+                            $('#category-filter, #department-filter, #status-filter').val('');
+                            // Reload table
+                            dt.search('').columns().search('').draw();
+                            // Reset page length
+                            dt.page.len(25).draw();
+                            // Reset column visibility to default
+                            dt.columns().visible(true);
+                            // Update custom controls
+                            $('#page-length-select').val(25);
+
+                            alert('Table state reset to defaults');
+                        }
+                    }
+                ],
+                initComplete: function() {
+                    // Move buttons to our custom container and hide default search
+                    $('.dt-buttons').appendTo('#datatable-buttons-container');
+                    $('.dataTables_filter').hide();
+                    $('.dataTables_length').hide();
+
+                    // Restore custom filter states if saved
+                    restoreCustomFilters();
+                },
+                stateLoadCallback: function(settings, callback) {
+                    // Load state from localStorage
+                    var data = JSON.parse(localStorage.getItem('DataTables_templates-table_/'));
+                    if (data) {
+                        // Restore custom filters
+                        setTimeout(() => {
+                            if (data.customFilters) {
+                                $('#global-search').val(data.customFilters.search || '');
+                                $('#category-filter').val(data.customFilters.category || '');
+                                $('#department-filter').val(data.customFilters.department || '');
+                                $('#status-filter').val(data.customFilters.status || '');
+                            }
+                        }, 100);
+                    }
+                    callback(data);
+                },
+                stateSaveCallback: function(settings, data) {
+                    // Save custom filters along with DataTables state
+                    data.customFilters = {
+                        search: $('#global-search').val(),
+                        category: $('#category-filter').val(),
+                        department: $('#department-filter').val(),
+                        status: $('#status-filter').val()
+                    };
+                    localStorage.setItem('DataTables_templates-table_/', JSON.stringify(data));
                 }
             });
 
-            $('#global-search').on('keyup', function() {
-                table.search(this.value).draw();
+            // Connect custom controls
+            connectCustomControls();
+        }
+
+        // ============================================================================
+        // CUSTOM CONTROLS CONNECTION
+        // ============================================================================
+
+        function connectCustomControls() {
+            // Page length control
+            $('#page-length-select').val(table.page.len()).on('change', function() {
+                table.page.len(parseInt($(this).val())).draw();
             });
 
+            // Global search - hide DataTables default search since we use custom
+            $('.dataTables_filter').hide();
+            $('#global-search').on('input', function() {
+                table.search($(this).val()).draw();
+            });
+
+            // Clear search
             $('#clear-search').on('click', function() {
                 $('#global-search').val('');
                 table.search('').draw();
             });
 
-            $('#select-all').on('click', function() {
-                var checked = this.checked;
-                $('.row-select').prop('checked', checked);
-                updateBulkActions();
+            // Column filters
+            $('#category-filter, #department-filter, #status-filter').on('change', function() {
+                applyFilters();
+            });
+        }
+
+        // ============================================================================
+        // FILTERING FUNCTIONALITY
+        // ============================================================================
+
+        function applyFilters() {
+            const categoryFilter = $('#category-filter').val();
+            const departmentFilter = $('#department-filter').val();
+            const statusFilter = $('#status-filter').val();
+
+            // Apply category filter
+            table.column(2).search(categoryFilter ? '^' + categoryFilter + '$' : '', true, false);
+
+            // Apply department filter
+            table.column(3).search(departmentFilter ? '^' + departmentFilter + '$' : '', true, false);
+
+            // Apply status filter
+            table.column(4).search(statusFilter ? statusFilter : '', true, false);
+
+            table.draw();
+            updateTableInfo();
+        }
+
+        // ============================================================================
+        // SELECTION MANAGEMENT (ENHANCED FROM YOUR BULK ACTIONS)
+        // ============================================================================
+
+        function setupEventHandlers() {
+            // Select all checkbox
+            $('#select-all').on('change', function() {
+                const isChecked = $(this).prop('checked');
+                $('.row-select:visible').prop('checked', isChecked);
+                updateSelectedIds();
+                toggleBulkActions();
             });
 
+            // Individual checkboxes (updated from your code)
             $(document).on('change', '.row-select', function() {
-                updateBulkActions();
-                var total = $('.row-select').length;
-                var checked = $('.row-select:checked').length;
-                $('#select-all').prop('checked', checked === total);
+                updateSelectedIds();
+                toggleBulkActions();
+
+                // Update select all checkbox state
+                const totalVisible = $('.row-select:visible').length;
+                const selectedVisible = $('.row-select:visible:checked').length;
+                $('#select-all').prop('checked', totalVisible > 0 && selectedVisible === totalVisible);
             });
 
-            $('#bulk-activate').on('click', function() {
-                bulkAction('activate');
-            });
-
-            $('#bulk-deactivate').on('click', function() {
-                bulkAction('deactivate');
-            });
-
-            $('#bulk-delete').on('click', function() {
-                bulkAction('delete');
-            });
-
-            function updateBulkActions() {
-                var selectedCount = $('.row-select:checked').length;
-                $('#bulk-activate, #bulk-deactivate, #bulk-delete').prop('disabled', selectedCount === 0);
-            }
-
-            function bulkAction(action) {
-                var selectedIds = [];
-                $('.row-select:checked').each(function() {
-                    selectedIds.push($(this).data('id'));
-                });
-
+            // Bulk action handlers (updated for dropdown)
+            $('#bulk-activate').on('click', function(e) {
+                e.preventDefault();
                 if (selectedIds.length === 0) return;
+                bulkUpdateStatus(selectedIds, 'Active');
+            });
 
-                var actionText = action === 'delete' ? 'delete' : 'update';
-                var message = 'Are you sure you want to ' + actionText + ' ' + selectedIds.length + ' template(s)?';
+            $('#bulk-deactivate').on('click', function(e) {
+                e.preventDefault();
+                if (selectedIds.length === 0) return;
+                bulkUpdateStatus(selectedIds, 'Inactive');
+            });
 
-                if (typeof swal !== 'undefined') {
-                    swal({
-                        title: 'Confirm ' + action.charAt(0).toUpperCase() + action.slice(1),
-                        text: message,
-                        icon: 'warning',
-                        buttons: {
-                            cancel: { text: 'Cancel', className: 'btn btn-default' },
-                            confirm: {
-                                text: action.charAt(0).toUpperCase() + action.slice(1),
-                                className: 'btn btn-' + (action === 'delete' ? 'danger' : 'primary')
-                            }
-                        }
-                    }).then(function(confirm) {
-                        if (confirm) {
-                            performBulkAction(action, selectedIds);
-                        }
-                    });
-                } else {
-                    if (confirm(message)) {
-                        performBulkAction(action, selectedIds);
-                    }
-                }
+            $('#bulk-delete').on('click', function(e) {
+                e.preventDefault();
+                if (selectedIds.length === 0) return;
+                bulkDeleteTemplates(selectedIds);
+            });
+        }
+
+        function updateSelectedIds() {
+            selectedIds = [];
+            $('.row-select:checked').each(function() {
+                selectedIds.push(parseInt($(this).data('id')));
+            });
+        }
+
+        function toggleBulkActions() {
+            const hasSelection = selectedIds.length > 0;
+            const actionsDropdown = $('#actionsDropdown');
+
+            if (hasSelection) {
+                actionsDropdown.prop('disabled', false);
+                actionsDropdown.html(`<i class="fa fa-cog me-1"></i> Actions (${selectedIds.length})`);
+            } else {
+                actionsDropdown.prop('disabled', true);
+                actionsDropdown.html('<i class="fa fa-cog me-1"></i> Actions');
+            }
+        }
+
+        // ============================================================================
+        // TABLE INFO UPDATE
+        // ============================================================================
+
+        function updateTableInfo() {
+            // This ensures the info display updates correctly with custom controls
+            setTimeout(() => {
+                const info = table.page.info();
+                const infoText = `Showing ${info.start + 1} to ${info.end} of ${info.recordsDisplay} templates`;
+                $('.dataTables_info').text(infoText);
+            }, 100);
+        }
+
+        // ============================================================================
+        // BULK OPERATIONS (ENHANCED FROM YOUR EXISTING CODE)
+        // ============================================================================
+
+        function bulkUpdateStatus(ids, status) {
+            if (!confirm(`Are you sure you want to ${status.toLowerCase()} ${ids.length} template(s)?`)) {
+                return;
             }
 
-            function performBulkAction(action, templateIds) {
-                $.post('@Url.Action("BulkAction", "Template")', { action: action, templateIds: templateIds }, function(result) {
-                    if (result.success) {
-                        showSuccess(result.message || action.charAt(0).toUpperCase() + action.slice(1) + ' completed successfully');
-                        location.reload();
+            $.ajax({
+                url: '@Url.Action("BulkUpdateStatus")',
+                type: 'POST',
+                data: {
+                    ids: ids,
+                    status: status,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert.success( response.message,{ popup: false});
+                        location.reload(); // Refresh the page
                     } else {
-                        showError(result.message || 'Action failed');
+                        alert.error(response.message);
                     }
-                }).fail(function() {
-                    showError('An error occurred');
-                });
+                },
+                error: function() {
+                    alert.error( 'An error occurred while updating templates.');
+                }
+            });
+        }
+
+        function bulkDeleteTemplates(ids) {
+            if (!confirm(`Are you sure you want to delete ${ids.length} template(s)? This action cannot be undone.`)) {
+                return;
             }
 
-            window.deleteTemplate = function(id) {
-                if (typeof swal !== 'undefined') {
-                    swal({
-                        title: 'Delete Template?',
-                        text: 'This action cannot be undone!',
-                        icon: 'warning',
-                        buttons: {
-                            cancel: { text: 'Cancel', className: 'btn btn-default' },
-                            confirm: { text: 'Delete', className: 'btn btn-danger' }
-                        }
-                    }).then(function(confirm) {
-                        if (confirm) {
-                            performDelete(id);
-                        }
-                    });
-                } else {
-                    if (confirm('Delete this template? This action cannot be undone!')) {
-                        performDelete(id);
-                    }
-                }
-            };
-
-            function performDelete(id) {
-                $.post('@Url.Action("Delete", "Template")', { id: id }, function(result) {
-                    if (result.success) {
-                        showSuccess('Template deleted successfully');
-                        location.reload();
+            $.ajax({
+                url: '@Url.Action("BulkDelete")',
+                type: 'POST',
+                data: {
+                    ids: ids,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert.success( response.message,{ popup: false});
+                        location.reload(); // Refresh the page
                     } else {
-                        showError(result.message || 'Delete failed');
+                        alert.error( response.message);
                     }
-                }).fail(function() {
-                    showError('An error occurred');
-                });
+                },
+                error: function() {
+                    alert.error( 'An error occurred while deleting templates.');
+                }
+            });
+        }
+
+        // ============================================================================
+        // STATE MANAGEMENT
+        // ============================================================================
+
+        function restoreCustomFilters() {
+            // This function is called on table initialization to restore custom filters
+            // The actual restoration happens in stateLoadCallback
+        }
+
+        // ============================================================================
+        // EXPORT FUNCTIONALITY - NOW HANDLED BY DATATABLES BUTTONS + STATE SAVE
+        // ============================================================================
+
+        // Export functionality is now handled automatically by DataTables buttons extension
+        // The buttons are: Excel, Column Visibility, and Reset State
+        // State Save: Automatically saves table state (page, sorting, column visibility, etc.)
+        // Reset Button: Clears saved state and resets everything to defaults
+
+        // ============================================================================
+        // INDIVIDUAL TEMPLATE OPERATIONS (YOUR EXISTING FUNCTION)
+        // ============================================================================
+
+        function deleteTemplate(id) {
+            if (!confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
+                return;
             }
 
-            function showSuccess(message) {
-                if (typeof gritter !== 'undefined') {
-                    gritter.add({ title: 'Success', text: message, class_name: 'my-sticky-class' });
-                } else if (typeof alert !== 'undefined' && alert.success) {
-                    alert.success(message);
-                } else {
-                    console.log('Success: ' + message);
+            $.ajax({
+                url: '@Url.Action("Delete")/' + id,
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert.success( 'Template deleted successfully.',{ popup: false});
+                        // Remove the row from the table
+                        table.row($(`tr[data-template-id="${id}"]`)).remove().draw();
+                        updateTableInfo();
+                    } else {
+                        alert.error( response.message);
+                    }
+                },
+                error: function() {
+                    alert.error('An error occurred while deleting the template.');
                 }
-            }
+            });
+        }
 
-            function showError(message) {
-                if (typeof gritter !== 'undefined') {
-                    gritter.add({ title: 'Error', text: message, class_name: 'gritter-error' });
-                } else if (typeof alert !== 'undefined' && alert.error) {
-                    alert.error(message);
-                } else {
-                    console.error('Error: ' + message);
-                }
-            }
-        });
+        // ============================================================================
+        // UTILITY FUNCTIONS
+        // ============================================================================
+
+         
     </script>
 }
