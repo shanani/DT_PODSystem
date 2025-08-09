@@ -1009,15 +1009,15 @@ function loadServerAnchorPoints() {
 function getPrimaryPdfFile() {
     console.log('🔍 [DEBUG] getPrimaryPdfFile() called');
 
-    const step1Data = window.serverWizardData?.step1;
-    if (step1Data) {
-        if (step1Data.primaryFileName || step1Data.PrimaryFileName) {
-            const primaryFile = step1Data.primaryFileName || step1Data.PrimaryFileName;
+    const step2Data = window.serverWizardData?.step2;
+    if (step2Data) {
+        if (step2Data.primaryFileName || step2Data.PrimaryFileName) {
+            const primaryFile = step2Data.primaryFileName || step2Data.PrimaryFileName;
             console.log('✅ [DEBUG] Found primary file:', primaryFile);
             return primaryFile;
         }
 
-        const uploadedFiles = step1Data.uploadedFiles || step1Data.UploadedFiles;
+        const uploadedFiles = step2Data.uploadedFiles || step2Data.UploadedFiles;
         if (uploadedFiles && uploadedFiles.length > 0) {
             const firstFile = uploadedFiles[0];
             const fileName = firstFile.savedFileName ||
@@ -1033,16 +1033,16 @@ function getPrimaryPdfFile() {
         }
     }
 
-    if (wizardData?.step1) {
-        const step1WizardData = wizardData.step1;
+    if (wizardData?.step2) {
+        const step2WizardData = wizardData.step2;
 
-        if (step1WizardData.primaryFileName || step1WizardData.PrimaryFileName) {
-            const primaryFile = step1WizardData.primaryFileName || step1WizardData.PrimaryFileName;
+        if (step2WizardData.primaryFileName || step2WizardData.PrimaryFileName) {
+            const primaryFile = step2WizardData.primaryFileName || step2WizardData.PrimaryFileName;
             console.log('✅ [DEBUG] Found primary file in wizardData:', primaryFile);
             return primaryFile;
         }
 
-        const files = step1WizardData.uploadedFiles || step1WizardData.UploadedFiles;
+        const files = step2WizardData.uploadedFiles || step2WizardData.UploadedFiles;
         if (files && files.length > 0) {
             const firstFile = files[0];
             const fileName = firstFile.savedFileName ||

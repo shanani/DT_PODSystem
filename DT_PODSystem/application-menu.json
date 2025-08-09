@@ -8,25 +8,7 @@
       "area": ""
     },
     {
-      "text": "PODs",
-      "icon": "fas fa-file-alt",
-      "children": [
-        {
-          "controller": "POD",
-          "action": "Index",
-          "text": "POD List",
-          "area": ""
-        },
-        {
-          "controller": "POD",
-          "action": "Create",
-          "text": "Create POD",
-          "area": ""
-        } 
-      ]
-    },
-    {
-      "text": "Monthly Results",
+      "text": "Reports",
       "icon": "fas fa-cogs",
       "children": [
         {
@@ -48,15 +30,10 @@
           "area": ""
         }
       ]
-    }
-  ],
-
-  "adminApplicationMenu": [
+    },    
     {
-      "text": "Manage Queries",
+      "text": "Queries",
       "icon": "fas fa-project-diagram",
-      //"badge": "Admin",
-      //"adminOnly": "true",
       "children": [
         {
           "controller": "Query",
@@ -72,10 +49,29 @@
           "highlight": "true"
         }
       ]
-    },
-     
+    }
+  ],
+  "adminApplicationMenu": [
     {
-      "text": "Manage Templates",
+      "text": "PODs",
+      "icon": "fas fa-file-alt",
+      "children": [
+        {
+          "controller": "POD",
+          "action": "Index",
+          "text": "POD List",
+          "area": ""
+        },
+        {
+          "controller": "POD",
+          "action": "Create",
+          "text": "Create POD",
+          "area": ""
+        }
+      ]
+    },
+    {
+      "text": "Automation",
       "icon": "fas fa-file-alt",
       //"badge": "Admin",
       //"adminOnly": "true",
@@ -83,20 +79,18 @@
         {
           "controller": "Template",
           "action": "Index",
-          "text": "All Templates",
+          "text": "All PDF Jobs",
           "area": ""
         },
         {
           "controller": "Template",
           "action": "Wizard",
-          "text": "Create Template",
+          "text": "Create PDF Job",
           "area": "",
           "highlight": "true"
         }
       ]
     },
-
-
 
     {
       "text": "Configuration",
@@ -110,7 +104,7 @@
           "text": "Categories",
           "area": ""
         },
-       
+
         {
           "controller": "Lookups",
           "action": "Departments",
