@@ -977,7 +977,7 @@ namespace DT_PODSystem.Services.Implementation
                 ModifiedDate = t.ModifiedDate ?? t.CreatedDate,
                 ProcessedCount = t.ProcessedCount,
                 IsFinancialData = t.POD.IsFinancialData, // ✅ UPDATED: From POD
-                RequiresApproval = t.POD.RequiresApproval, // ✅ UPDATED: From POD
+                RequiresApproval = t.POD.RequiresApproval, // ✅ UPDATED: From POD               
                 CreatedBy = t.CreatedBy ?? "System"
             }).ToList();
 

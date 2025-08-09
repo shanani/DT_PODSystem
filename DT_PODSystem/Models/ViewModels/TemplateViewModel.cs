@@ -300,6 +300,7 @@ namespace DT_PODSystem.Models.ViewModels
 
         public List<string> Actions { get; set; } = new List<string>();
         public string Name { get; internal set; }
+        public string Organization { get; internal set; }
     }
 
     // ✅ UPDATED: TemplateFiltersViewModel - Now includes POD filters
