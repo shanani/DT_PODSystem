@@ -20,7 +20,7 @@ namespace DT_PODSystem.Services.Interfaces
         // Search and filter methods
         Task<List<MappedFieldInfo>> GetMappedFieldsInfoAsync(List<int> fieldIds);
         Task<List<TemplateFilterOption>> GetTemplatesForFilterAsync();
-        Task<UpdatePrimaryFileResult> UpdatePrimaryFileWithAttachmentsAsync(int templateId, string primaryFileName);
+        
         Task<SearchMappedFieldsResponse> SearchMappedFieldsAsync(SearchMappedFieldsRequest request);
 
         // ✅ UPDATED: Step-specific save methods for POD architecture
@@ -51,10 +51,10 @@ namespace DT_PODSystem.Services.Interfaces
         Task<TemplateListViewModel> GetTemplateListAsync(TemplateFiltersViewModel filters);
         Task<bool> DeleteTemplateAsync(int id);
         Task<TemplateDefinitionDto> ExportTemplateAsync(int id);
-        Task<bool> UpdatePrimaryFileAsync(int templateId, string primaryFileName);
+        
 
         // Helper methods
-        Task<List<TemplateAttachment>> GetTemplateAttachmentsAsync(int templateId);
+        
         Task<List<FieldMapping>> GetTemplateFieldMappingsAsync(int templateId);
     }
 }

@@ -324,55 +324,8 @@ namespace DT_PODSystem.Controllers
             }
         }
 
-
-
-
-        /// <summary>
-        /// Update primary file selection via AJAX and ensure TemplateAttachments are created
-        /// </summary>
-        [HttpPost]
-        public async Task<IActionResult> UpdatePrimaryFile([FromBody] UpdatePrimaryFileRequest request)
-        {
-            try
-            {
-                if (request?.TemplateId == null || string.IsNullOrEmpty(request.PrimaryFileName))
-                {
-                    return Json(new { success = false, message = "Invalid request data" });
-                }
-
-                _logger.LogInformation("Updating primary file for template {TemplateId} to {PrimaryFileName}",
-                    request.TemplateId, request.PrimaryFileName);
-
-                var result = await _templateService.UpdatePrimaryFileWithAttachmentsAsync(request.TemplateId, request.PrimaryFileName);
-
-                if (result.Success)
-                {
-                    return Json(new
-                    {
-                        success = true,
-                        message = "Primary file updated successfully",
-                        data = new
-                        {
-                            primaryFileName = request.PrimaryFileName,
-                            attachmentsCreated = result.AttachmentsCreated,
-                            attachmentsUpdated = result.AttachmentsUpdated
-                        }
-                    });
-                }
-                else
-                {
-                    return Json(new { success = false, message = result.Message });
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating primary file for template {TemplateId}", request?.TemplateId);
-                return Json(new { success = false, message = "An error occurred while updating primary file" });
-            }
-        }
-
-
-        // Add this new method to TemplateController.cs
+         
+       
 
         /// <summary>
         /// Get templates list for dropdown filters (AJAX)

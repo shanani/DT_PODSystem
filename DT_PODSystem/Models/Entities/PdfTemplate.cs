@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -8,7 +8,8 @@ namespace DT_PODSystem.Models.Entities
 {
     /// <summary>
     /// PdfTemplate - Simplified technical entity for PDF processing configuration
-    /// Now a child of POD. Contains only technical PDF processing settings.
+    /// Now a child of POD with direct file relationship (no TemplateAttachment table)
+    /// Contains only technical PDF processing settings.
     /// Business logic (Name, Category, Department, Vendor, Description) moved to POD parent.
     /// </summary>
     public class PdfTemplate : BaseEntity
@@ -17,11 +18,12 @@ namespace DT_PODSystem.Models.Entities
         [Required]
         public int PODId { get; set; }
 
+        // ✅ NEW: Direct file relationship - One template = One file
+        public int? UploadedFileId { get; set; }
 
         [StringLength(100)]
         [Required]
         public string? Title { get; set; } = "Untitled Template";
-         
 
         // Technical PDF processing configuration
         [Required]
@@ -50,7 +52,7 @@ namespace DT_PODSystem.Models.Entities
         [StringLength(500)]
         public string? TechnicalNotes { get; set; }
 
-        // PDF-specific settings
+        // PDF-specific settings (moved from TemplateAttachment)
         public bool HasFormFields { get; set; } = false;
 
         [StringLength(50)]
@@ -58,16 +60,41 @@ namespace DT_PODSystem.Models.Entities
 
         public int? ExpectedPageCount { get; set; }
 
+        // ✅ NEW: PDF metadata (previously in TemplateAttachment)
+        public int? PageCount { get; set; }
+
+        [StringLength(50)]
+        public string? PdfVersion { get; set; }
+
+        public DateTime? LastProcessed { get; set; }
+
+        [StringLength(100)]
+        public string? ProcessingStatus { get; set; }
+
         // Navigation properties
         [ForeignKey("PODId")]
         public virtual POD POD { get; set; } = null!;
 
-        // Technical child entities - PDF processing specific
-        public virtual ICollection<TemplateAttachment> Attachments { get; set; } = new List<TemplateAttachment>();
+        // ✅ NEW: Direct file relationship (replaces Attachments collection)
+        [ForeignKey("UploadedFileId")]
+        public virtual UploadedFile? UploadedFile { get; set; }
+ 
         public virtual ICollection<FieldMapping> FieldMappings { get; set; } = new List<FieldMapping>();
         public virtual ICollection<TemplateAnchor> TemplateAnchors { get; set; } = new List<TemplateAnchor>();
 
         // Processing results still linked to template for technical tracking
         public virtual ICollection<ProcessedFile> ProcessedFiles { get; set; } = new List<ProcessedFile>();
+
+        // ✅ NEW: Computed properties for convenience
+        [NotMapped]
+        public bool HasFile => UploadedFileId.HasValue && UploadedFileId.Value > 0;
+
+        [NotMapped]
+        public bool IsReadyForProcessing => HasFile && Status == TemplateStatus.Active && IsActive;
+
+        [NotMapped]
+        public string DisplayName => POD != null ? $"{POD.Name} - {Title}" : Title;
     }
 }
+
+ 

@@ -30,7 +30,7 @@ namespace DT_PODSystem.Data
         // File and template entities
         public DbSet<UploadedFile> UploadedFiles { get; set; }
         public DbSet<PdfTemplate> PdfTemplates { get; set; } // Now child of POD
-        public DbSet<TemplateAttachment> TemplateAttachments { get; set; }
+
 
         // Field mapping entities
         public DbSet<FieldMapping> FieldMappings { get; set; }
@@ -237,10 +237,11 @@ namespace DT_PODSystem.Data
 
         private void ConfigureTemplateEntities(ModelBuilder modelBuilder)
         {
-            // ✅ UPDATED: PdfTemplate configuration - Now child of POD
+            // ✅ UPDATED: PdfTemplate configuration with direct file relationship
             modelBuilder.Entity<PdfTemplate>(entity =>
             {
                 entity.HasIndex(e => e.PODId); // Index on parent POD
+                entity.HasIndex(e => e.UploadedFileId); // ✅ NEW: Index on file relationship
                 entity.HasIndex(e => e.Status);
                 entity.HasIndex(e => e.CreatedDate);
                 entity.HasIndex(e => e.NamingConvention);
@@ -251,22 +252,26 @@ namespace DT_PODSystem.Data
                 entity.Property(e => e.ProcessedCount).HasDefaultValue(0);
                 entity.Property(e => e.HasFormFields).HasDefaultValue(false);
 
-                // ✅ NEW: Parent relationship to POD
+                // ✅ UNCHANGED: Parent relationship to POD
                 entity.HasOne(t => t.POD)
                     .WithMany(p => p.Templates)
                     .HasForeignKey(t => t.PODId)
-                    .OnDelete(DeleteBehavior.Cascade); // If POD deleted, templates are deleted
+                    .OnDelete(DeleteBehavior.Cascade);
 
-                // Remove old relationships to Category, Department, Vendor (now in POD)
+                // ✅ NEW: Direct file relationship (one-to-one)
+                entity.HasOne(t => t.UploadedFile)
+                    .WithOne(f => f.Template)
+                    .HasForeignKey<PdfTemplate>(t => t.UploadedFileId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // ✅ UPDATED: UploadedFile configuration - Central file hub
+            // ✅ UNCHANGED: UploadedFile configuration (existing code remains the same)
             modelBuilder.Entity<UploadedFile>(entity =>
             {
                 entity.HasIndex(e => e.OriginalFileName);
-                entity.HasIndex(e => e.SavedFileName).IsUnique(); // Ensure unique saved file names
+                entity.HasIndex(e => e.SavedFileName).IsUnique();
                 entity.HasIndex(e => e.IsTemporary);
-                entity.HasIndex(e => e.CreatedDate);                 
+                entity.HasIndex(e => e.CreatedDate);
                 entity.HasIndex(e => e.ExpiryDate);
                 entity.HasIndex(e => e.UploadSource);
 
@@ -278,32 +283,8 @@ namespace DT_PODSystem.Data
                 entity.Property(e => e.FilePath).IsRequired().HasMaxLength(500);
             });
 
-            // ✅ CLEAN: TemplateAttachment configuration - No file duplication
-            modelBuilder.Entity<TemplateAttachment>(entity =>
-            {
-                entity.HasIndex(e => new { e.TemplateId, e.UploadedFileId }).IsUnique(); // Prevent duplicate file attachments
-                entity.HasIndex(e => e.Type);
-                entity.HasIndex(e => e.IsPrimary);
-                entity.HasIndex(e => e.DisplayOrder);
-                entity.HasIndex(e => e.ProcessingStatus);
-
-                // Default values
-                entity.Property(e => e.Type).HasDefaultValue(AttachmentType.Reference);
-                entity.Property(e => e.IsPrimary).HasDefaultValue(false);
-                entity.Property(e => e.DisplayOrder).HasDefaultValue(0);
-                entity.Property(e => e.HasFormFields).HasDefaultValue(false);
-
-                // Relationships
-                entity.HasOne(ta => ta.Template)
-                    .WithMany(t => t.Attachments)
-                    .HasForeignKey(ta => ta.TemplateId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(ta => ta.UploadedFile)
-                    .WithMany(uf => uf.TemplateAttachments)
-                    .HasForeignKey(ta => ta.UploadedFileId)
-                    .OnDelete(DeleteBehavior.Restrict); // Protect central file
-            });
+            // ✅ REMOVE: TemplateAttachment configuration (delete this entire block)
+            // modelBuilder.Entity<TemplateAttachment>(entity => { ... });
         }
 
         private void ConfigureFieldMappingEntities(ModelBuilder modelBuilder)
@@ -1168,84 +1149,73 @@ namespace DT_PODSystem.Data
                 }
             );
 
-            // Seed Sample PDF Templates (Now children of PODs)
             modelBuilder.Entity<PdfTemplate>().HasData(
-                new PdfTemplate
-                {
-                    Id = 1,
-                    PODId = 1, // ERP System Implementation
-                    NamingConvention = "ERP_INV_{YYYYMM}",
-                    Status = TemplateStatus.Active,
-                    Version = "1.2",
-                    ProcessingPriority = 8,
-                    ApprovedBy = "IT Director",
-                    ApprovalDate = DateTime.UtcNow.AddDays(-30),
-                    ProcessedCount = 15,
-                    LastProcessedDate = DateTime.UtcNow.AddDays(-5),
-                    TechnicalNotes = "Requires OCR preprocessing for invoice amounts",
-                    HasFormFields = false,
-                    ExpectedPdfVersion = "1.7",
-                    ExpectedPageCount = 3,
-                    CreatedBy = "System",
-                    CreatedDate = DateTime.UtcNow.AddDays(-30)
-                },
-                new PdfTemplate
-                {
-                    Id = 2,
-                    PODId = 2, // Financial Reporting Automation
-                    NamingConvention = "FIN_RPT_{YYYYMM}_{DD}",
-                    Status = TemplateStatus.Active,
-                    Version = "2.0",
-                    ProcessingPriority = 9,
-                    ApprovedBy = "Finance Director",
-                    ApprovalDate = DateTime.UtcNow.AddDays(-45),
-                    ProcessedCount = 8,
-                    LastProcessedDate = DateTime.UtcNow.AddDays(-2),
-                    TechnicalNotes = "Multi-page template with dynamic table extraction",
-                    HasFormFields = true,
-                    ExpectedPdfVersion = "1.6",
-                    ExpectedPageCount = 5,
-                    CreatedBy = "System",
-                    CreatedDate = DateTime.UtcNow.AddDays(-45)
-                },
-                new PdfTemplate
-                {
-                    Id = 3,
-                    PODId = 5, // Legal Compliance Reporting
-                    NamingConvention = "LEG_COMP_{YYYY}Q{Q}",
-                    Status = TemplateStatus.Draft,
-                    Version = "1.0",
-                    ProcessingPriority = 7,
-                    ProcessedCount = 0,
-                    TechnicalNotes = "Quarterly compliance template with signature verification",
-                    HasFormFields = true,
-                    ExpectedPdfVersion = "1.7",
-                    ExpectedPageCount = 8,
-                    CreatedBy = "System",
-                    CreatedDate = DateTime.UtcNow.AddDays(-10)
-                }
-            );
+    new PdfTemplate
+    {
+        Id = 1,
+        PODId = 1, // ERP System Implementation
+        UploadedFileId = 2, // ✅ NEW: Direct file reference
+        Title = "ERP Invoice Processing Template", // ✅ NEW: Added title
+        NamingConvention = "ERP_INV_{YYYYMM}",
+        Status = TemplateStatus.Active,
+        Version = "1.2",
+        ProcessingPriority = 8,
+        ApprovedBy = "IT Director",
+        ApprovalDate = DateTime.UtcNow.AddDays(-30),
+        ProcessedCount = 15,
+        LastProcessedDate = DateTime.UtcNow.AddDays(-5),
+        TechnicalNotes = "Requires OCR preprocessing for invoice amounts",
+        HasFormFields = false,
+        ExpectedPdfVersion = "1.7",
+        ExpectedPageCount = 3,
+        PageCount = 3, // ✅ NEW: Actual page count
+        PdfVersion = "1.7", // ✅ NEW: Detected PDF version
+        ProcessingStatus = "Active", // ✅ NEW: Processing status
+        CreatedBy = "System",
+        CreatedDate = DateTime.UtcNow.AddDays(-30)
+    },
+    new PdfTemplate
+    {
+        Id = 2,
+        PODId = 2, // Financial Reporting Automation
+        // UploadedFileId = null, // ✅ No file attached yet
+        Title = "Financial Report Template", // ✅ NEW: Added title
+        NamingConvention = "FIN_RPT_{YYYYMM}_{DD}",
+        Status = TemplateStatus.Active,
+        Version = "2.0",
+        ProcessingPriority = 9,
+        ApprovedBy = "Finance Director",
+        ApprovalDate = DateTime.UtcNow.AddDays(-45),
+        ProcessedCount = 8,
+        LastProcessedDate = DateTime.UtcNow.AddDays(-2),
+        TechnicalNotes = "Multi-page template with dynamic table extraction",
+        HasFormFields = true,
+        ExpectedPdfVersion = "1.6",
+        ExpectedPageCount = 5,
+        CreatedBy = "System",
+        CreatedDate = DateTime.UtcNow.AddDays(-45)
+    },
+    new PdfTemplate
+    {
+        Id = 3,
+        PODId = 5, // Legal Compliance Reporting
+        // UploadedFileId = null, // ✅ No file attached yet
+        Title = "Legal Compliance Template", // ✅ NEW: Added title
+        NamingConvention = "LEG_COMP_{YYYY}Q{Q}",
+        Status = TemplateStatus.Draft,
+        Version = "1.0",
+        ProcessingPriority = 7,
+        ProcessedCount = 0,
+        TechnicalNotes = "Quarterly compliance template with signature verification",
+        HasFormFields = true,
+        ExpectedPdfVersion = "1.7",
+        ExpectedPageCount = 8,
+        CreatedBy = "System",
+        CreatedDate = DateTime.UtcNow.AddDays(-10)
+    }
+);
 
-            // Seed Sample Template Attachments (PDF processing files)
-            modelBuilder.Entity<TemplateAttachment>().HasData(
-                new TemplateAttachment
-                {
-                    Id = 1,
-                    TemplateId = 2, // Financial Reporting Template
-                    UploadedFileId = 2, // Financial_Report_Template.pdf
-                    Type = AttachmentType.Original,
-                    DisplayName = "Monthly Financial Report Template",
-                    Description = "Primary template for monthly financial report processing",
-                    DisplayOrder = 1,
-                    IsPrimary = true,
-                    PageCount = 5,
-                    PdfVersion = "1.6",
-                    HasFormFields = true,
-                    ProcessingStatus = "Ready",
-                    CreatedBy = "System",
-                    CreatedDate = DateTime.UtcNow.AddDays(-45)
-                }
-            );
+
         }
     }
 }

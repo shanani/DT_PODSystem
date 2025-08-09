@@ -1,4 +1,4 @@
-﻿@model TemplateViewModel
+﻿@model TemplateFieldMappingViewModel
 @{
     ViewData["Title"] = "Fields Mapping";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -244,7 +244,7 @@
 </div>
 
 
-<partial name="_MappingModals" model="Model.FieldMapping" />
+<partial name="_MappingModals" model="Model" />
 
 
 @section Scripts {
@@ -258,7 +258,7 @@
         window.serverWizardData = @Html.Raw(Json.Serialize(Model));
 
         // ✅ FIX: Explicitly set critical values that might not serialize
-        if (window.serverWizardData) { 
+        if (window.serverWizardData) {
 
             // ✅ KEEP THIS FIX: Ensure step2Data structure exists with files
             window.serverWizardData.step2Data = window.serverWizardData.step2Data || {};
@@ -268,20 +268,18 @@
 
           if (window.serverWizardData) {
               window.serverWizardData.Step3 = window.serverWizardData.Step3 || {};
-              window.serverWizardData.Step3.FieldMappings = @Html.Raw(Json.Serialize(Model.FieldMapping.FieldMappings));
-              window.serverWizardData.Step3.TemplateAnchors = @Html.Raw(Json.Serialize(Model.FieldMapping.TemplateAnchors));
+              window.serverWizardData.Step3.FieldMappings = @Html.Raw(Json.Serialize(Model.FieldMappings));
+              window.serverWizardData.Step3.TemplateAnchors = @Html.Raw(Json.Serialize(Model.TemplateAnchors));
           }
 
     </script>
 
     <!-- Core wizard JavaScript files -->
-    <script src="~/site/wizard-changes-detection.js"></script>
-    <script src="~/site/wizard-shared.js"></script>
+    <script src="~/site/template-mapping-changes-detection.js"></script>
+    <script src="~/site/template-shared.js"></script>
 
 
-    <script src="~/site/wizard-step2.js"></script>
-
-    <script src="~/site/wizard-step3-bullk-add.js"></script>
-    <script src="~/site/wizard-step3-multiselect.js"></script>
-    <script src="~/site/wizard-step3.js"></script>
+    <script src="~/site/template-mapping-bullk-add.js"></script>
+    <script src="~/site/template-mapping-multiselect.js"></script>
+    <script src="~/site/template-mapping.js"></script>
 }

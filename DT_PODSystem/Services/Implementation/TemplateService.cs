@@ -37,7 +37,7 @@ namespace DT_PODSystem.Services.Implementation
             _logger = logger;
             _pdfProcessingService = pdfProcessingService;
         }
-         
+
 
         public async Task<TemplateDetailsViewModel> GetTemplateDetailsAsync(int? templateId = null)
         {
@@ -61,8 +61,7 @@ namespace DT_PODSystem.Services.Implementation
                             .ThenInclude(p => p.Department)
                         .Include(t => t.POD)
                             .ThenInclude(p => p.Vendor)
-                        .Include(t => t.Attachments) // ← Load attachments
-                            .ThenInclude(a => a.UploadedFile) // ← CRITICAL: Load the actual file data
+                        .Include(a => a.UploadedFile) // ← CRITICAL: Load the actual file data
                         .Include(t => t.FieldMappings) // For Step 3
                         .Include(t => t.TemplateAnchors) // For Step 3
                         .FirstOrDefaultAsync(t => t.Id == templateId.Value);
@@ -74,7 +73,7 @@ namespace DT_PODSystem.Services.Implementation
 
                         model.TemplateId = template.Id;
                         model.Title = template.Title ?? "";
-                      
+
                         model.NamingConvention = template.NamingConvention ?? "DOC_POD";
                         model.TechnicalNotes = template.TechnicalNotes ?? "";
                         model.HasFormFields = template.HasFormFields;
@@ -116,26 +115,26 @@ namespace DT_PODSystem.Services.Implementation
                                 } : null
                             };
                         }
-                         
-                       
+
+
                     }
                 }
-                  
+
                 return model;
             }
             catch (Exception ex)
-            { 
+            {
                 return model;
             }
         }
 
-         
-        public async Task<TemplateFieldMappingViewModel> GetTemplateMappingDataAsync( int? templateId = null)
+
+        public async Task<TemplateFieldMappingViewModel> GetTemplateMappingDataAsync(int? templateId = null)
         {
             var model = new TemplateFieldMappingViewModel();
-              
+
             try
-            { 
+            {
 
                 if (templateId.HasValue && templateId.Value > 0)
                 {
@@ -146,21 +145,20 @@ namespace DT_PODSystem.Services.Implementation
                             .ThenInclude(p => p.Department)
                         .Include(t => t.POD)
                             .ThenInclude(p => p.Vendor)
-                        .Include(t => t.Attachments) // ← Load attachments
-                            .ThenInclude(a => a.UploadedFile) // ← CRITICAL: Load the actual file data
+                        .Include(a => a.UploadedFile) // ← CRITICAL: Load the actual file data
                         .Include(t => t.FieldMappings) // For Step 3
                         .Include(t => t.TemplateAnchors) // For Step 3
                         .FirstOrDefaultAsync(t => t.Id == templateId.Value);
 
-                   
+
                 }
-                
+
 
                 return model;
             }
             catch (Exception ex)
             {
-               
+
                 return model;
             }
         }
@@ -214,7 +212,7 @@ namespace DT_PODSystem.Services.Implementation
         }
 
 
-       
+
         // ✅ UPDATED: GetMappedFieldsInfoAsync - Now includes POD information
         public async Task<List<MappedFieldInfo>> GetMappedFieldsInfoAsync(List<int> fieldIds)
         {
@@ -310,111 +308,6 @@ namespace DT_PODSystem.Services.Implementation
             public int AttachmentsUpdated { get; set; }
         }
 
-        public async Task<UpdatePrimaryFileResult> UpdatePrimaryFileWithAttachmentsAsync(int templateId, string primaryFileName)
-        {
-            var result = new UpdatePrimaryFileResult();
-
-            try
-            {
-                var template = await _context.PdfTemplates
-                    .Include(t => t.Attachments)
-                        .ThenInclude(a => a.UploadedFile)
-                    .FirstOrDefaultAsync(t => t.Id == templateId);
-
-                if (template == null)
-                {
-                    result.Message = $"Template {templateId} not found";
-                    return result;
-                }
-
-                // Get all uploaded files that are not yet linked to this template
-                var existingAttachmentFileNames = template.Attachments
-                    .Select(a => a.UploadedFile.SavedFileName) // ✅ FIXED: Access via navigation
-                    .ToHashSet();
-
-                // Find uploaded files that should be linked but aren't yet
-                var unlinkedFiles = await _context.UploadedFiles
-                    .Where(f => f.IsActive && !existingAttachmentFileNames.Contains(f.SavedFileName))
-                    .ToListAsync();
-
-                var attachmentsToCreate = new List<TemplateAttachment>();
-                var attachmentsCreated = 0;
-
-                // Create TemplateAttachments for any unlinked files
-                foreach (var uploadedFile in unlinkedFiles)
-                {
-                    var attachment = new TemplateAttachment
-                    {
-                        TemplateId = templateId,
-                        UploadedFileId = uploadedFile.Id, // ✅ CLEAN: Only reference to central file
-                        Type = uploadedFile.SavedFileName == primaryFileName ? AttachmentType.Original : AttachmentType.Reference,
-                        IsPrimary = uploadedFile.SavedFileName == primaryFileName,
-                        DisplayOrder = 0,
-                        HasFormFields = false,
-                        CreatedDate = DateTime.UtcNow,
-                        CreatedBy = "System"
-                    };
-
-                    attachmentsToCreate.Add(attachment);
-                    attachmentsCreated++;
-                }
-
-                // Add new attachments to context
-                if (attachmentsToCreate.Any())
-                {
-                    _context.TemplateAttachments.AddRange(attachmentsToCreate);
-                }
-
-                // Update existing attachments - reset all to not primary
-                var attachmentsUpdated = 0;
-                foreach (var attachment in template.Attachments)
-                {
-                    var wasPrimary = attachment.IsPrimary;
-                    var wasOriginal = attachment.Type == AttachmentType.Original;
-
-                    attachment.IsPrimary = attachment.UploadedFile.SavedFileName == primaryFileName; // ✅ FIXED: Access via navigation
-                    attachment.Type = attachment.UploadedFile.SavedFileName == primaryFileName ? AttachmentType.Original : AttachmentType.Reference;
-
-                    if (wasPrimary != attachment.IsPrimary || wasOriginal != (attachment.Type == AttachmentType.Original))
-                    {
-                        attachmentsUpdated++;
-                    }
-                }
-
-                // Verify the primary file exists (either in existing attachments or new ones)
-                var primaryFileExists = template.Attachments.Any(a => a.UploadedFile.SavedFileName == primaryFileName) ||
-                                       attachmentsToCreate.Any(a => a.UploadedFile.SavedFileName == primaryFileName);
-
-                if (!primaryFileExists)
-                {
-                    result.Message = $"Primary file '{primaryFileName}' not found in uploaded files";
-                    return result;
-                }
-
-                // Update template timestamp
-                template.ModifiedDate = DateTime.UtcNow;
-                template.ModifiedBy = "System";
-
-                // Save all changes
-                await _context.SaveChangesAsync();
-
-                result.Success = true;
-                result.Message = $"Primary file updated successfully. Created {attachmentsCreated} new attachments, updated {attachmentsUpdated} existing attachments.";
-                result.AttachmentsCreated = attachmentsCreated;
-                result.AttachmentsUpdated = attachmentsUpdated;
-
-                _logger.LogInformation("Primary file updated to {PrimaryFileName} for template {TemplateId}. Created {Created} attachments, updated {Updated} attachments.",
-                    primaryFileName, templateId, attachmentsCreated, attachmentsUpdated);
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating primary file with attachments for template {TemplateId}", templateId);
-                result.Message = $"Error updating primary file: {ex.Message}";
-                return result;
-            }
-        }
 
         // ✅ UPDATED: SearchMappedFieldsAsync - Now includes POD information
         public async Task<SearchMappedFieldsResponse> SearchMappedFieldsAsync(SearchMappedFieldsRequest request)
@@ -594,8 +487,7 @@ namespace DT_PODSystem.Services.Implementation
                         .ThenInclude(d => d.GeneralDirectorate)
                 .Include(t => t.POD)
                     .ThenInclude(p => p.Vendor)
-                .Include(t => t.Attachments)
-                    .ThenInclude(a => a.UploadedFile) // ✅ CLEAN: Access file data via navigation
+                .Include(a => a.UploadedFile) // ✅ CLEAN: Access file data via navigation
                 .Include(t => t.FieldMappings)
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
@@ -678,7 +570,7 @@ namespace DT_PODSystem.Services.Implementation
             {
                 var template = await _context.PdfTemplates
                     .Include(t => t.POD)
-                    .Include(t => t.Attachments)
+                    .Include(t => t.UploadedFile)
                     .Include(t => t.FieldMappings)
                     .FirstOrDefaultAsync(t => t.Id == templateId);
 
@@ -688,16 +580,7 @@ namespace DT_PODSystem.Services.Implementation
                     return result;
                 }
 
-                // Validate Step 2: Files (was Step 1)
-                if (!template.Attachments.Any())
-                {
-                    result.Errors.Add("At least one PDF file must be uploaded");
-                }
-
-                if (!template.Attachments.Any(a => a.Type == AttachmentType.Original))
-                {
-                    result.Errors.Add("A primary PDF file must be selected");
-                }
+                  
 
                 // Validate Step 1: Template technical details
                 if (string.IsNullOrWhiteSpace(template.NamingConvention))
@@ -805,9 +688,7 @@ namespace DT_PODSystem.Services.Implementation
 
                 if (string.IsNullOrWhiteSpace(template.NamingConvention))
                     result.Errors.Add("Template naming convention is required");
-
-                if (!template.Attachments.Any())
-                    result.Errors.Add("At least one PDF file is required");
+                 
 
                 if (!template.FieldMappings.Any())
                     result.Errors.Add("At least one field mapping is required");
@@ -961,17 +842,7 @@ namespace DT_PODSystem.Services.Implementation
             };
         }
 
-        // Helper methods (unchanged signatures, updated implementations)
-        public async Task<List<TemplateAttachment>> GetTemplateAttachmentsAsync(int templateId)
-        {
-            return await _context.TemplateAttachments
-                .Include(a => a.UploadedFile) // ✅ CLEAN: Access file data via navigation
-                .Where(a => a.TemplateId == templateId)
-                .OrderBy(a => a.Type)
-                .ThenBy(a => a.DisplayOrder)
-                .ToListAsync();
-        }
-
+      
         public async Task<List<FieldMapping>> GetTemplateFieldMappingsAsync(int templateId)
         {
             return await _context.FieldMappings
@@ -982,61 +853,7 @@ namespace DT_PODSystem.Services.Implementation
                 .ToListAsync();
         }
 
-        public async Task<bool> UpdatePrimaryFileAsync(int templateId, string primaryFileName)
-        {
-            try
-            {
-                var template = await _context.PdfTemplates
-                    .Include(t => t.Attachments)
-                        .ThenInclude(a => a.UploadedFile)
-                    .FirstOrDefaultAsync(t => t.Id == templateId);
-
-                if (template == null)
-                {
-                    _logger.LogWarning("Template {TemplateId} not found for primary file update", templateId);
-                    return false;
-                }
-
-                // Find the attachment with the specified filename
-                var targetAttachment = template.Attachments
-                    .FirstOrDefault(a => a.UploadedFile.SavedFileName == primaryFileName); // ✅ CLEAN: Access via navigation
-
-                if (targetAttachment == null)
-                {
-                    _logger.LogWarning("File {PrimaryFileName} not found in template {TemplateId} attachments",
-                        primaryFileName, templateId);
-                    return false;
-                }
-
-                // Reset all attachments to not primary
-                foreach (var attachment in template.Attachments)
-                {
-                    attachment.IsPrimary = false;
-                    attachment.Type = AttachmentType.Reference;
-                }
-
-                // Set the target attachment as primary
-                targetAttachment.IsPrimary = true;
-                targetAttachment.Type = AttachmentType.Original;
-
-                // Update template timestamp
-                template.ModifiedDate = DateTime.UtcNow;
-                template.ModifiedBy = "System";
-
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Primary file updated to {PrimaryFileName} for template {TemplateId}",
-                    primaryFileName, templateId);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating primary file for template {TemplateId}", templateId);
-                return false;
-            }
-        }
-
+       
         public async Task<bool> DeleteTemplateAsync(int id)
         {
             var template = await _context.PdfTemplates.FindAsync(id);

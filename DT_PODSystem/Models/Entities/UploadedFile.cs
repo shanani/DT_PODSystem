@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -7,6 +7,7 @@ namespace DT_PODSystem.Models.Entities
     /// <summary>
     /// UploadedFile - Central repository for all file uploads
     /// Single source of truth for file information across the entire system
+    /// Now supports direct template relationship (one-to-one)
     /// </summary>
     public class UploadedFile : BaseEntity
     {
@@ -50,7 +51,12 @@ namespace DT_PODSystem.Models.Entities
         public string? UploadSource { get; set; } // "Wizard", "POD", "Bulk", etc.
 
         // Navigation properties - Central hub for all file references
-        public virtual ICollection<TemplateAttachment> TemplateAttachments { get; set; } = new List<TemplateAttachment>();
+
+        // ✅ REMOVED: TemplateAttachment collection (replaced with direct relationship)
+        // public virtual ICollection<TemplateAttachment> TemplateAttachments { get; set; } = new List<TemplateAttachment>();
+
+        // ✅ NEW: Direct template relationship (one-to-one)
+        public virtual PdfTemplate? Template { get; set; }
 
         public virtual ICollection<PODAttachment> PODAttachments { get; set; } = new List<PODAttachment>();
 

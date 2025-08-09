@@ -74,7 +74,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Update="wwwroot\site\wizard-step3-multiselect.js">
+	  <Content Update="wwwroot\site\template-mapping-multiselect.js">
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 	  </Content>
