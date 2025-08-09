@@ -21,7 +21,7 @@ $(document).ready(function () {
 
 // *** UPDATED: Create template ID after Step 1 validation ***
 async function nextStep() {
-    debugger;
+    
     console.log('🔄 Next clicked - validating step', wizardData.currentStep);
 
     if (isSaving) {

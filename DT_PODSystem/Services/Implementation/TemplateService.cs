@@ -694,75 +694,7 @@ namespace DT_PODSystem.Services.Implementation
             }
         }
 
-
-        // ✅ UPDATED: SaveStep2DataAsync - Now saves PDF uploads (was Step1)
-        public async Task<bool> SaveStep2DataAsync(int templateId, Step2DataDto stepData)
-        {
-            try
-            {
-                var template = await _context.PdfTemplates
-                    .Include(t => t.Attachments)
-                    .FirstOrDefaultAsync(t => t.Id == templateId);
-
-                if (template == null)
-                    return false;
-
-                // Clear existing attachments
-                _context.TemplateAttachments.RemoveRange(template.Attachments);
-
-                // Add new attachments
-                foreach (var file in stepData.UploadedFiles)
-                {
-                    // Find or create UploadedFile record
-                    var uploadedFile = await _context.UploadedFiles
-                        .FirstOrDefaultAsync(f => f.SavedFileName == file.SavedFileName);
-
-                    if (uploadedFile == null)
-                    {
-                        uploadedFile = new UploadedFile
-                        {
-                            OriginalFileName = file.OriginalFileName,
-                            SavedFileName = file.SavedFileName,
-                            FilePath = file.FilePath,
-                            FileSize = file.FileSize,
-                            ContentType = file.ContentType,
-                            CreatedDate = DateTime.UtcNow,
-                            CreatedBy = "System",
-                            IsActive = true
-                        };
-                        _context.UploadedFiles.Add(uploadedFile);
-                        await _context.SaveChangesAsync(); // Save to get ID
-                    }
-
-                    // Create clean TemplateAttachment (no file duplication)
-                    var attachment = new TemplateAttachment
-                    {
-                        TemplateId = templateId,
-                        UploadedFileId = uploadedFile.Id, // ✅ CLEAN: Only reference to central file
-                        Type = file.SavedFileName == stepData.PrimaryFileName ?
-                               AttachmentType.Original : AttachmentType.Reference,
-                        IsPrimary = file.SavedFileName == stepData.PrimaryFileName,
-                        DisplayOrder = 0,
-                        HasFormFields = false,
-                        CreatedDate = DateTime.UtcNow,
-                        CreatedBy = "System"
-                    };
-
-                    _context.TemplateAttachments.Add(attachment);
-                }
-
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Saved Step 2 data for template {TemplateId} with {FileCount} files",
-                    templateId, stepData.UploadedFiles.Count);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving Step 2 data for template {TemplateId}", templateId);
-                return false;
-            }
-        }
+         
 
         // Validation, finalization, and other methods remain unchanged...
         public async Task<TemplateValidationResult> ValidateTemplateCompletenessAsync(int templateId)

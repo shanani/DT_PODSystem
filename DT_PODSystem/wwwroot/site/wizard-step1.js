@@ -52,9 +52,74 @@ function initializePODSelection() {
     updateValidationStatus('pod', $('#pod-id').val() !== '');
 }
 
-// *** NEW: Get Step 1 form data for template creation ***
+ 
+ 
+
+// Update naming convention preview with dynamic pattern
+function updatePreviewConvention() {
+    const convention = $('#naming-convention').val() || 'DOC_POD';
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+
+    // Generate example with current date
+    const example = `${convention}_${year}${month}_001.pdf`;
+    $('#preview-convention').text(example);
+}
+
+// ✅ FIX: Update validateStep1Custom function with correct field IDs
+function validateStep1Custom() {
+    const podId = $('#pod-id').val();
+    // ✅ CHANGE: Use #template-title instead of #template-name
+    const templateName = $('#template-title').val()?.trim() || '';
+    const namingConvention = $('#naming-convention').val()?.trim() || '';
+
+    // Clear previous validation styles
+    $('#pod-id, #template-title, #naming-convention').removeClass('is-invalid');
+
+    let isValid = true;
+    const errors = [];
+
+    // POD selection validation
+    if (!podId || podId <= 0) {
+        errors.push('Please select a POD. Templates must belong to a POD.');
+        $('#pod-id').addClass('is-invalid').focus();
+        isValid = false;
+    }
+
+    // Template name validation
+    if (!templateName || templateName.length < 3) {
+        errors.push('Template name must be at least 3 characters');
+        $('#template-title').addClass('is-invalid');
+        if (isValid) $('#template-title').focus();
+        isValid = false;
+    } else if (templateName.length > 200) {
+        errors.push('Template name cannot exceed 200 characters');
+        $('#template-title').addClass('is-invalid');
+        if (isValid) $('#template-title').focus();
+        isValid = false;
+    }
+
+    // Naming convention validation
+    if (!namingConvention || namingConvention.length < 3) {
+        errors.push('Naming convention must be at least 3 characters');
+        $('#naming-convention').addClass('is-invalid');
+        if (isValid) $('#naming-convention').focus();
+        isValid = false;
+    }
+
+    if (!isValid) {
+        const errorMessage = errors.length === 1 ?
+            errors[0] :
+            `Please fix the following issues:\n• ${errors.join('\n• ')}`;
+        alert.warning(errorMessage);
+    }
+
+    return isValid;
+}
+
+// ✅ FIX: Update getStep1FormData function with correct field IDs
 function getStep1FormData() {
-    // Safe value extraction with null checks
     const safeGetValue = (selector) => {
         const element = $(selector);
         return element.length > 0 ? (element.val() || '') : '';
@@ -69,11 +134,11 @@ function getStep1FormData() {
     console.log('🔍 [DEBUG] Collecting Step 1 form data...');
 
     const formData = {
-        // *** CRITICAL: POD ID is required for template creation ***
+        // POD ID - required for template creation
         podId: safeGetInt('#pod-id'),
 
-        // Template technical configuration
-        name: safeGetValue('#template-name').trim(),
+        // ✅ CHANGE: Use #template-title instead of #template-name
+        name: safeGetValue('#template-title').trim(),
         description: safeGetValue('#template-description').trim(),
         namingConvention: safeGetValue('#naming-convention').trim() || 'DOC_POD',
         technicalNotes: safeGetValue('#technical-notes').trim(),
@@ -88,62 +153,10 @@ function getStep1FormData() {
     return formData;
 }
 
-// *** UPDATED: Enhanced validation for POD-Template relationship ***
-function validateStep1Custom() {
-    const podId = $('#pod-id').val();
-    const templateName = $('#template-name').val().trim();
-    const namingConvention = $('#naming-convention').val().trim();
-
-    // Clear previous validation styles
-    $('#pod-id, #template-name, #naming-convention').removeClass('is-invalid');
-
-    let isValid = true;
-    const errors = [];
-
-    // *** CRITICAL: POD selection is required ***
-    if (!podId || podId <= 0) {
-        errors.push('Please select a POD. Templates must belong to a POD.');
-        $('#pod-id').addClass('is-invalid').focus();
-        isValid = false;
-    }
-
-    // Template name validation
-    if (!templateName || templateName.length < 3) {
-        errors.push('Template name must be at least 3 characters');
-        $('#template-name').addClass('is-invalid');
-        if (isValid) $('#template-name').focus(); // Focus first invalid field
-        isValid = false;
-    } else if (templateName.length > 200) {
-        errors.push('Template name cannot exceed 200 characters');
-        $('#template-name').addClass('is-invalid');
-        if (isValid) $('#template-name').focus();
-        isValid = false;
-    }
-
-    // Naming convention validation
-    if (!namingConvention || namingConvention.length < 3) {
-        errors.push('Naming convention must be at least 3 characters');
-        $('#naming-convention').addClass('is-invalid');
-        if (isValid) $('#naming-convention').focus();
-        isValid = false;
-    }  
-
-    if (!isValid) {
-        const errorMessage = errors.length === 1 ? errors[0] :
-            `Please fix the following issues:\n• ${errors.join('\n• ')}`;
-        alert.warning(errorMessage);
-    }
-
-    return isValid;
-}
-
-// *** NO SAVE FUNCTION FOR STEP 1 - Template creation happens in wizard-shared.js ***
-// This step only validates, the actual template creation happens on Next button
-
-// Setup event handlers for Step 1
+// ✅ FIX: Update setupStep1EventHandlers function with correct field IDs
 function setupStep1EventHandlers() {
-    // Template name updates
-    $('#template-name').on('input', function () {
+    // ✅ CHANGE: Use #template-title instead of #template-name
+    $('#template-title').on('input', function () {
         const value = $(this).val();
         $('#preview-name').text(value || 'Template Name');
         updateValidationStatus('name', value.length >= 3);
@@ -185,10 +198,10 @@ function setupStep1EventHandlers() {
     console.log('✅ Step 1 event handlers setup complete');
 }
 
-// Update all preview displays
+// ✅ FIX: Update updateAllPreviews function with correct field IDs
 function updateAllPreviews() {
-    // Update name preview
-    const templateName = $('#template-name').val();
+    // ✅ CHANGE: Use #template-title instead of #template-name
+    const templateName = $('#template-title').val();
     $('#preview-name').text(templateName || 'Template Name');
 
     // Update description preview
@@ -215,26 +228,15 @@ function updateAllPreviews() {
     console.log('🖼️ All previews updated');
 }
 
-// Update naming convention preview with dynamic pattern
-function updatePreviewConvention() {
-    const convention = $('#naming-convention').val() || 'DOC_POD';
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-
-    // Generate example with current date
-    const example = `${convention}_${year}${month}_001.pdf`;
-    $('#preview-convention').text(example);
-}
-
-// Load existing data from server (for edit mode)
+// ✅ FIX: Update loadServerData function with correct field IDs
 function loadServerData() {
     if (wizardData && wizardData.step1) {
         const step1Data = wizardData.step1;
 
         // Load form values
         if (step1Data.podId) $('#pod-id').val(step1Data.podId);
-        if (step1Data.name) $('#template-name').val(step1Data.name);
+        // ✅ CHANGE: Use #template-title instead of #template-name
+        if (step1Data.name) $('#template-title').val(step1Data.name);
         if (step1Data.description) $('#template-description').val(step1Data.description);
         if (step1Data.namingConvention) $('#naming-convention').val(step1Data.namingConvention);
         if (step1Data.technicalNotes) $('#technical-notes').val(step1Data.technicalNotes);

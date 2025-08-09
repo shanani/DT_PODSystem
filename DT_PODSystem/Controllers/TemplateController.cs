@@ -740,20 +740,7 @@ namespace DT_PODSystem.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> SaveStep2([FromBody] SaveStep2Request request)
-        {
-            try
-            {
-                var success = await _templateService.SaveStep2DataAsync(request.TemplateId, request.Data);
-                return Json(new { success, message = success ? "Step 2 saved" : "Failed to save" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving Step 2");
-                return Json(new { success = false, message = "Error occurred" });
-            }
-        }
+        
 
         // ✅ FIX: Add null check in SaveStep1 controller method
         // Replace the SaveStep1 method in TemplateController.cs
